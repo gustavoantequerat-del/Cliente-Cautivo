@@ -1,0 +1,9 @@
+# Úselo SOLO si el cPanel no permite apuntar el dominio a /public.
+# Renómbrelo a .htaccess y colóquelo en la RAÍZ del proyecto (junto a artisan):
+# redirige todo a /public y bloquea el acceso a .env, vendor, storage, etc.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(\.env|\.git|composer\.(json|lock)|artisan|vendor|storage|database|app|config|routes|resources|tests|bootstrap) - [F,L,NC]
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
