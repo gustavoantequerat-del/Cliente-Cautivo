@@ -34,6 +34,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/restablecer', [Controlador_Recuperar_Contrasena::class, 'Guardar_Nueva_Contrasena']);
 });
 
+// Acceso del staff: va separado del de clientes (más intentos bloqueados y sin compartir pantalla)
+Route::middleware('guest')->group(function () {
+    Route::get('/admin/login', [Controlador_Inicio_Sesion::class, 'Mostrar_Formulario_Ingreso_Administracion']);
+    Route::post('/admin/login', [Controlador_Inicio_Sesion::class, 'Iniciar_Sesion_Administracion'])->middleware('throttle:5,1');
+});
+
 Route::post('/logout', [Controlador_Inicio_Sesion::class, 'Cerrar_Sesion'])->middleware('auth');
 
 // --- Portal cliente --------------------------------------------------------

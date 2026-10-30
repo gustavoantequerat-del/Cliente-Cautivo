@@ -41,11 +41,13 @@ class Controlador_Recuperar_Contrasena
             'password' => ['required', 'confirmed', Regla_Contrasena::min(10)->letters()->numbers()],
         ]);
 
+        $Login_Correspondiente = '/login';
         $Resultado = Password::reset(
             $Peticion->only('email', 'password', 'password_confirmation', 'token'),
-            function (Modelo_Usuario $Usuario, string $Nueva_Contrasena) {
+            function (Modelo_Usuario $Usuario, string $Nueva_Contrasena) use (&$Login_Correspondiente) {
                 $Usuario->forceFill(['password' => $Nueva_Contrasena])->setRememberToken(null);
                 $Usuario->save();
+                $Login_Correspondiente = $Usuario->Es_Staff() ? '/admin/login' : '/login';
             }
         );
 
@@ -53,6 +55,6 @@ class Controlador_Recuperar_Contrasena
             throw ValidationException::withMessages(['email' => 'El enlace no es válido o expiró.']);
         }
 
-        return redirect('/login')->with('Mensaje_Exito', 'Contraseña actualizada. Ya puede ingresar.');
+        return redirect($Login_Correspondiente)->with('Mensaje_Exito', 'Contraseña actualizada. Ya puede ingresar.');
     }
 }

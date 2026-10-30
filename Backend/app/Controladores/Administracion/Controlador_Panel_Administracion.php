@@ -18,17 +18,17 @@ class Controlador_Panel_Administracion
         $Recursos_Por_Grupo = [];
         foreach (Servicio_Definicion_Cms::Obtener_Todos_Los_Recursos() as $Clave_Recurso => $Recurso) {
             $Recursos_Por_Grupo[$Recurso['Grupo']][] = [
-                'Clave' => $Clave_Recurso, 'Titulo' => $Recurso['Titulo'], 'Cantidad' => $Recurso['Modelo']::count(),
+                'Clave' => $Clave_Recurso, 'Titulo' => $Recurso['Titulo'], 'Icono' => $Recurso['Icono'], 'Cantidad' => $Recurso['Modelo']::count(),
             ];
         }
 
         return Inertia::render('Administracion/Pagina_Resumen', [
             'Indicadores' => [
-                ['Etiqueta' => 'Instituciones activas', 'Valor' => Modelo_Institucion::where('esta_activa', true)->count()],
-                ['Etiqueta' => 'Credenciales activas', 'Valor' => Modelo_Usuario::where('esta_activo', true)->where('rol', '!=', Modelo_Usuario::Rol_Staff)->count()],
-                ['Etiqueta' => 'Solicitudes de horas pendientes', 'Valor' => Modelo_Solicitud_Horas::whereIn('estado', ['pendiente', 'en_atencion'])->count()],
-                ['Etiqueta' => 'Entregables esperando aprobación', 'Valor' => Modelo_Entregable::where('estado', 'pendiente_aprobacion')->count()],
-                ['Etiqueta' => 'Facturas pendientes', 'Valor' => Modelo_Factura::where('estado', 'pendiente')->count()],
+                ['Etiqueta' => 'Instituciones activas', 'Icono' => 'edificio', 'Url' => '/admin/instituciones', 'Valor' => Modelo_Institucion::where('esta_activa', true)->count()],
+                ['Etiqueta' => 'Credenciales activas', 'Icono' => 'credencial', 'Url' => '/admin/usuarios', 'Valor' => Modelo_Usuario::where('esta_activo', true)->where('rol', '!=', Modelo_Usuario::Rol_Staff)->count()],
+                ['Etiqueta' => 'Solicitudes de horas', 'Icono' => 'reloj', 'Url' => '/admin/solicitudes-horas', 'Valor' => Modelo_Solicitud_Horas::whereIn('estado', ['pendiente', 'en_atencion'])->count()],
+                ['Etiqueta' => 'Esperando aprobación', 'Icono' => 'boveda', 'Url' => '/admin/entregables', 'Valor' => Modelo_Entregable::where('estado', 'pendiente_aprobacion')->count()],
+                ['Etiqueta' => 'Facturas pendientes', 'Icono' => 'facturacion', 'Url' => '/admin/facturas', 'Valor' => Modelo_Factura::where('estado', 'pendiente')->count()],
             ],
             'Recursos_Por_Grupo' => $Recursos_Por_Grupo,
         ]);

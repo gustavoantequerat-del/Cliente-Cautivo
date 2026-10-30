@@ -8,6 +8,7 @@ import Componente_Calculadora_Huella from '../../Componentes/Componente_Calculad
 import Componente_Boton_Descargar_Entregable from '../../Componentes/Componente_Boton_Descargar_Entregable.vue';
 import Componente_Panel_Aprobacion from '../../Componentes/Componente_Panel_Aprobacion.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
+import Componente_Estado_Vacio from '../../Componentes/Componente_Estado_Vacio.vue';
 
 const Propiedades = defineProps({ Entregables: Object, Tipos_Entregable: Array, Proyectos: Array, Filtros_Aplicados: Object, Registro_Accesos: Array });
 const Pagina = usePage();
@@ -34,8 +35,7 @@ const Abreviar_Huella = (Huella) => (Huella ? Huella.slice(0, 8) + '…' : '—'
 
 <template>
     <Head title="Historial de entregables" />
-    <Componente_Encabezado_Pagina Antetitulo="Bóveda de entregables" Titulo="Historial de entregables"
-                                  Introduccion="Informes, presentaciones, auditorías y plantillas de todos los proyectos con Blockfinity, siempre disponibles para su institución." />
+    <Componente_Encabezado_Pagina Icono="boveda" Antetitulo="Bóveda" Titulo="Entregables" Introduccion="Todos los documentos de sus proyectos." />
 
     <Componente_Panel_Aprobacion v-for="Entregable in Entregables_Pendientes" :key="Entregable.Id" :Entregable="Entregable" />
 
@@ -50,14 +50,16 @@ const Abreviar_Huella = (Huella) => (Huella ? Huella.slice(0, 8) + '…' : '—'
             <div class="row between">
                 <h2>{{ Nombre_Tipo_Filtrado ?? 'Todos los documentos' }}</h2>
                 <label class="row">
-                    <span class="label">Proyecto</span>
+                    <Componente_Icono Nombre="proyectos" :Tamano="18" />
+                    <span class="sr-only">Proyecto</span>
                     <select v-model="Filtros.proyecto" class="select" :class="$style.select" @change="Aplicar_Filtros">
                         <option value="">Todos los proyectos</option>
                         <option v-for="Proyecto in Proyectos" :key="Proyecto.Id" :value="Proyecto.Id">{{ Proyecto.Nombre }}</option>
                     </select>
                 </label>
             </div>
-            <div class="table-wrap">
+            <Componente_Estado_Vacio v-if="!Entregables.data.length" Icono="boveda" Texto="No hay documentos con estos filtros" />
+            <div v-else class="table-wrap">
                 <table class="table">
                     <thead><tr><th>Documento</th><th>Unidad</th><th>Fecha</th><th>Estado</th><th>Huella</th><th><span class="sr-only">Acciones</span></th></tr></thead>
                     <tbody>
@@ -72,7 +74,6 @@ const Abreviar_Huella = (Huella) => (Huella ? Huella.slice(0, 8) + '…' : '—'
                             <td class="mono" :class="$style.small" :title="Entregable.Huella_Sha256">{{ Abreviar_Huella(Entregable.Huella_Sha256) }}</td>
                             <td><Componente_Boton_Descargar_Entregable :Entregable="Entregable" /></td>
                         </tr>
-                        <tr v-if="!Entregables.data.length"><td colspan="6" class="muted">No hay documentos con estos filtros.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -80,20 +81,19 @@ const Abreviar_Huella = (Huella) => (Huella ? Huella.slice(0, 8) + '…' : '—'
         </section>
 
         <aside class="stack" :class="$style.side">
-            <div class="card stack">
-                <div class="row"><Componente_Icono Nombre="huella" /><h3>Verificar un documento</h3></div>
-                <p class="muted" :class="$style.small">¿Recibió una copia de un entregable? Compruebe que no fue alterado comparando su huella con el registro.</p>
+            <div class="card stack" :class="$style.verify">
+                <div class="row"><span class="burbuja"><Componente_Icono Nombre="huella" /></span><div><h3>Verificar documento</h3><span class="muted" :class="$style.small">¿Es auténtica su copia?</span></div></div>
                 <Componente_Calculadora_Huella @Huella_Calculada="Verificar_Huella" />
-                <p v-if="Esta_Verificando" class="muted">Comparando…</p>
+                <p v-if="Esta_Verificando" class="muted row"><Componente_Icono Nombre="cargando" :Tamano="16" class="girando" />Comparando…</p>
                 <div v-else-if="Resultado_Verificacion" :class="[$style.result, Resultado_Verificacion.Es_Autentico ? $style.ok : $style.bad]" role="status">
-                    <strong>{{ Resultado_Verificacion.Es_Autentico ? 'Documento auténtico' : 'Sin coincidencias' }}</strong>
+                    <strong class="row"><Componente_Icono :Nombre="Resultado_Verificacion.Es_Autentico ? 'escudo' : 'alerta'" :Tamano="18" />{{ Resultado_Verificacion.Es_Autentico ? 'Documento auténtico' : 'Sin coincidencias' }}</strong>
                     <span v-if="Resultado_Verificacion.Es_Autentico">Coincide con «{{ Resultado_Verificacion.Titulo }}» ({{ Resultado_Verificacion.Fecha }}).</span>
-                    <span v-else>La huella no coincide con ningún documento registrado. Puede haber sido modificado.</span>
+                    <span v-else>Puede haber sido modificado.</span>
                     <span class="mono" :class="$style.hash">{{ Resultado_Verificacion.Huella }}</span>
                 </div>
             </div>
             <div v-if="Registro_Accesos.length" class="card stack">
-                <h3>Registro de accesos</h3>
+                <div class="row"><span class="burbuja burbuja-sm burbuja-violeta"><Componente_Icono Nombre="usuarios" :Tamano="18" /></span><h3>Accesos recientes</h3></div>
                 <ul :class="$style.access">
                     <li v-for="(Acceso, Posicion) in Registro_Accesos" :key="Posicion"><strong>{{ Acceso.Quien }}</strong><span>{{ Acceso.Que }}</span><span class="muted">{{ Acceso.Cuando }}</span></li>
                 </ul>
@@ -108,7 +108,8 @@ const Abreviar_Huella = (Huella) => (Huella ? Huella.slice(0, 8) + '…' : '—'
 .side { flex: 1 1 300px; min-width: 0; }
 .select { width: auto; min-width: 200px; }
 .small { font-size: 12px; }
-.result { display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 10px; font-size: 14px; }
+.verify { position: sticky; top: 90px; }
+.result { display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 12px; font-size: 14px; animation: aparecer-escala 0.35s var(--ease) both; }
 .ok { background: var(--ok-bg); color: var(--ok-fg); }
 .bad { background: var(--danger-bg); color: var(--danger-fg); }
 .hash { font-size: 11px; word-break: break-all; opacity: 0.8; }

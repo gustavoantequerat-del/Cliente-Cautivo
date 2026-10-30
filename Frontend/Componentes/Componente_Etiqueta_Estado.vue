@@ -23,5 +23,9 @@ const Texto_Y_Clase = computed(() => Estados_Conocidos[Propiedades.Estado] ?? [P
 </script>
 
 <template>
-    <span :class="['badge', Texto_Y_Clase[1]]">{{ Texto_Y_Clase[0] }}</span>
+    <span :class="['badge', Texto_Y_Clase[1]]"><span :class="$style.dot" />{{ Texto_Y_Clase[0] }}</span>
 </template>
+
+<style module>
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.8; }
+</style>

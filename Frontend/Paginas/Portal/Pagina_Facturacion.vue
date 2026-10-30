@@ -13,10 +13,11 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
 
 <template>
     <Head title="Facturación y contratos" />
-    <Componente_Encabezado_Pagina Titulo="Facturación y contratos" Introduccion="Facturas electrónicas, presupuestos firmados y contratos de su institución, con su historial completo." />
+    <Componente_Encabezado_Pagina Icono="facturacion" Titulo="Facturación" Introduccion="Facturas, contratos y presupuestos." />
 
-    <section :class="$style.kpis">
-        <div v-for="Indicador in Indicadores" :key="Indicador.Etiqueta" :class="$style.kpi">
+    <section :class="$style.kpis" class="escalonado">
+        <div v-for="(Indicador, Posicion) in Indicadores" :key="Indicador.Etiqueta" :class="$style.kpi" class="elevable">
+            <span class="burbuja" :class="['burbuja-ambar', '', 'burbuja-violeta'][Posicion]"><Componente_Icono :Nombre="['dinero', 'facturacion', 'calendario'][Posicion]" /></span>
             <span class="eyebrow">{{ Indicador.Etiqueta }}</span>
             <strong :class="$style.value">{{ Indicador.Valor }}</strong>
             <span v-if="Indicador.Detalle" class="muted">{{ Indicador.Detalle }}</span>
@@ -47,13 +48,13 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
                                 <span v-if="!Factura.Tiene_Pdf && !Factura.Tiene_Xml" class="muted">—</span>
                             </td>
                         </tr>
-                        <tr v-if="!Facturas.length"><td colspan="7" class="muted">Aún no hay facturas registradas.</td></tr>
+                        <tr v-if="!Facturas.length"><td colspan="7" class="muted">Aún no hay facturas.</td></tr>
                     </tbody>
                 </table>
             </div>
 
             <div v-else class="stack">
-                <article v-for="Contrato in Contratos" :key="Contrato.Id" :class="$style.contract">
+                <article v-for="Contrato in Contratos" :key="Contrato.Id" :class="$style.contract" class="elevable">
                     <div class="stack" :class="$style.cText">
                         <div class="row">
                             <span class="badge badge-navy">{{ Contrato.Codigo_Unidad ?? 'Blockfinity' }}</span>
@@ -67,18 +68,17 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
                     </div>
                     <a v-if="Contrato.Tiene_Archivo" :href="`/facturacion/contrato/${Contrato.Id}`" target="_blank" rel="noopener" class="btn btn-secondary btn-sm"><Componente_Icono Nombre="descargar" :Tamano="16" />Descargar</a>
                 </article>
-                <p v-if="!Contratos.length" class="card muted">Aún no hay contratos registrados.</p>
+                <p v-if="!Contratos.length" class="vacio">Aún no hay contratos.</p>
             </div>
-            <p class="muted" :class="$style.small">Facturación electrónica emitida por Blockfinity Advisors S.R.L. en Bolivia, válida para crédito fiscal.</p>
         </section>
 
         <aside class="stack" :class="$style.side">
             <div class="card stack">
-                <h3>Datos de facturación</h3>
+                <div class="row"><span class="burbuja burbuja-sm"><Componente_Icono Nombre="edificio" :Tamano="18" /></span><h3>Datos de facturación</h3></div>
                 <dl :class="$style.dl">
                     <div v-for="Dato in Datos_Facturacion" :key="Dato.Etiqueta"><dt>{{ Dato.Etiqueta }}</dt><dd>{{ Dato.Valor }}</dd></div>
                 </dl>
-                <a v-if="Ejecutivo_Cuenta" :href="`mailto:${Ejecutivo_Cuenta.Email}?subject=${encodeURIComponent('Cambio de datos de facturación')}`" class="link-arrow">Solicitar cambio de datos →</a>
+                <a v-if="Ejecutivo_Cuenta" :href="`mailto:${Ejecutivo_Cuenta.Email}?subject=${encodeURIComponent('Cambio de datos de facturación')}`" class="link-arrow">Pedir un cambio <Componente_Icono Nombre="flecha" :Tamano="16" /></a>
             </div>
         </aside>
     </div>
@@ -86,7 +86,7 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
 
 <style module>
 .kpis { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
-.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow); }
 .value { font-size: 24px; font-weight: 800; color: var(--navy-950); }
 .layout { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
 .main { flex: 999 1 560px; min-width: 0; }
@@ -94,7 +94,7 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
 .nowrap { white-space: nowrap; }
 .gap { margin-left: 6px; }
 .small { font-size: 12px; }
-.contract { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
+.contract { box-shadow: var(--shadow); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
 .cText { gap: 6px; flex: 1 1 300px; }
 .dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .dl div { display: flex; flex-direction: column; gap: 2px; }

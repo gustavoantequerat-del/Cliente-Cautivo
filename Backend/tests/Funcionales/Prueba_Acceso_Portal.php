@@ -66,6 +66,30 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
     }
 
     #[Test]
+    public function El_Staff_Solo_Ingresa_Por_El_Login_Del_Admin(): void
+    {
+        $this->get('/admin')->assertRedirect('/admin/login');
+        $this->get('/admin/login')->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->component('Acceso/Pagina_Ingresar_Administracion'));
+
+        $Staff = $this->Crear_Staff();
+        $this->post('/login', ['email' => $Staff->email, 'password' => self::Contrasena_Prueba])->assertSessionHasErrors('email');
+        $this->assertGuest();
+
+        $this->post('/admin/login', ['email' => $Staff->email, 'password' => self::Contrasena_Prueba])->assertRedirect('/admin');
+        $this->assertAuthenticatedAs($Staff);
+        $this->post('/logout')->assertRedirect('/admin/login');
+    }
+
+    #[Test]
+    public function El_Cliente_No_Ingresa_Por_El_Login_Del_Admin(): void
+    {
+        $Usuario = $this->Crear_Cliente();
+        $this->post('/admin/login', ['email' => $Usuario->email, 'password' => self::Contrasena_Prueba])->assertSessionHasErrors('email');
+        $this->assertGuest();
+        $this->assertDatabaseHas('registros_auditoria', ['usuario_id' => $Usuario->id, 'accion' => 'inicio_sesion.puerta_equivocada']);
+    }
+
+    #[Test]
     public function Todas_Las_Paginas_Del_Portal_Cargan(): void
     {
         $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['BCS', 'RESEARCH']), Modelo_Usuario::Rol_Administrador_Institucion);

@@ -1,24 +1,33 @@
 <script setup>
 import Componente_Marca_Blockfinity from '../Componentes/Componente_Marca_Blockfinity.vue';
+import Componente_Icono from '../Componentes/Componente_Icono.vue';
+
+const Beneficios = [
+    { Icono: 'credencial', Texto: 'Credencial personal' },
+    { Icono: 'proyectos', Texto: 'Sus proyectos al día' },
+    { Icono: 'huella', Texto: 'Documentos verificables' },
+];
 </script>
 
 <template>
     <div :class="$style.wrap">
         <section :class="$style.hero" aria-label="Presentación del portal">
+            <span :class="[$style.orb, $style.orbA]" aria-hidden="true" />
+            <span :class="[$style.orb, $style.orbB]" aria-hidden="true" />
             <Componente_Marca_Blockfinity />
-            <div :class="$style.pitch">
-                <span :class="$style.kicker">Portal Cliente · Acceso exclusivo</span>
-                <h1 :class="$style.title">Su espacio privado en el ecosistema Blockfinity.</h1>
-                <p :class="$style.lead">Proyectos, research, formación y documentos para toda su organización, en un solo lugar. Cada funcionario accede con una credencial personal emitida por Blockfinity.</p>
+            <div :class="$style.pitch" class="animar-entrada">
+                <span :class="$style.kicker">Portal Cliente</span>
+                <h1 :class="$style.title">Todo su trabajo con Blockfinity, en un solo lugar.</h1>
             </div>
-            <ul :class="$style.points">
-                <li><strong>Credencial personal</strong><span>Nominativa, vinculada a su cargo y revocable por su institución.</span></li>
-                <li><strong>Contenido según su contrato</strong><span>Se activan solo las unidades que su entidad tiene contratadas.</span></li>
-                <li><strong>Trazabilidad</strong><span>Cada entregable aprobado queda registrado con su huella digital.</span></li>
+            <ul :class="$style.points" class="escalonado">
+                <li v-for="Beneficio in Beneficios" :key="Beneficio.Texto">
+                    <span class="burbuja burbuja-oscura"><Componente_Icono :Nombre="Beneficio.Icono" :Tamano="20" /></span>
+                    <strong>{{ Beneficio.Texto }}</strong>
+                </li>
             </ul>
         </section>
         <section :class="$style.panel">
-            <div :class="$style.box"><slot /></div>
+            <div :class="$style.box" class="animar-entrada"><slot /></div>
         </section>
     </div>
 </template>
@@ -26,22 +35,26 @@ import Componente_Marca_Blockfinity from '../Componentes/Componente_Marca_Blockf
 <style module>
 .wrap { min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg); }
 .hero {
-  flex: 1 1 520px; min-width: 0; background: var(--navy-950); color: #fff; padding: 48px 56px;
+  position: relative; overflow: hidden; flex: 1 1 520px; min-width: 0; background: var(--gradient-hero); color: #fff; padding: 48px 56px;
   display: flex; flex-direction: column; justify-content: space-between; gap: 40px;
 }
-.pitch { display: flex; flex-direction: column; gap: 20px; max-width: 540px; }
-.kicker { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #9AA6B8; }
+.orb { position: absolute; border-radius: 50%; filter: blur(2px); pointer-events: none; animation: flotar 9s ease-in-out infinite; }
+.orbA { width: 420px; height: 420px; right: -140px; top: -120px; background: radial-gradient(circle at 30% 30%, rgba(90, 169, 230, 0.45), transparent 70%); }
+.orbB { width: 300px; height: 300px; left: -100px; bottom: -80px; background: radial-gradient(circle at 60% 40%, rgba(59, 91, 140, 0.7), transparent 70%); animation-delay: -4s; }
+.pitch { position: relative; display: flex; flex-direction: column; gap: 16px; max-width: 520px; }
+.kicker { align-self: flex-start; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #CFE0F5; background: rgba(255, 255, 255, 0.1); padding: 6px 12px; border-radius: 999px; }
 .title { font-size: 44px; line-height: 1.08; font-weight: 800; letter-spacing: -0.02em; color: #fff; }
-.lead { font-size: 17px; line-height: 1.6; color: var(--side-text); }
-.points { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; }
-.points li { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #2A3D5C; padding-top: 14px; }
-.points strong { font-size: 15px; }
-.points span { font-size: 14px; line-height: 1.5; color: #9AA6B8; }
+.points { position: relative; list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.points li {
+  display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 10px; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); backdrop-filter: blur(6px);
+}
+.points strong { font-size: 14px; }
 .panel { flex: 1 1 460px; min-width: 0; padding: 48px 24px; display: flex; align-items: center; justify-content: center; }
-.box { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 24px; }
+.box { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 24px; }
 @media (max-width: 700px) {
-  .hero { padding: 32px 20px; gap: 28px; }
-  .title { font-size: 32px; }
+  .hero { padding: 32px 20px; gap: 24px; }
+  .title { font-size: 30px; }
   .points { display: none; }
 }
 </style>

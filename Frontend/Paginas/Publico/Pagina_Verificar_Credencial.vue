@@ -12,6 +12,7 @@ defineProps({ Credencial: Object });
         <div :class="$style.card">
             <Componente_Marca_Blockfinity Fondo_Claro />
             <template v-if="Credencial && Credencial.Es_Valida">
+                <span :class="[$style.seal, $style.sealOk]"><Componente_Icono Nombre="escudo" :Tamano="34" /></span>
                 <span class="badge badge-ok" :class="$style.state"><Componente_Icono Nombre="visto" :Tamano="16" />Credencial válida</span>
                 <h1 :class="$style.name">{{ Credencial.Nombre }}</h1>
                 <dl :class="$style.list">
@@ -22,10 +23,12 @@ defineProps({ Credencial: Object });
                 </dl>
             </template>
             <template v-else-if="Credencial">
+                <span :class="[$style.seal, $style.sealBad]"><Componente_Icono Nombre="alerta" :Tamano="34" /></span>
                 <span class="badge badge-danger" :class="$style.state">Credencial revocada</span>
                 <p>Esta credencial existió pero ya no está activa.</p>
             </template>
             <template v-else>
+                <span :class="[$style.seal, $style.sealBad]"><Componente_Icono Nombre="buscar" :Tamano="34" /></span>
                 <span class="badge badge-danger" :class="$style.state">No encontrada</span>
                 <p>El código no corresponde a ninguna credencial emitida por Blockfinity.</p>
             </template>
@@ -35,9 +38,12 @@ defineProps({ Credencial: Object });
 </template>
 
 <style module>
-.page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
-.card { width: 100%; max-width: 440px; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 18px; }
-.state { align-self: flex-start; font-size: 14px; padding: 6px 12px; }
+.page { background: var(--gradient-hero); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+.card { width: 100%; max-width: 440px; background: #fff; border-radius: 24px; padding: 32px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35); animation: aparecer-escala 0.5s var(--ease) both; }
+.seal { align-self: center; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: aparecer-escala 0.6s var(--ease) 0.2s both; }
+.sealOk { background: var(--ok-bg); color: var(--ok-fg); box-shadow: 0 0 0 10px rgba(228, 242, 234, 0.5); }
+.sealBad { background: var(--danger-bg); color: var(--danger-fg); }
+.state { align-self: center; font-size: 14px; padding: 6px 12px; }
 .name { font-size: 28px; }
 .list { margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .list div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #E8EBEF; padding-bottom: 8px; }
