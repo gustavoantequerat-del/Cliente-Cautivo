@@ -1,0 +1,92 @@
+<?php
+
+use App\Controladores\Acceso\Controlador_Inicio_Sesion;
+use App\Controladores\Acceso\Controlador_Recuperar_Contrasena;
+use App\Controladores\Administracion\Controlador_Auditoria;
+use App\Controladores\Administracion\Controlador_Panel_Administracion;
+use App\Controladores\Administracion\Controlador_Recursos_Cms;
+use App\Controladores\Administracion\Controlador_Solicitudes_Horas;
+use App\Controladores\Portal\Controlador_Academia;
+use App\Controladores\Portal\Controlador_Bolsa_Horas;
+use App\Controladores\Portal\Controlador_Credencial;
+use App\Controladores\Portal\Controlador_Entregables;
+use App\Controladores\Portal\Controlador_Facturacion;
+use App\Controladores\Portal\Controlador_Inicio;
+use App\Controladores\Portal\Controlador_Perfil;
+use App\Controladores\Portal\Controlador_Proyectos;
+use App\Controladores\Portal\Controlador_Research;
+use App\Controladores\Publico\Controlador_Verificar_Credencial;
+use App\Middleware\Middleware_Exigir_Cliente;
+use App\Middleware\Middleware_Exigir_Staff;
+use App\Middleware\Middleware_Exigir_Unidad_Contratada;
+use Illuminate\Support\Facades\Route;
+
+// --- Público ---------------------------------------------------------------
+Route::get('/verificar/{Codigo_Credencial}', [Controlador_Verificar_Credencial::class, 'Verificar_Credencial'])->whereUuid('Codigo_Credencial');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [Controlador_Inicio_Sesion::class, 'Mostrar_Formulario_Ingreso']);
+    Route::post('/login', [Controlador_Inicio_Sesion::class, 'Iniciar_Sesion'])->middleware('throttle:6,1');
+    Route::get('/olvide-mi-contrasena', [Controlador_Recuperar_Contrasena::class, 'Mostrar_Formulario_Recuperacion']);
+    Route::post('/olvide-mi-contrasena', [Controlador_Recuperar_Contrasena::class, 'Enviar_Enlace_Recuperacion'])->middleware('throttle:3,1');
+    // Laravel arma el enlace del correo de recuperación con el nombre de ruta "password.reset"
+    Route::get('/restablecer/{Token}', [Controlador_Recuperar_Contrasena::class, 'Mostrar_Formulario_Nueva_Contrasena'])->name('password.reset');
+    Route::post('/restablecer', [Controlador_Recuperar_Contrasena::class, 'Guardar_Nueva_Contrasena']);
+});
+
+Route::post('/logout', [Controlador_Inicio_Sesion::class, 'Cerrar_Sesion'])->middleware('auth');
+
+// --- Portal cliente --------------------------------------------------------
+Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function () {
+    Route::get('/', [Controlador_Inicio::class, 'Mostrar_Inicio']);
+
+    Route::get('/proyectos', [Controlador_Proyectos::class, 'Listar_Proyectos']);
+    Route::get('/proyectos/{Proyecto}', [Controlador_Proyectos::class, 'Mostrar_Proyecto']);
+
+    Route::get('/entregables', [Controlador_Entregables::class, 'Listar_Entregables']);
+    Route::get('/entregables/{Entregable}/descargar', [Controlador_Entregables::class, 'Descargar_Entregable']);
+    Route::post('/entregables/{Entregable}/aprobar', [Controlador_Entregables::class, 'Aprobar_Entregable'])->middleware('throttle:10,1');
+    Route::post('/entregables/verificar', [Controlador_Entregables::class, 'Verificar_Huella_Documento'])->middleware('throttle:30,1');
+
+    Route::middleware(Middleware_Exigir_Unidad_Contratada::class.':RESEARCH')->group(function () {
+        Route::get('/research', [Controlador_Research::class, 'Listar_Reportes']);
+        Route::get('/research/{Reporte}/abrir', [Controlador_Research::class, 'Abrir_Reporte']);
+    });
+
+    Route::get('/academia', [Controlador_Academia::class, 'Listar_Videos']);
+    Route::get('/academia/{Video}', [Controlador_Academia::class, 'Mostrar_Video']);
+    Route::post('/academia/{Video}/visto', [Controlador_Academia::class, 'Marcar_Video_Visto']);
+    Route::post('/academia/{Video}/inscribirme', [Controlador_Academia::class, 'Inscribirse_Webinar']);
+    Route::get('/academia/{Video}/calendario.ics', [Controlador_Academia::class, 'Descargar_Calendario_Webinar']);
+
+    Route::get('/facturacion', [Controlador_Facturacion::class, 'Mostrar_Facturacion']);
+    Route::get('/facturacion/factura/{Factura}/{Tipo_Archivo}', [Controlador_Facturacion::class, 'Descargar_Archivo_Factura'])->whereIn('Tipo_Archivo', ['pdf', 'xml']);
+    Route::get('/facturacion/contrato/{Contrato}', [Controlador_Facturacion::class, 'Descargar_Contrato']);
+
+    Route::get('/bolsa-de-horas', [Controlador_Bolsa_Horas::class, 'Mostrar_Bolsa_Horas']);
+    Route::post('/bolsa-de-horas', [Controlador_Bolsa_Horas::class, 'Crear_Solicitud_Horas'])->middleware('throttle:5,1');
+
+    Route::get('/credencial', [Controlador_Credencial::class, 'Mostrar_Credencial']);
+
+    Route::get('/perfil', [Controlador_Perfil::class, 'Mostrar_Perfil']);
+    Route::put('/perfil/contrasena', [Controlador_Perfil::class, 'Cambiar_Contrasena']);
+});
+
+// --- CMS (staff Blockfinity) ----------------------------------------------
+Route::middleware(['auth', Middleware_Exigir_Staff::class])->prefix('admin')->group(function () {
+    Route::get('/', [Controlador_Panel_Administracion::class, 'Mostrar_Resumen']);
+
+    Route::get('/solicitudes-horas', [Controlador_Solicitudes_Horas::class, 'Listar_Solicitudes']);
+    Route::put('/solicitudes-horas/{Solicitud}', [Controlador_Solicitudes_Horas::class, 'Actualizar_Solicitud']);
+
+    Route::get('/auditoria', [Controlador_Auditoria::class, 'Listar_Registros_Auditoria']);
+
+    Route::get('/archivo/{Clave_Recurso}/{Id_Registro}/{Nombre_Campo}', [Controlador_Recursos_Cms::class, 'Descargar_Archivo_Registro']);
+    Route::get('/{Clave_Recurso}', [Controlador_Recursos_Cms::class, 'Listar_Registros']);
+    Route::get('/{Clave_Recurso}/crear', [Controlador_Recursos_Cms::class, 'Mostrar_Formulario_Crear']);
+    Route::post('/{Clave_Recurso}', [Controlador_Recursos_Cms::class, 'Crear_Registro']);
+    Route::get('/{Clave_Recurso}/{Id_Registro}/editar', [Controlador_Recursos_Cms::class, 'Mostrar_Formulario_Editar']);
+    // POST (no PUT) para que funcione la subida de archivos con multipart
+    Route::post('/{Clave_Recurso}/{Id_Registro}', [Controlador_Recursos_Cms::class, 'Actualizar_Registro']);
+    Route::delete('/{Clave_Recurso}/{Id_Registro}', [Controlador_Recursos_Cms::class, 'Eliminar_Registro']);
+});

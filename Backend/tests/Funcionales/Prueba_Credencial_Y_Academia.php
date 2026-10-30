@@ -1,0 +1,79 @@
+<?php
+
+namespace Tests\Funcionales;
+
+use App\Modelos\Modelo_Institucion;
+use App\Modelos\Modelo_Unidad_Negocio;
+use App\Modelos\Modelo_Video;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Pagina_Inertia;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\Caso_Prueba_Base;
+
+class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
+{
+    use RefreshDatabase;
+
+    #[Test]
+    public function La_Verificacion_Publica_Refleja_La_Revocacion(): void
+    {
+        $Usuario = $this->Crear_Cliente();
+        $this->assertNotNull($Usuario->codigo_credencial);
+
+        $this->get("/verificar/{$Usuario->codigo_credencial}")
+            ->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->component('Publico/Pagina_Verificar_Credencial')->where('Credencial.Es_Valida', true));
+
+        $Usuario->update(['esta_activo' => false]);
+        $this->get("/verificar/{$Usuario->codigo_credencial}")
+            ->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->where('Credencial.Es_Valida', false));
+    }
+
+    #[Test]
+    public function Marcar_Video_Visto_Suma_Puntos_Una_Sola_Vez(): void
+    {
+        $Usuario = $this->Crear_Cliente();
+        $Video = Modelo_Video::create(['titulo' => 'Píldora', 'formato' => 'pildora', 'puntos' => 10,
+            'enlace_original' => 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view']);
+
+        $this->assertSame('drive', $Video->proveedor);
+        $this->actingAs($Usuario)->get("/academia/{$Video->id}")
+            ->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->where('Video.Url_Embebida', 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/preview'));
+
+        $this->actingAs($Usuario)->post("/academia/{$Video->id}/visto");
+        $this->actingAs($Usuario)->post("/academia/{$Video->id}/visto");
+        $this->assertSame(10, $Usuario->Institucion->fresh()->puntos_alianza);
+    }
+
+    #[Test]
+    public function Video_Exclusivo_No_Se_Ve_Desde_Otra_Institucion(): void
+    {
+        $Video = Modelo_Video::create(['titulo' => 'Privado', 'institucion_id' => $this->Crear_Institucion()->id]);
+        $this->actingAs($this->Crear_Cliente())->get("/academia/{$Video->id}")->assertNotFound();
+    }
+
+    #[Test]
+    public function El_Cms_Rechaza_Enlaces_Desconocidos_Y_Guarda_Los_Validos(): void
+    {
+        $Staff = $this->Crear_Staff();
+        $this->actingAs($Staff)->post('/admin/videos', ['formato' => 'grabado', 'titulo' => 'X', 'enlace_original' => 'https://example.com/v.mp4'])
+            ->assertSessionHasErrors('enlace_original');
+
+        $this->actingAs($Staff)->post('/admin/videos', ['formato' => 'grabado', 'titulo' => 'Y', 'enlace_original' => 'https://youtu.be/dQw4w9WgXcQ', 'esta_publicado' => 1])
+            ->assertRedirect('/admin/videos');
+        $this->assertDatabaseHas('videos', ['titulo' => 'Y', 'proveedor' => 'youtube', 'id_externo' => 'dQw4w9WgXcQ']);
+    }
+
+    #[Test]
+    public function El_Cms_Crea_Institucion_Con_Unidades_Contratadas(): void
+    {
+        $Staff = $this->Crear_Staff();
+        $Unidad = Modelo_Unidad_Negocio::create(['codigo' => 'BCS', 'nombre' => 'Compliance']);
+        $this->actingAs($Staff)->post('/admin/instituciones', [
+            'nombre' => 'Cooperativa X', 'identificador' => 'coop-x', 'esta_activa' => 1, 'puntos_alianza' => 0,
+            'unidades_contratadas' => [$Unidad->id => ['activa' => 1, 'nota' => '10 licencias']],
+        ])->assertRedirect('/admin/instituciones');
+
+        $Institucion = Modelo_Institucion::where('identificador', 'coop-x')->firstOrFail();
+        $this->assertTrue($Institucion->Tiene_Unidad_Contratada('BCS'));
+    }
+}
