@@ -6,6 +6,7 @@ use App\Middleware\Middleware_Exigir_Usuario_Activo;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,8 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
             Middleware_Compartir_Datos_Inertia::class,
             Middleware_Cabeceras_Seguridad::class,
         ]);
-        $Middleware->redirectGuestsTo('/login');
-        $Middleware->redirectUsersTo('/');
+        // Cada visitante va a su propio login: el staff a /admin/login y los clientes a /login
+        $Middleware->redirectGuestsTo(fn (Request $Peticion) => $Peticion->is('admin', 'admin/*') ? '/admin/login' : '/login');
+        $Middleware->redirectUsersTo(fn (Request $Peticion) => $Peticion->user()?->Es_Staff() ? '/admin' : '/');
     })
     ->withExceptions(function (Exceptions $Excepciones): void {
         //

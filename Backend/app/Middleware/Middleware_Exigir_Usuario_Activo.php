@@ -13,10 +13,11 @@ class Middleware_Exigir_Usuario_Activo
     public function handle(Request $Peticion, Closure $Siguiente): Response
     {
         if ($Peticion->user() && ! $Peticion->user()->esta_activo) {
+            $Login_Correspondiente = $Peticion->user()->Es_Staff() ? '/admin/login' : '/login';
             Auth::logout();
             $Peticion->session()->invalidate();
 
-            return redirect('/login')->with('Mensaje_Error', 'Su credencial fue desactivada. Contacte a su administrador.');
+            return redirect($Login_Correspondiente)->with('Mensaje_Error', 'Su credencial fue desactivada. Contacte a su administrador.');
         }
 
         return $Siguiente($Peticion);

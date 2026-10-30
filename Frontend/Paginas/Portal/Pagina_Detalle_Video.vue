@@ -10,7 +10,7 @@ const Inscribirse_Webinar = () => router.post(`/academia/${Propiedades.Video.Id}
 
 <template>
     <Head :title="Video.Titulo" />
-    <Link href="/academia" :class="$style.back">← Píldoras y webinars</Link>
+    <Link href="/academia" :class="$style.back">← Academia</Link>
 
     <div :class="$style.layout">
         <div class="stack" :class="$style.main">
@@ -40,10 +40,9 @@ const Inscribirse_Webinar = () => router.post(`/academia/${Propiedades.Video.Id}
             <span class="eyebrow">Su progreso</span>
             <template v-if="Video.Esta_Completado">
                 <span class="badge badge-ok"><Componente_Icono Nombre="visto" :Tamano="14" />Completado</span>
-                <p class="muted">Ya sumó este contenido a su avance.</p>
             </template>
             <template v-else>
-                <p class="muted">Al terminar, márquelo como visto: suma <strong>{{ Video.Puntos }} puntos</strong> de alianza para su institución.</p>
+                <span class="badge badge-blue" :class="$style.points"><Componente_Icono Nombre="estrella" :Tamano="14" />+{{ Video.Puntos }} puntos al terminar</span>
                 <button type="button" class="btn btn-secondary" :disabled="!Video.Url_Embebida" @click="Marcar_Como_Visto">
                     <Componente_Icono Nombre="visto" :Tamano="16" />Marcar como visto
                 </button>
@@ -53,7 +52,7 @@ const Inscribirse_Webinar = () => router.post(`/academia/${Propiedades.Video.Id}
 </template>
 
 <style module>
-.back { font-weight: 700; font-size: 14px; text-decoration: none; }
+.back { align-self: flex-start; font-weight: 700; font-size: 14px; text-decoration: none; padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
 .layout { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
 .main { flex: 999 1 600px; min-width: 0; }
 .side { flex: 1 1 280px; min-width: 0; }
@@ -61,4 +60,5 @@ const Inscribirse_Webinar = () => router.post(`/academia/${Propiedades.Video.Id}
 .title { font-size: 26px; }
 .desc { font-size: 16px; color: var(--text-2); line-height: 1.6; white-space: pre-line; }
 .when { font-size: 17px; text-transform: capitalize; }
+.points { align-self: flex-start; }
 </style>

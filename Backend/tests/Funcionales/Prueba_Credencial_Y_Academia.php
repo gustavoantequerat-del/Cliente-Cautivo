@@ -64,6 +64,25 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
     }
 
     #[Test]
+    public function El_Cms_Solo_Acepta_Datos_Con_El_Formato_Correcto(): void
+    {
+        $Staff = $this->Crear_Staff();
+        $this->actingAs($Staff)->post('/admin/usuarios', [
+            'nombre' => 'Ana 123', 'email' => 'ana@prueba.test', 'password' => 'Clave12345segura',
+            'rol' => 'funcionario', 'telefono' => '70O-abc', 'esta_activo' => 1,
+        ])->assertSessionHasErrors(['nombre', 'telefono']);
+
+        $this->actingAs($Staff)->post('/admin/instituciones', [
+            'nombre' => 'Banco X', 'identificador' => 'Banco X!', 'nit' => '12A45', 'puntos_alianza' => -5,
+        ])->assertSessionHasErrors(['identificador', 'nit', 'puntos_alianza']);
+
+        $this->actingAs($Staff)->post('/admin/usuarios', [
+            'nombre' => 'Ana María Pérez', 'email' => 'ana@prueba.test', 'password' => 'Clave12345segura',
+            'rol' => 'funcionario', 'telefono' => '+59170000000', 'esta_activo' => 1,
+        ])->assertSessionHasNoErrors()->assertRedirect('/admin/usuarios');
+    }
+
+    #[Test]
     public function El_Cms_Crea_Institucion_Con_Unidades_Contratadas(): void
     {
         $Staff = $this->Crear_Staff();

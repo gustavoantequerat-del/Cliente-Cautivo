@@ -59,7 +59,7 @@ class Controlador_Recursos_Cms
         $Campo_Filtro = $Columna_Filtro ? collect($Recurso['Campos'])->firstWhere('Nombre', $Columna_Filtro) : null;
 
         return Inertia::render('Administracion/Pagina_Listado_Recurso', [
-            'Recurso' => Arr::only($Recurso, ['Clave', 'Titulo', 'Singular']),
+            'Recurso' => Arr::only($Recurso, ['Clave', 'Titulo', 'Singular', 'Icono']),
             'Columnas' => array_map(fn ($Campo) => Arr::only($Campo, ['Nombre', 'Etiqueta']), $Campos_En_Tabla),
             'Filas' => $Filas,
             'Filtro' => $Campo_Filtro ? [
@@ -174,7 +174,7 @@ class Controlador_Recursos_Cms
         }, $Recurso['Campos']);
 
         return Inertia::render('Administracion/Pagina_Formulario_Recurso', [
-            'Recurso' => Arr::only($Recurso, ['Clave', 'Titulo', 'Singular']),
+            'Recurso' => Arr::only($Recurso, ['Clave', 'Titulo', 'Singular', 'Icono']),
             'Campos' => $Campos,
             'Valores' => $Valores,
             'Opciones' => $this->Obtener_Opciones_De_Listas($Recurso['Campos']) + [
@@ -262,10 +262,15 @@ class Controlador_Recursos_Cms
         $Requerido = ($Campo['Obligatorio'] ?? false) ? 'required' : 'nullable';
         $Reglas = match ($Campo['Tipo']) {
             'email' => [$Requerido, 'email', 'max:255'],
+            'nombre_persona' => [$Requerido, 'string', 'max:120', "regex:/^[\\pL\\s'.-]+$/u"],
+            'telefono' => [$Requerido, 'regex:/^\\+?[0-9]{6,15}$/'],
+            'numerico' => [$Requerido, 'regex:/^[0-9]{1,20}$/'],
+            'identificador' => [$Requerido, 'max:80', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
+            'codigo' => [$Requerido, 'regex:/^[A-Z0-9]{2,20}$/'],
             'enlace', 'enlace_video' => [$Requerido, 'url', 'max:500'],
             'texto_largo' => [$Requerido, 'string', 'max:10000'],
             'entero' => [$Requerido, 'integer', 'min:'.($Campo['Minimo'] ?? -1000000), 'max:'.($Campo['Maximo'] ?? 1000000)],
-            'decimal' => [$Requerido, 'numeric', 'between:-999999999,999999999'],
+            'decimal' => [$Requerido, 'numeric', 'min:'.($Campo['Minimo'] ?? -999999999), 'max:999999999'],
             'fecha', 'fecha_hora' => [$Requerido, 'date'],
             'si_no' => ['nullable', 'boolean'],
             'lista' => [$Requerido, Rule::in(array_keys($Campo['Opciones']))],

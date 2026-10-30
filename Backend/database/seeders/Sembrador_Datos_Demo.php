@@ -32,7 +32,7 @@ class Sembrador_Datos_Demo extends Seeder
         $Ejecutiva = Modelo_Usuario::create([
             'nombre' => 'Alejandra Antezana', 'email' => 'ejecutiva@blockfinity.test',
             'password' => 'Blockfinity2026', 'rol' => Modelo_Usuario::Rol_Staff, 'cargo' => 'Client Success',
-            'telefono' => '+591 700 00000', 'enlace_agenda' => 'https://calendly.com/',
+            'telefono' => '+59170000000', 'enlace_agenda' => 'https://calendly.com/',
         ]);
 
         $Banco = Modelo_Institucion::create([

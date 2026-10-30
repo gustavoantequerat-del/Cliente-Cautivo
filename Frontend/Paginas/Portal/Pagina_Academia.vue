@@ -3,6 +3,8 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import Componente_Encabezado_Pagina from '../../Componentes/Componente_Encabezado_Pagina.vue';
 import Componente_Paginacion from '../../Componentes/Componente_Paginacion.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
+import Componente_Numero_Animado from '../../Componentes/Componente_Numero_Animado.vue';
+import Componente_Estado_Vacio from '../../Componentes/Componente_Estado_Vacio.vue';
 
 const Propiedades = defineProps({ Proximo_En_Vivo: Object, Videos: Object, Mi_Avance: Object, Formatos: Object, Temas: Array, Filtros_Aplicados: Object });
 
@@ -16,7 +18,7 @@ const Inscribirse_Webinar = (Id_Video) => router.post(`/academia/${Id_Video}/ins
 
 <template>
     <Head title="Píldoras y webinars" />
-    <Componente_Encabezado_Pagina Titulo="Píldoras y webinars" Introduccion="Formación continua para cada área: webinars en vivo, grabaciones y píldoras de pocos minutos." />
+    <Componente_Encabezado_Pagina Icono="reproducir" Titulo="Academia" Introduccion="Webinars en vivo, grabaciones y píldoras." />
 
     <div :class="$style.top">
         <section v-if="Proximo_En_Vivo" :class="$style.live">
@@ -32,9 +34,11 @@ const Inscribirse_Webinar = (Id_Video) => router.post(`/academia/${Id_Video}/ins
         </section>
         <aside class="card stack" :class="$style.stats">
             <span class="eyebrow">Mi avance</span>
-            <div class="row"><strong :class="$style.big">{{ String(Mi_Avance.Horas).replace('.', ',') }} h</strong><span class="muted">de formación</span></div>
-            <div class="row"><strong :class="$style.big">{{ Mi_Avance.Completados }}</strong><span class="muted">contenidos completados</span></div>
-            <Link href="/credencial" class="link-arrow">Ver mis puntos de alianza →</Link>
+            <div :class="$style.statRow">
+                <div><span class="burbuja burbuja-verde"><Componente_Icono Nombre="reloj" /></span><strong :class="$style.big"><Componente_Numero_Animado :Valor="Mi_Avance.Horas" :Decimales="1" /> h</strong><span class="muted">formación</span></div>
+                <div><span class="burbuja burbuja-violeta"><Componente_Icono Nombre="visto" /></span><strong :class="$style.big"><Componente_Numero_Animado :Valor="Mi_Avance.Completados" /></strong><span class="muted">completados</span></div>
+            </div>
+            <Link href="/credencial" class="link-arrow">Mis puntos <Componente_Icono Nombre="flecha" :Tamano="16" /></Link>
         </aside>
     </div>
 
@@ -49,12 +53,12 @@ const Inscribirse_Webinar = (Id_Video) => router.post(`/academia/${Id_Video}/ins
         </div>
     </div>
 
-    <div class="grid-3">
-        <Link v-for="Video in Videos.data" :key="Video.Id" :href="`/academia/${Video.Id}`" :class="$style.video">
+    <div class="grid-3 escalonado">
+        <Link v-for="Video in Videos.data" :key="Video.Id" :href="`/academia/${Video.Id}`" :class="$style.video" class="elevable">
             <div :class="[$style.thumb, $style[Video.Formato]]" :style="Video.Miniatura ? { backgroundImage: `url(${Video.Miniatura})` } : {}">
                 <span :class="$style.kind">{{ Video.Nombre_Formato }}</span>
                 <span v-if="Video.Duracion_Minutos" :class="$style.dur">{{ Video.Duracion_Minutos }} min</span>
-                <Componente_Icono v-if="!Video.Miniatura" Nombre="reproducir" :Tamano="40" :Grosor="1.4" />
+                <span :class="$style.play"><Componente_Icono Nombre="reproducir" :Tamano="40" :Grosor="1.4" /></span>
             </div>
             <div :class="$style.body">
                 <span class="eyebrow">{{ Video.Tema }}</span>
@@ -68,15 +72,15 @@ const Inscribirse_Webinar = (Id_Video) => router.post(`/academia/${Id_Video}/ins
             </div>
         </Link>
     </div>
-    <p v-if="!Videos.data.length" class="card muted">No hay contenidos con estos filtros.</p>
+    <Componente_Estado_Vacio v-if="!Videos.data.length" Icono="reproducir" Texto="No hay contenidos con estos filtros" />
     <Componente_Paginacion :Enlaces="Videos.links" />
 </template>
 
 <style module>
 .top { display: flex; flex-wrap: wrap; gap: 20px; }
-.live { flex: 999 1 520px; background: var(--navy-950); color: #fff; border-radius: var(--radius-lg); padding: 28px; display: flex; flex-direction: column; gap: 10px; }
+.live { flex: 999 1 520px; background: var(--gradient-hero); box-shadow: 0 18px 40px rgba(15, 34, 64, 0.22); color: #fff; border-radius: var(--radius-lg); padding: 28px; display: flex; flex-direction: column; gap: 10px; }
 .kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--side-label); }
-.pulse { width: 8px; height: 8px; border-radius: 50%; background: #FF6B5E; }
+.pulse { width: 8px; height: 8px; border-radius: 50%; background: #FF6B5E; animation: latido 1.8s infinite; }
 .when { color: var(--side-text); font-size: 14px; text-transform: capitalize; }
 .liveTitle { color: #fff; font-size: 24px; }
 .speaker { color: var(--side-label); font-size: 14px; }
@@ -86,8 +90,12 @@ const Inscribirse_Webinar = (Id_Video) => router.post(`/academia/${Id_Video}/ins
 .done { display: inline-flex; align-items: center; gap: 6px; min-height: 46px; padding: 0 14px; border-radius: 10px; background: var(--navy-800); font-weight: 700; }
 .stats { flex: 1 1 260px; }
 .big { font-size: 26px; font-weight: 800; color: var(--navy-950); }
-.video { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; text-decoration: none; color: var(--ink); display: flex; flex-direction: column; }
-.video:hover { border-color: var(--navy-700); color: var(--ink); }
+.statRow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.statRow > div { display: flex; flex-direction: column; gap: 6px; }
+.video { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; text-decoration: none; color: var(--ink); display: flex; flex-direction: column; box-shadow: var(--shadow); }
+.video:hover { color: var(--ink); }
+.play { width: 64px; height: 64px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(10, 22, 40, 0.35); backdrop-filter: blur(4px); transition: transform 0.3s var(--ease), background 0.3s; }
+.video:hover .play { transform: scale(1.12); background: rgba(10, 22, 40, 0.6); }
 .thumb {
   position: relative; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.85);
   background-size: cover; background-position: center; background-color: var(--navy-800);

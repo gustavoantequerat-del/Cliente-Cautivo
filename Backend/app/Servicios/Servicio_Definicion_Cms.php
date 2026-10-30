@@ -8,12 +8,16 @@ use App\Modelos;
  * Definición declarativa del CMS. Cada recurso genera su listado y su formulario
  * sin escribir una pantalla por tabla. Para agregar un campo: añadirlo aquí.
  *
+ * Cada recurso lleva Icono (nombre de Componente_Icono), Titulo, Singular, Modelo, Columnas_Busqueda, Orden y Grupo.
+ *
  * Claves de cada campo: Nombre (columna), Etiqueta, Tipo, Obligatorio, En_Tabla, Unico, Por_Defecto,
  * Ayuda, Solo_Lectura, Opciones, Minimo, Maximo, y según el tipo: Modelo, Columna_Etiqueta, Filtro_Donde
  * (relacion) o Carpeta, Guardar_Nombre_En, Guardar_Tamano_En, Guardar_Huella_En, Extensiones (archivo).
  *
- * Tipos de campo: texto, email, enlace, texto_largo, entero, decimal, fecha, fecha_hora, lista,
- * si_no, relacion, archivo, contrasena, huella, enlace_video, unidades.
+ * Tipos de campo: texto, nombre_persona, email, telefono, numerico (solo dígitos), identificador (slug),
+ * codigo (MAYÚSCULAS), enlace, texto_largo, entero, decimal, fecha, fecha_hora, lista, si_no, relacion,
+ * archivo, contrasena, huella, enlace_video, unidades. El Frontend filtra lo que se teclea según el tipo
+ * y el Backend lo vuelve a validar.
  */
 class Servicio_Definicion_Cms
 {
@@ -26,28 +30,29 @@ class Servicio_Definicion_Cms
 
         return [
             'instituciones' => [
-                'Titulo' => 'Instituciones', 'Singular' => 'institución', 'Modelo' => Modelos\Modelo_Institucion::class,
+                'Icono' => 'edificio', 'Titulo' => 'Instituciones', 'Singular' => 'institución', 'Modelo' => Modelos\Modelo_Institucion::class,
                 'Columnas_Busqueda' => ['nombre', 'nit'], 'Orden' => ['nombre', 'asc'], 'Grupo' => 'Cuentas',
                 'Campos' => [
                     ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
-                    ['Nombre' => 'identificador', 'Etiqueta' => 'Identificador (slug)', 'Tipo' => 'texto', 'Obligatorio' => true, 'Unico' => true],
+                    ['Nombre' => 'identificador', 'Etiqueta' => 'Identificador (slug)', 'Tipo' => 'identificador', 'Obligatorio' => true, 'Unico' => true,
+                        'Ayuda' => 'Solo minúsculas, números y guiones. Ej.: banco-demo'],
                     ['Nombre' => 'razon_social', 'Etiqueta' => 'Razón social', 'Tipo' => 'texto'],
-                    ['Nombre' => 'nit', 'Etiqueta' => 'NIT', 'Tipo' => 'texto', 'En_Tabla' => true],
+                    ['Nombre' => 'nit', 'Etiqueta' => 'NIT', 'Tipo' => 'numerico', 'En_Tabla' => true],
                     ['Nombre' => 'correo_facturacion', 'Etiqueta' => 'Correo de facturación', 'Tipo' => 'email'],
                     ['Nombre' => 'direccion_facturacion', 'Etiqueta' => 'Dirección de facturación', 'Tipo' => 'texto'],
                     ['Nombre' => 'ejecutivo_cuenta_id', 'Etiqueta' => 'Ejecutiva/o de cuenta', 'Tipo' => 'relacion', 'En_Tabla' => true,
                         'Modelo' => Modelos\Modelo_Usuario::class, 'Columna_Etiqueta' => 'nombre', 'Filtro_Donde' => ['rol', Modelos\Modelo_Usuario::Rol_Staff]],
-                    ['Nombre' => 'puntos_alianza', 'Etiqueta' => 'Puntos de alianza', 'Tipo' => 'entero', 'En_Tabla' => true, 'Por_Defecto' => 0],
+                    ['Nombre' => 'puntos_alianza', 'Etiqueta' => 'Puntos de alianza', 'Tipo' => 'entero', 'Minimo' => 0, 'En_Tabla' => true, 'Por_Defecto' => 0],
                     ['Nombre' => 'esta_activa', 'Etiqueta' => 'Acceso activo', 'Tipo' => 'si_no', 'En_Tabla' => true, 'Por_Defecto' => true],
                     ['Nombre' => 'unidades_contratadas', 'Etiqueta' => 'Unidades contratadas', 'Tipo' => 'unidades'],
                 ],
             ],
             'usuarios' => [
-                'Titulo' => 'Usuarios y credenciales', 'Singular' => 'usuario', 'Modelo' => Modelos\Modelo_Usuario::class,
+                'Icono' => 'usuarios', 'Titulo' => 'Usuarios y credenciales', 'Singular' => 'usuario', 'Modelo' => Modelos\Modelo_Usuario::class,
                 'Columnas_Busqueda' => ['nombre', 'email', 'area'], 'Orden' => ['nombre', 'asc'], 'Grupo' => 'Cuentas',
                 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
-                    ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre completo', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre completo', 'Tipo' => 'nombre_persona', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'email', 'Etiqueta' => 'Correo', 'Tipo' => 'email', 'Obligatorio' => true, 'Unico' => true, 'En_Tabla' => true],
                     ['Nombre' => 'password', 'Etiqueta' => 'Contraseña', 'Tipo' => 'contrasena',
                         'Ayuda' => 'Mínimo 10 caracteres. Déjela vacía al editar para no cambiarla.'],
@@ -61,7 +66,7 @@ class Servicio_Definicion_Cms
                         'Ayuda' => 'Vacío solo para staff de Blockfinity.'] + $Campo_Institucion,
                     ['Nombre' => 'area', 'Etiqueta' => 'Área', 'Tipo' => 'texto', 'En_Tabla' => true],
                     ['Nombre' => 'cargo', 'Etiqueta' => 'Cargo', 'Tipo' => 'texto'],
-                    ['Nombre' => 'telefono', 'Etiqueta' => 'Teléfono', 'Tipo' => 'texto'],
+                    ['Nombre' => 'telefono', 'Etiqueta' => 'Teléfono', 'Tipo' => 'telefono', 'Ayuda' => 'Solo números, con + opcional al inicio. Ej.: +59170000000'],
                     ['Nombre' => 'enlace_agenda', 'Etiqueta' => 'Enlace para agendar (Calendly, Google)', 'Tipo' => 'enlace',
                         'Ayuda' => 'Solo para ejecutivas/os de cuenta.'],
                     ['Nombre' => 'numero_credencial', 'Etiqueta' => 'N.º de credencial', 'Tipo' => 'texto', 'En_Tabla' => true, 'Solo_Lectura' => true],
@@ -70,17 +75,17 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'unidades' => [
-                'Titulo' => 'Unidades de negocio', 'Singular' => 'unidad', 'Modelo' => Modelos\Modelo_Unidad_Negocio::class,
+                'Icono' => 'capas', 'Titulo' => 'Unidades de negocio', 'Singular' => 'unidad', 'Modelo' => Modelos\Modelo_Unidad_Negocio::class,
                 'Columnas_Busqueda' => ['codigo', 'nombre'], 'Orden' => ['orden', 'asc'], 'Grupo' => 'Cuentas',
                 'Campos' => [
-                    ['Nombre' => 'codigo', 'Etiqueta' => 'Código', 'Tipo' => 'texto', 'Obligatorio' => true, 'Unico' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'codigo', 'Etiqueta' => 'Código', 'Tipo' => 'codigo', 'Obligatorio' => true, 'Unico' => true, 'En_Tabla' => true],
                     ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'descripcion', 'Etiqueta' => 'Descripción', 'Tipo' => 'texto_largo'],
-                    ['Nombre' => 'orden', 'Etiqueta' => 'Orden', 'Tipo' => 'entero', 'Por_Defecto' => 0, 'En_Tabla' => true],
+                    ['Nombre' => 'orden', 'Etiqueta' => 'Orden', 'Tipo' => 'entero', 'Minimo' => 0, 'Por_Defecto' => 0, 'En_Tabla' => true],
                 ],
             ],
             'proyectos' => [
-                'Titulo' => 'Proyectos', 'Singular' => 'proyecto', 'Modelo' => Modelos\Modelo_Proyecto::class,
+                'Icono' => 'proyectos', 'Titulo' => 'Proyectos', 'Singular' => 'proyecto', 'Modelo' => Modelos\Modelo_Proyecto::class,
                 'Columnas_Busqueda' => ['nombre'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
@@ -96,11 +101,11 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'fases' => [
-                'Titulo' => 'Fases de proyecto', 'Singular' => 'fase', 'Modelo' => Modelos\Modelo_Fase_Proyecto::class,
+                'Icono' => 'lista', 'Titulo' => 'Fases de proyecto', 'Singular' => 'fase', 'Modelo' => Modelos\Modelo_Fase_Proyecto::class,
                 'Columnas_Busqueda' => ['nombre'], 'Orden' => ['proyecto_id', 'asc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'proyecto_id',
                 'Campos' => [
                     ['Nombre' => 'proyecto_id', 'Etiqueta' => 'Proyecto', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Proyecto,
-                    ['Nombre' => 'posicion', 'Etiqueta' => 'N.º de fase', 'Tipo' => 'entero', 'Por_Defecto' => 1, 'En_Tabla' => true],
+                    ['Nombre' => 'posicion', 'Etiqueta' => 'N.º de fase', 'Tipo' => 'entero', 'Minimo' => 1, 'Maximo' => 50, 'Por_Defecto' => 1, 'En_Tabla' => true],
                     ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'estado', 'Etiqueta' => 'Estado', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'pendiente',
                         'Opciones' => ['completada' => 'Completada', 'en_curso' => 'En curso', 'pendiente' => 'Pendiente']],
@@ -108,7 +113,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'bitacora' => [
-                'Titulo' => 'Bitácora de proyectos', 'Singular' => 'entrada', 'Modelo' => Modelos\Modelo_Bitacora_Proyecto::class,
+                'Icono' => 'libro', 'Titulo' => 'Bitácora de proyectos', 'Singular' => 'entrada', 'Modelo' => Modelos\Modelo_Bitacora_Proyecto::class,
                 'Columnas_Busqueda' => ['detalle'], 'Orden' => ['fecha', 'desc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'proyecto_id',
                 'Campos' => [
                     ['Nombre' => 'proyecto_id', 'Etiqueta' => 'Proyecto', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Proyecto,
@@ -117,7 +122,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'entregables' => [
-                'Titulo' => 'Entregables', 'Singular' => 'entregable', 'Modelo' => Modelos\Modelo_Entregable::class,
+                'Icono' => 'boveda', 'Titulo' => 'Entregables', 'Singular' => 'entregable', 'Modelo' => Modelos\Modelo_Entregable::class,
                 'Columnas_Busqueda' => ['titulo'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
@@ -141,7 +146,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'research' => [
-                'Titulo' => 'Reportes de Research', 'Singular' => 'reporte', 'Modelo' => Modelos\Modelo_Reporte_Research::class,
+                'Icono' => 'grafico', 'Titulo' => 'Reportes de Research', 'Singular' => 'reporte', 'Modelo' => Modelos\Modelo_Reporte_Research::class,
                 'Columnas_Busqueda' => ['titulo', 'autor'], 'Orden' => ['fecha_publicacion', 'desc'], 'Grupo' => 'Contenido',
                 'Campos' => [
                     ['Nombre' => 'titulo', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
@@ -149,7 +154,7 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'tema', 'Etiqueta' => 'Tema', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true,
                         'Opciones' => $Lista_Desde_Valores(Modelos\Modelo_Reporte_Research::Temas)],
                     ['Nombre' => 'autor', 'Etiqueta' => 'Autor/a', 'Tipo' => 'texto'],
-                    ['Nombre' => 'minutos_lectura', 'Etiqueta' => 'Minutos de lectura', 'Tipo' => 'entero'],
+                    ['Nombre' => 'minutos_lectura', 'Etiqueta' => 'Minutos de lectura', 'Tipo' => 'entero', 'Minimo' => 1, 'Maximo' => 600],
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Exclusivo para', 'En_Tabla' => true,
                         'Ayuda' => 'Vacío = visible para todas las instituciones con Research.'] + $Campo_Institucion,
                     ['Nombre' => 'ruta_archivo', 'Etiqueta' => 'Archivo PDF (máx. 10 MB)', 'Tipo' => 'archivo', 'Carpeta' => 'research',
@@ -161,7 +166,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'videos' => [
-                'Titulo' => 'Videos y webinars', 'Singular' => 'video', 'Modelo' => Modelos\Modelo_Video::class,
+                'Icono' => 'reproducir', 'Titulo' => 'Videos y webinars', 'Singular' => 'video', 'Modelo' => Modelos\Modelo_Video::class,
                 'Columnas_Busqueda' => ['titulo', 'expositor'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Contenido',
                 'Campos' => [
                     ['Nombre' => 'formato', 'Etiqueta' => 'Formato', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'grabado',
@@ -173,17 +178,17 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'tema', 'Etiqueta' => 'Tema', 'Tipo' => 'lista', 'En_Tabla' => true,
                         'Opciones' => $Lista_Desde_Valores(Modelos\Modelo_Video::Temas)],
                     ['Nombre' => 'expositor', 'Etiqueta' => 'Expositor/es', 'Tipo' => 'texto'],
-                    ['Nombre' => 'duracion_minutos', 'Etiqueta' => 'Duración (min)', 'Tipo' => 'entero'],
+                    ['Nombre' => 'duracion_minutos', 'Etiqueta' => 'Duración (min)', 'Tipo' => 'entero', 'Minimo' => 1, 'Maximo' => 1440],
                     ['Nombre' => 'fecha_programada', 'Etiqueta' => 'Fecha y hora (en vivo)', 'Tipo' => 'fecha_hora', 'En_Tabla' => true],
                     ['Nombre' => 'enlace_sala', 'Etiqueta' => 'Enlace de la sala (Meet/Zoom/Teams)', 'Tipo' => 'enlace'],
                     ['Nombre' => 'enlace_miniatura', 'Etiqueta' => 'Miniatura (URL de imagen, opcional)', 'Tipo' => 'enlace'],
-                    ['Nombre' => 'puntos', 'Etiqueta' => 'Puntos de alianza al completarlo', 'Tipo' => 'entero', 'Por_Defecto' => 10],
+                    ['Nombre' => 'puntos', 'Etiqueta' => 'Puntos de alianza al completarlo', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 1000, 'Por_Defecto' => 10],
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Exclusivo para', 'Ayuda' => 'Vacío = visible para todos.'] + $Campo_Institucion,
                     ['Nombre' => 'esta_publicado', 'Etiqueta' => 'Publicado', 'Tipo' => 'si_no', 'Por_Defecto' => true, 'En_Tabla' => true],
                 ],
             ],
             'facturas' => [
-                'Titulo' => 'Facturas', 'Singular' => 'factura', 'Modelo' => Modelos\Modelo_Factura::class,
+                'Icono' => 'facturacion', 'Titulo' => 'Facturas', 'Singular' => 'factura', 'Modelo' => Modelos\Modelo_Factura::class,
                 'Columnas_Busqueda' => ['numero', 'concepto'], 'Orden' => ['fecha_emision', 'desc'], 'Grupo' => 'Administración', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
@@ -191,7 +196,7 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'concepto', 'Etiqueta' => 'Concepto', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'fecha_emision', 'Etiqueta' => 'Emisión', 'Tipo' => 'fecha', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'fecha_vencimiento', 'Etiqueta' => 'Vencimiento', 'Tipo' => 'fecha'],
-                    ['Nombre' => 'monto', 'Etiqueta' => 'Monto', 'Tipo' => 'decimal', 'Obligatorio' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'monto', 'Etiqueta' => 'Monto', 'Tipo' => 'decimal', 'Minimo' => 0, 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'moneda', 'Etiqueta' => 'Moneda', 'Tipo' => 'lista', 'Opciones' => ['BOB' => 'Bolivianos', 'USD' => 'Dólares'], 'Por_Defecto' => 'BOB'],
                     ['Nombre' => 'estado', 'Etiqueta' => 'Estado', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'pendiente',
                         'Opciones' => ['pendiente' => 'Pendiente', 'pagada' => 'Pagada', 'anulada' => 'Anulada']],
@@ -201,7 +206,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'contratos' => [
-                'Titulo' => 'Contratos y presupuestos', 'Singular' => 'contrato', 'Modelo' => Modelos\Modelo_Contrato::class,
+                'Icono' => 'archivo', 'Titulo' => 'Contratos y presupuestos', 'Singular' => 'contrato', 'Modelo' => Modelos\Modelo_Contrato::class,
                 'Columnas_Busqueda' => ['titulo'], 'Orden' => ['fecha_firma', 'desc'], 'Grupo' => 'Administración', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
@@ -211,7 +216,7 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'titulo', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'fecha_firma', 'Etiqueta' => 'Fecha de firma', 'Tipo' => 'fecha', 'En_Tabla' => true],
                     ['Nombre' => 'fecha_vencimiento', 'Etiqueta' => 'Vigencia hasta', 'Tipo' => 'fecha'],
-                    ['Nombre' => 'monto', 'Etiqueta' => 'Monto', 'Tipo' => 'decimal'],
+                    ['Nombre' => 'monto', 'Etiqueta' => 'Monto', 'Tipo' => 'decimal', 'Minimo' => 0],
                     ['Nombre' => 'ruta_archivo', 'Etiqueta' => 'Archivo (PDF)', 'Tipo' => 'archivo', 'Carpeta' => 'contratos',
                         'Guardar_Nombre_En' => 'nombre_archivo', 'Guardar_Huella_En' => 'huella_sha256'],
                     ['Nombre' => 'enlace_externo', 'Etiqueta' => 'O enlace externo', 'Tipo' => 'enlace'],
@@ -219,7 +224,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'horas' => [
-                'Titulo' => 'Movimientos de horas', 'Singular' => 'movimiento', 'Modelo' => Modelos\Modelo_Movimiento_Horas::class,
+                'Icono' => 'dinero', 'Titulo' => 'Movimientos de horas', 'Singular' => 'movimiento', 'Modelo' => Modelos\Modelo_Movimiento_Horas::class,
                 'Columnas_Busqueda' => ['descripcion'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Administración', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,

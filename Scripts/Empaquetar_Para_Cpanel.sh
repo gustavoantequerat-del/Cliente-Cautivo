@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Genera dist/cliente-cautivo.zip listo para subir al cPanel: el Backend con vendor/ y el Frontend ya compilado.
-# Úselo cuando el hosting no tiene Composer ni Node. Requiere: php, composer, npm, zip.
+# Úselo cuando el hosting no tiene Composer ni Node. Requiere: php, composer, pnpm, zip.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 Carpeta_Raiz="$(pwd)"
 
 # 1. Frontend: compila Vue dentro de Backend/public/build
-(cd Frontend && npm ci && npm run build)
+(cd Frontend && pnpm install && pnpm run build)
 
 # 2. Backend: dependencias de producción
 cd Backend

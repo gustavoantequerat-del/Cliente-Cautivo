@@ -95,7 +95,8 @@ const Cerrar_Sesion = () => router.post('/logout');
             </header>
             <main id="contenido" :class="$style.content">
                 <Componente_Mensaje_Flash />
-                <slot />
+                <!-- La clave cambia en cada página: así cada pantalla entra con su animación -->
+                <div :key="Pagina.component" class="animar-entrada" :class="$style.page"><slot /></div>
             </main>
         </div>
     </div>
@@ -107,7 +108,7 @@ const Cerrar_Sesion = () => router.post('/logout');
 .skip:focus { left: 8px; }
 
 .sidebar {
-  width: 272px; flex: none; background: var(--navy-950); padding: 24px 16px; display: flex; flex-direction: column; gap: 20px;
+  width: 272px; flex: none; background: linear-gradient(180deg, var(--navy-950) 0%, #0C1B33 100%); padding: 24px 16px; display: flex; flex-direction: column; gap: 20px;
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
 }
 .sideTop { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; }
@@ -119,11 +120,13 @@ const Cerrar_Sesion = () => router.post('/logout');
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .heading { padding: 14px 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--side-label); }
 .link {
-  display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px;
+  position: relative; display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 12px;
   text-decoration: none; font-size: 14px; font-weight: 600; color: var(--side-text);
+  transition: background 0.2s, color 0.2s, transform 0.2s var(--ease);
 }
-.link:hover { background: var(--navy-850); color: #fff; }
-.active, .active:hover { background: var(--navy-700); color: #fff; }
+.link:hover { background: var(--navy-850); color: #fff; transform: translateX(3px); }
+.active, .active:hover { background: linear-gradient(90deg, var(--navy-700), var(--navy-800)); color: #fff; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); }
+.active::before { content: ''; position: absolute; left: -16px; top: 10px; bottom: 10px; width: 4px; border-radius: 0 4px 4px 0; background: var(--sky-400); }
 
 .manager { margin-top: auto; padding: 16px; border-radius: 14px; background: var(--navy-850); display: flex; flex-direction: column; gap: 12px; }
 .managerBtn {
@@ -135,7 +138,8 @@ const Cerrar_Sesion = () => router.post('/logout');
 .manager .person span { color: #9AA6B8; }
 
 .avatar {
-  width: 40px; height: 40px; border-radius: 50%; background: var(--navy-800); color: #fff; flex: none;
+  width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-primary); color: #fff; flex: none;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 4px var(--line);
   display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
 }
 .avatarManager { background: var(--navy-500); }
@@ -145,8 +149,8 @@ const Cerrar_Sesion = () => router.post('/logout');
 
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .topbar {
-  display: flex; align-items: center; gap: 12px; padding: 12px 40px; background: var(--surface);
-  border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 12px; padding: 12px 40px; background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10;
 }
 .spacer { flex: 1; }
 .menuBtn { display: none; }
@@ -154,14 +158,16 @@ const Cerrar_Sesion = () => router.post('/logout');
   width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface);
   align-items: center; justify-content: center; cursor: pointer; color: var(--ink);
 }
-.iconBtn { display: inline-flex; }
+.iconBtn { display: inline-flex; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+.iconBtn:hover { background: var(--danger-bg); color: var(--danger-fg); border-color: #E3B4AF; }
 .credPill {
   display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px;
   background: var(--blue-100); color: var(--navy-900); font-size: 13px; font-weight: 700; text-decoration: none;
 }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--navy-700); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #3E9B66; box-shadow: 0 0 0 3px rgba(62, 155, 102, 0.2); }
 .me { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
-.content { padding: 32px 40px 56px; width: 100%; max-width: 1280px; display: flex; flex-direction: column; gap: 32px; }
+.content { padding: 32px 40px 56px; width: 100%; max-width: 1280px; }
+.page { display: flex; flex-direction: column; gap: 32px; }
 .backdrop { display: none; }
 
 @media (max-width: 960px) {
@@ -171,7 +177,8 @@ const Cerrar_Sesion = () => router.post('/logout');
   .backdrop { display: block; position: fixed; inset: 0; background: rgba(10, 22, 40, 0.45); z-index: 30; }
   .menuBtn { display: inline-flex; }
   .topbar { padding: 10px 16px; }
-  .content { padding: 20px 16px 40px; gap: 24px; }
+  .content { padding: 20px 16px 40px; }
+  .page { gap: 24px; }
   .credPill, .me .person { display: none; }
 }
 </style>

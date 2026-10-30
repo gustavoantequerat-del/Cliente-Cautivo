@@ -37,7 +37,7 @@ Todo el contenido está aislado por institución: un cliente nunca ve datos de o
 
 ## Desarrollo local
 
-Requisitos: PHP 8.2+, Composer 2 y Node 20+.
+Requisitos: PHP 8.2+, Composer 2, Node 20+ y pnpm (`corepack enable`).
 
 ```bash
 # Backend (terminal 1)
@@ -53,16 +53,16 @@ php artisan serve
 
 # Frontend (terminal 2)
 cd Frontend
-npm install
-npm run dev        # o "npm run build" para generar Backend/public/build
+pnpm install       # la primera vez crea pnpm-lock.yaml: versiónelo
+pnpm run dev       # o "pnpm run build" para compilar dentro de Backend/public/build
 ```
 
 Usuarios de la demo (**solo para local; no use el seeder demo en producción**):
 
 | Rol | Correo | Contraseña |
 |---|---|---|
-| Staff / CMS | admin@blockfinity.test | Blockfinity2026 |
-| Ejecutiva de cuenta | ejecutiva@blockfinity.test | Blockfinity2026 |
+| Staff / CMS (entra por `/admin/login`) | admin@blockfinity.test | Blockfinity2026 |
+| Ejecutiva de cuenta (entra por `/admin/login`) | ejecutiva@blockfinity.test | Blockfinity2026 |
 | Cliente (admin de la institución) | maria.rojas@bancodemo.test | Cliente2026demo |
 | Cliente (funcionario) | jorge.quiroga@bancodemo.test | Cliente2026demo |
 
@@ -85,7 +85,7 @@ Las pruebas también comprueban que cada página que pide el Backend exista en `
 ```
 Si el cPanel tiene *Terminal* y Composer, puede clonar el repo con *Git Version Control* y ejecutar
 `composer install --no-dev -o` dentro de `Backend/`. En ese caso compile antes el Frontend en su computadora
-(`cd Frontend && npm ci && npm run build`) y versione `Backend/public/build`.
+(`cd Frontend && pnpm install && pnpm run build`) y versione `Backend/public/build`.
 
 ### 3. Subir y configurar
 1. Suba el zip **fuera de `public_html`** (ej. `/home/USUARIO/cliente-cautivo`) y descomprímalo (contiene el contenido de `Backend/`).
@@ -153,6 +153,8 @@ Frontend/                                ← Vue 3 + Vite (se compila en Backend
   Estilos/Estilos_Globales.css           ← tokens y controles base (cada componente usa <style module>)
 Scripts/Empaquetar_Para_Cpanel.sh
 ```
+
+Accesos separados por seguridad: los clientes ingresan por `/login` y el staff por `/admin/login` (con límite más estricto de intentos). Una cuenta que usa la puerta que no le corresponde recibe el mismo error que una contraseña incorrecta y queda registrada en la auditoría.
 
 Roles: `staff` (Blockfinity, ve el CMS), `administrador_institucion` (ve las credenciales de su organización y el registro de accesos) y `funcionario`.
 

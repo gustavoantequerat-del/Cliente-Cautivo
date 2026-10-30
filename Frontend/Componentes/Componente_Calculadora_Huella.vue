@@ -4,6 +4,7 @@
  * El archivo nunca se envía al servidor.
  */
 import { ref } from 'vue';
+import Componente_Icono from './Componente_Icono.vue';
 
 defineProps({
     Etiqueta: { type: String, default: 'Arrastre o seleccione un archivo' },
@@ -36,6 +37,7 @@ const Al_Soltar_Archivo = (Evento) => { Esta_Arrastrando.value = false; Calcular
     <label :for="Id_Campo" :class="[$style.drop, Esta_Arrastrando && $style.dragging]"
            @dragover.prevent="Esta_Arrastrando = true" @dragleave="Esta_Arrastrando = false" @drop.prevent="Al_Soltar_Archivo">
         <input :id="Id_Campo" type="file" class="sr-only" @change="Al_Elegir_Archivo">
+        <span class="burbuja" :class="$style.icon"><Componente_Icono :Nombre="Esta_Calculando ? 'cargando' : 'huella'" :class="Esta_Calculando && 'girando'" /></span>
         <strong>{{ Esta_Calculando ? 'Calculando huella…' : (Nombre_Archivo || Etiqueta) }}</strong>
         <span>{{ Ayuda }}</span>
     </label>
@@ -43,11 +45,15 @@ const Al_Soltar_Archivo = (Evento) => { Esta_Arrastrando.value = false; Calcular
 
 <style module>
 .drop {
+  transition: border-color 0.2s, background 0.2s, transform 0.2s var(--ease);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center;
   min-height: 110px; padding: 18px; border: 1.5px dashed var(--line-2); border-radius: var(--radius);
   background: var(--surface-2); cursor: pointer; font-size: 14px; color: var(--navy-950);
 }
 .drop span { font-size: 12px; color: var(--muted); }
 .drop:focus-within { outline: 3px solid var(--navy-500); outline-offset: 2px; }
-.dragging { border-color: var(--navy-700); background: var(--blue-100); }
+.drop:hover { border-color: var(--navy-500); background: var(--blue-50); }
+.dragging { border-color: var(--navy-700); background: var(--blue-100); transform: scale(1.02); }
+.icon { margin-bottom: 4px; transition: transform 0.3s var(--ease); }
+.drop:hover .icon { transform: translateY(-3px); }
 </style>
