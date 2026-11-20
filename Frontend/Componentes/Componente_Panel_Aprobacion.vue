@@ -19,7 +19,7 @@ const Aprobar_Entregable = () => Formulario.post(`/entregables/${Propiedades.Ent
             <p :class="$style.meta">
                 <template v-if="Entregable.Version">Versión {{ Entregable.Version }} · </template>publicado el {{ Entregable.Fecha }}
             </p>
-            <p v-if="Entregable.Huella_Sha256" :class="$style.hash">Huella SHA-256: <span class="mono">{{ Entregable.Huella_Sha256 }}</span></p>
+            <p v-if="Entregable.Codigo_Verificacion" :class="$style.hash" title="Código único del archivo: si el documento cambia, el código cambia">Código de verificación: <span class="mono">{{ Entregable.Codigo_Verificacion.slice(0, 12) }}…</span></p>
         </div>
         <form :class="$style.form" @submit.prevent="Aprobar_Entregable">
             <a v-if="Entregable.Tiene_Archivo" :href="`/entregables/${Entregable.Id}/descargar`" target="_blank" rel="noopener" :class="$style.ghost">
@@ -33,7 +33,7 @@ const Aprobar_Entregable = () => Formulario.post(`/entregables/${Propiedades.Ent
             <button type="submit" :class="$style.approve" :disabled="Formulario.processing || !Formulario.password">
                 <Componente_Icono Nombre="visto" :Tamano="18" />Aprobar entregable
             </button>
-            <span :class="$style.note"><Componente_Icono Nombre="huella" :Tamano="14" />Queda registrado con la huella del documento.</span>
+            <span :class="$style.note"><Componente_Icono Nombre="codigo" :Tamano="14" />Queda registrado qué versión exacta aprobó.</span>
         </form>
     </section>
 </template>

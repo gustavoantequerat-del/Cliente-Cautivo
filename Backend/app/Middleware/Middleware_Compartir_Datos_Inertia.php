@@ -2,6 +2,7 @@
 
 namespace App\Middleware;
 
+use App\Modelos\Modelo_Usuario;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -22,7 +23,9 @@ class Middleware_Compartir_Datos_Inertia extends Middleware
                 'Email' => $Usuario->email,
                 'Iniciales' => $Usuario->Obtener_Iniciales(),
                 'Area' => $Usuario->area,
+                'Nombre_Rol' => Modelo_Usuario::Roles[$Usuario->rol] ?? $Usuario->rol,
                 'Es_Staff' => $Usuario->Es_Staff(),
+                'Es_Cliente_Institucional' => $Usuario->Es_Cliente_Institucional(),
                 'Numero_Credencial' => $Usuario->numero_credencial,
             ] : null,
             'Institucion_Actual' => $Institucion ? [

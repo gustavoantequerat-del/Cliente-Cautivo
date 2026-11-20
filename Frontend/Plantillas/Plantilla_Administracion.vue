@@ -8,16 +8,17 @@ import Componente_Marca_Blockfinity from '../Componentes/Componente_Marca_Blockf
 const Pagina = usePage();
 const Usuario_Actual = computed(() => Pagina.props.Usuario_Actual);
 
-const Grupos_Menu = [
+// Solo_Staff: contenido global que el ejecutivo de cuenta no gestiona
+const Todos_Los_Grupos = [
     { Titulo: 'General', Enlaces: [
         { Url: '/admin', Etiqueta: 'Resumen', Icono: 'cuadricula', Coincidencia_Exacta: true },
         { Url: '/admin/solicitudes-horas', Etiqueta: 'Solicitudes de horas', Icono: 'reloj' },
-        { Url: '/admin/auditoria', Etiqueta: 'Auditoría', Icono: 'escudo' },
+        { Url: '/admin/auditoria', Etiqueta: 'Auditoría', Icono: 'escudo', Solo_Staff: true },
     ] },
     { Titulo: 'Cuentas', Enlaces: [
-        { Url: '/admin/instituciones', Etiqueta: 'Instituciones', Icono: 'edificio' },
+        { Url: '/admin/instituciones', Etiqueta: 'Instituciones', Icono: 'edificio', Solo_Staff: true },
         { Url: '/admin/usuarios', Etiqueta: 'Usuarios', Icono: 'usuarios' },
-        { Url: '/admin/unidades', Etiqueta: 'Unidades de negocio', Icono: 'capas' },
+        { Url: '/admin/unidades', Etiqueta: 'Unidades de negocio', Icono: 'capas', Solo_Staff: true },
     ] },
     { Titulo: 'Relación', Enlaces: [
         { Url: '/admin/proyectos', Etiqueta: 'Proyectos', Icono: 'proyectos' },
@@ -26,8 +27,8 @@ const Grupos_Menu = [
         { Url: '/admin/entregables', Etiqueta: 'Entregables', Icono: 'boveda' },
     ] },
     { Titulo: 'Contenido', Enlaces: [
-        { Url: '/admin/videos', Etiqueta: 'Videos y webinars', Icono: 'reproducir' },
-        { Url: '/admin/research', Etiqueta: 'Research', Icono: 'grafico' },
+        { Url: '/admin/videos', Etiqueta: 'Videos y webinars', Icono: 'reproducir', Solo_Staff: true },
+        { Url: '/admin/research', Etiqueta: 'Research', Icono: 'grafico', Solo_Staff: true },
     ] },
     { Titulo: 'Administración', Enlaces: [
         { Url: '/admin/facturas', Etiqueta: 'Facturas', Icono: 'facturacion' },
@@ -36,6 +37,9 @@ const Grupos_Menu = [
     ] },
 ];
 
+const Grupos_Menu = computed(() => Todos_Los_Grupos
+    .map((Grupo) => ({ ...Grupo, Enlaces: Grupo.Enlaces.filter((Enlace) => Usuario_Actual.value?.Es_Staff || !Enlace.Solo_Staff) }))
+    .filter((Grupo) => Grupo.Enlaces.length));
 const Ruta_Actual = computed(() => Pagina.url.split('?')[0]);
 const Es_Enlace_Activo = (Enlace) => (Enlace.Coincidencia_Exacta ? Ruta_Actual.value === Enlace.Url : Ruta_Actual.value.startsWith(Enlace.Url));
 </script>
@@ -57,7 +61,7 @@ const Es_Enlace_Activo = (Enlace) => (Enlace.Coincidencia_Exacta ? Ruta_Actual.v
                 <span :class="$style.secure"><Componente_Icono Nombre="candado" :Tamano="14" />Consola segura</span>
                 <span :class="$style.spacer" />
                 <span :class="$style.avatar">{{ Usuario_Actual?.Iniciales }}</span>
-                <span :class="$style.who">{{ Usuario_Actual?.Nombre }}</span>
+                <span :class="$style.who">{{ Usuario_Actual?.Nombre }}<small>{{ Usuario_Actual?.Nombre_Rol }}</small></span>
                 <button type="button" class="btn btn-secondary btn-sm" @click="router.post('/logout')">
                     <Componente_Icono Nombre="salir" :Tamano="16" />Salir
                 </button>
@@ -97,8 +101,9 @@ const Es_Enlace_Activo = (Enlace) => (Enlace.Coincidencia_Exacta ? Ruta_Actual.v
   display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
 }
 .spacer { flex: 1; }
-.who { font-size: 14px; font-weight: 700; }
-.content { padding: 28px 32px 56px; max-width: 1280px; width: 100%; }
+.who { display: flex; flex-direction: column; font-size: 14px; font-weight: 700; line-height: 1.2; }
+.who small { font-size: 11px; font-weight: 600; color: var(--muted); }
+.content { padding: 28px 32px 56px; max-width: 1280px; width: 100%; margin: 0 auto; }
 .page { display: flex; flex-direction: column; gap: 24px; }
 @media (max-width: 700px) { .content { padding: 20px 16px; } .topbar { padding: 10px 16px; } }
 </style>

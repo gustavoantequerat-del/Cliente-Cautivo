@@ -69,8 +69,8 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
         $Staff = $this->Crear_Staff();
         $this->actingAs($Staff)->post('/admin/usuarios', [
             'nombre' => 'Ana 123', 'email' => 'ana@prueba.test', 'password' => 'Clave12345segura',
-            'rol' => 'funcionario', 'telefono' => '70O-abc', 'esta_activo' => 1,
-        ])->assertSessionHasErrors(['nombre', 'telefono']);
+            'rol' => 'cliente_basico', 'telefono' => '70O-abc', 'esta_activo' => 1,
+        ])->assertSessionHasErrors(['nombre', 'telefono', 'institucion_id' => 'Complete el campo institución.']);
 
         $this->actingAs($Staff)->post('/admin/instituciones', [
             'nombre' => 'Banco X', 'identificador' => 'Banco X!', 'nit' => '12A45', 'puntos_alianza' => -5,
@@ -78,7 +78,7 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
 
         $this->actingAs($Staff)->post('/admin/usuarios', [
             'nombre' => 'Ana María Pérez', 'email' => 'ana@prueba.test', 'password' => 'Clave12345segura',
-            'rol' => 'funcionario', 'telefono' => '+59170000000', 'esta_activo' => 1,
+            'rol' => 'cliente_basico', 'institucion_id' => $this->Crear_Institucion()->id, 'telefono' => '+59170000000', 'esta_activo' => 1,
         ])->assertSessionHasNoErrors()->assertRedirect('/admin/usuarios');
     }
 

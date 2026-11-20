@@ -13,7 +13,7 @@ class Middleware_Exigir_Usuario_Activo
     public function handle(Request $Peticion, Closure $Siguiente): Response
     {
         if ($Peticion->user() && ! $Peticion->user()->esta_activo) {
-            $Login_Correspondiente = $Peticion->user()->Es_Staff() ? '/admin/login' : '/login';
+            $Login_Correspondiente = $Peticion->user()->Es_Personal_Blockfinity() ? '/admin/login' : '/login';
             Auth::logout();
             $Peticion->session()->invalidate();
 

@@ -14,7 +14,7 @@ class Modelo_Contrato extends Model
 
     protected $fillable = [
         'institucion_id', 'unidad_negocio_id', 'tipo', 'titulo', 'fecha_firma', 'fecha_vencimiento', 'monto',
-        'ruta_archivo', 'nombre_archivo', 'enlace_externo', 'huella_sha256',
+        'ruta_archivo', 'nombre_archivo', 'enlace_externo', 'codigo_verificacion',
     ];
 
     protected function casts(): array

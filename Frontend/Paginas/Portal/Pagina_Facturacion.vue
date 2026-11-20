@@ -31,27 +31,24 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
                 <button type="button" role="tab" class="chip" :aria-selected="Pestana_Activa === 'contratos'" :aria-pressed="Pestana_Activa === 'contratos' ? 'true' : 'false'" @click="Pestana_Activa = 'contratos'">Contratos y presupuestos · {{ Contratos.length }}</button>
             </div>
 
-            <div v-if="Pestana_Activa === 'facturas'" class="table-wrap">
-                <table class="table">
-                    <thead><tr><th>N.º</th><th>Concepto</th><th>Emisión</th><th>Vence</th><th>Monto</th><th>Estado</th><th>Archivos</th></tr></thead>
-                    <tbody>
-                        <tr v-for="Factura in Facturas" :key="Factura.Id">
-                            <td class="mono">{{ Factura.Numero }}</td>
-                            <td>{{ Factura.Concepto }}</td>
-                            <td>{{ Factura.Fecha_Emision }}</td>
-                            <td>{{ Factura.Fecha_Vencimiento ?? '—' }}</td>
-                            <td class="mono" :class="$style.nowrap">{{ Formatear_Moneda(Factura.Moneda) }} {{ Factura.Monto }}</td>
-                            <td><Componente_Etiqueta_Estado :Estado="Factura.Estado" /></td>
-                            <td :class="$style.nowrap">
-                                <a v-if="Factura.Tiene_Pdf" :href="`/facturacion/factura/${Factura.Id}/pdf`" class="btn btn-secondary btn-sm">PDF</a>
-                                <a v-if="Factura.Tiene_Xml" :href="`/facturacion/factura/${Factura.Id}/xml`" class="btn btn-secondary btn-sm" :class="$style.gap">XML</a>
-                                <span v-if="!Factura.Tiene_Pdf && !Factura.Tiene_Xml" class="muted">—</span>
-                            </td>
-                        </tr>
-                        <tr v-if="!Facturas.length"><td colspan="7" class="muted">Aún no hay facturas.</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <template v-if="Pestana_Activa === 'facturas'">
+                <p v-if="!Facturas.length" class="vacio">Aún no hay facturas.</p>
+                <ul v-else class="lista escalonado">
+                    <li v-for="Factura in Facturas" :key="Factura.Id">
+                        <span class="burbuja burbuja-sm" :class="{ pagada: 'burbuja-verde', vencida: 'burbuja-roja', pendiente: 'burbuja-ambar' }[Factura.Estado]"><Componente_Icono Nombre="facturacion" :Tamano="18" /></span>
+                        <span class="lista-texto">
+                            <strong>{{ Factura.Concepto }}</strong>
+                            <span class="lista-detalle">N.º {{ Factura.Numero }} · {{ Factura.Fecha_Emision }}<template v-if="Factura.Fecha_Vencimiento && Factura.Estado !== 'pagada'"> · vence {{ Factura.Fecha_Vencimiento }}</template></span>
+                        </span>
+                        <span class="lista-acciones">
+                            <strong :class="$style.amount">{{ Formatear_Moneda(Factura.Moneda) }} {{ Factura.Monto }}</strong>
+                            <Componente_Etiqueta_Estado :Estado="Factura.Estado" />
+                            <a v-if="Factura.Tiene_Pdf" :href="`/facturacion/factura/${Factura.Id}/pdf`" class="btn btn-secondary btn-sm"><Componente_Icono Nombre="descargar" :Tamano="14" />PDF</a>
+                            <a v-if="Factura.Tiene_Xml" :href="`/facturacion/factura/${Factura.Id}/xml`" class="btn btn-secondary btn-sm">XML</a>
+                        </span>
+                    </li>
+                </ul>
+            </template>
 
             <div v-else class="stack">
                 <article v-for="Contrato in Contratos" :key="Contrato.Id" :class="$style.contract" class="elevable">
@@ -64,7 +61,6 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
                         <span class="muted" :class="$style.small">
                             <template v-if="Contrato.Fecha_Firma">Firmado el {{ Contrato.Fecha_Firma }}</template><template v-if="Contrato.Fecha_Vencimiento"> · vigente hasta {{ Contrato.Fecha_Vencimiento }}</template><template v-if="Contrato.Monto"> · Bs {{ Contrato.Monto }}</template>
                         </span>
-                        <span v-if="Contrato.Huella_Sha256" class="mono muted" :class="$style.small">Huella {{ Contrato.Huella_Sha256.slice(0, 16) }}…</span>
                     </div>
                     <a v-if="Contrato.Tiene_Archivo" :href="`/facturacion/contrato/${Contrato.Id}`" target="_blank" rel="noopener" class="btn btn-secondary btn-sm"><Componente_Icono Nombre="descargar" :Tamano="16" />Descargar</a>
                 </article>
@@ -91,8 +87,7 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
 .layout { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
 .main { flex: 999 1 560px; min-width: 0; }
 .side { flex: 1 1 280px; min-width: 0; }
-.nowrap { white-space: nowrap; }
-.gap { margin-left: 6px; }
+.amount { white-space: nowrap; font-size: 15px; color: var(--navy-950); }
 .small { font-size: 12px; }
 .contract { box-shadow: var(--shadow); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
 .cText { gap: 6px; flex: 1 1 300px; }

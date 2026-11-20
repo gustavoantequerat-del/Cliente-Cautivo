@@ -28,7 +28,7 @@ abstract class Caso_Prueba_Base extends TestCase
         return $Institucion;
     }
 
-    protected function Crear_Cliente(?Modelo_Institucion $Institucion = null, string $Rol = Modelo_Usuario::Rol_Funcionario): Modelo_Usuario
+    protected function Crear_Cliente(?Modelo_Institucion $Institucion = null, string $Rol = Modelo_Usuario::Rol_Cliente_Institucional): Modelo_Usuario
     {
         return $this->Crear_Usuario(['institucion_id' => ($Institucion ?? $this->Crear_Institucion())->id, 'rol' => $Rol]);
     }
@@ -36,6 +36,16 @@ abstract class Caso_Prueba_Base extends TestCase
     protected function Crear_Staff(): Modelo_Usuario
     {
         return $this->Crear_Usuario(['rol' => Modelo_Usuario::Rol_Staff]);
+    }
+
+    protected function Crear_Ejecutivo_Cuenta(Modelo_Institucion ...$Instituciones_A_Cargo): Modelo_Usuario
+    {
+        $Ejecutivo = $this->Crear_Usuario(['rol' => Modelo_Usuario::Rol_Ejecutivo_Cuenta]);
+        foreach ($Instituciones_A_Cargo as $Institucion) {
+            $Institucion->update(['ejecutivo_cuenta_id' => $Ejecutivo->id]);
+        }
+
+        return $Ejecutivo;
     }
 
     private function Crear_Usuario(array $Datos): Modelo_Usuario

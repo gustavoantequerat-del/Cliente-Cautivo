@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/** El CMS es solo para el staff de Blockfinity */
+/** Secciones globales del CMS (auditoría, contenido general): solo el staff, no los ejecutivos de cuenta */
 class Middleware_Exigir_Staff
 {
     public function handle(Request $Peticion, Closure $Siguiente): Response

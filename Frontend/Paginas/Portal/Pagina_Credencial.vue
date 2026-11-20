@@ -72,23 +72,22 @@ function Obtener_Texto_Situacion(Nivel) {
     </section>
 
     <section v-if="Miembros_Institucion" class="stack">
-        <div class="stack" :class="$style.tight">
-            <h2>Credenciales de su organización</h2>
+        <div class="row between">
+            <h2>Su equipo</h2>
+            <span class="badge badge-blue">{{ Miembros_Institucion.filter((Miembro) => Miembro.Esta_Activo).length }} con acceso</span>
         </div>
-        <div class="table-wrap">
-            <table class="table">
-                <thead><tr><th>Funcionario</th><th>Área</th><th>Credencial</th><th>Último ingreso</th><th>Estado</th></tr></thead>
-                <tbody>
-                    <tr v-for="Miembro in Miembros_Institucion" :key="Miembro.Numero">
-                        <td><strong>{{ Miembro.Nombre }}</strong></td>
-                        <td>{{ Miembro.Area ?? '—' }}</td>
-                        <td class="mono">#{{ Miembro.Numero }}</td>
-                        <td>{{ Miembro.Ultimo_Ingreso ?? 'Nunca' }}</td>
-                        <td><span :class="['badge', Miembro.Esta_Activo ? 'badge-ok' : 'badge-danger']">{{ Miembro.Esta_Activo ? 'Activa' : 'Revocada' }}</span></td>
-                    </tr>
-                </tbody>
-            </table>
+        <div :class="$style.members" class="escalonado">
+            <article v-for="Miembro in Miembros_Institucion" :key="Miembro.Numero" :class="[$style.member, !Miembro.Esta_Activo && $style.memberOff]">
+                <span :class="$style.memberAvatar">{{ Miembro.Iniciales }}</span>
+                <span class="lista-texto">
+                    <strong>{{ Miembro.Nombre }}</strong>
+                    <span class="lista-detalle">{{ Miembro.Nombre_Rol }}<template v-if="Miembro.Area"> · {{ Miembro.Area }}</template></span>
+                    <span class="lista-detalle">{{ Miembro.Ultimo_Ingreso ? `Último ingreso: ${Miembro.Ultimo_Ingreso}` : 'Aún no ingresó' }}</span>
+                </span>
+                <span :class="['badge', Miembro.Esta_Activo ? 'badge-ok' : 'badge-danger']">{{ Miembro.Esta_Activo ? 'Activa' : 'Revocada' }}</span>
+            </article>
         </div>
+        <p class="muted" :class="$style.small"><Componente_Icono Nombre="info" :Tamano="14" /> Para dar de alta o quitar personas, escriba a su ejecutiva de cuenta.</p>
     </section>
 </template>
 
@@ -118,7 +117,10 @@ function Obtener_Texto_Situacion(Nivel) {
 .facts strong { font-size: 13px; }
 .qrBox { flex: 1 1 240px; align-items: flex-start; }
 .small { font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
-.tight { gap: 4px; }
+.members { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.member { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.memberOff { opacity: 0.6; }
+.memberAvatar { width: 40px; height: 40px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--gradient-primary); color: #fff; font-size: 13px; font-weight: 800; }
 .levels { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); }
 .level { transition: transform 0.25s var(--ease); border: 1px solid var(--line-2); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 6px; background: var(--surface); }
 .alcanzado { background: var(--surface-2); border-color: var(--line); }

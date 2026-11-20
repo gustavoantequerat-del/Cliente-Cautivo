@@ -20,7 +20,7 @@ defineProps({ Registros: Object });
                     <td class="mono">{{ Registro.Fecha }}</td>
                     <td>{{ Registro.Usuario }}</td>
                     <td><span :class="['badge', Clase_Por_Accion(Registro.Accion)]">{{ Registro.Accion }}</span></td>
-                    <td>{{ Registro.Descripcion }}<div v-if="Registro.Huella_Sha256" class="mono muted" :class="$style.hash">{{ Registro.Huella_Sha256 }}</div></td>
+                    <td>{{ Registro.Descripcion }}<div v-if="Registro.Codigo_Verificacion" class="mono muted" :class="$style.hash">{{ Registro.Codigo_Verificacion }}</div></td>
                     <td class="mono">{{ Registro.Ip }}</td>
                 </tr>
             </tbody>

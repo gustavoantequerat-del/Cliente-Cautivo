@@ -51,7 +51,7 @@ class Controlador_Facturacion
                     'Fecha_Firma' => $Contrato->fecha_firma?->translatedFormat('j M Y'),
                     'Fecha_Vencimiento' => $Contrato->fecha_vencimiento?->translatedFormat('j M Y'),
                     'Monto' => $Contrato->monto ? $Formatear_Monto($Contrato->monto) : null,
-                    'Huella_Sha256' => $Contrato->huella_sha256,
+                    'Codigo_Verificacion' => $Contrato->codigo_verificacion,
                     'Tiene_Archivo' => (bool) ($Contrato->ruta_archivo || $Contrato->enlace_externo),
                 ]),
             'Datos_Facturacion' => [

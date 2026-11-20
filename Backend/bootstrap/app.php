@@ -22,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         // Cada visitante va a su propio login: el staff a /admin/login y los clientes a /login
         $Middleware->redirectGuestsTo(fn (Request $Peticion) => $Peticion->is('admin', 'admin/*') ? '/admin/login' : '/login');
-        $Middleware->redirectUsersTo(fn (Request $Peticion) => $Peticion->user()?->Es_Staff() ? '/admin' : '/');
+        $Middleware->redirectUsersTo(fn (Request $Peticion) => $Peticion->user()?->Es_Personal_Blockfinity() ? '/admin' : '/');
     })
     ->withExceptions(function (Exceptions $Excepciones): void {
         //

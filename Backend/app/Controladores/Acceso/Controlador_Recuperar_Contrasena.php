@@ -47,7 +47,7 @@ class Controlador_Recuperar_Contrasena
             function (Modelo_Usuario $Usuario, string $Nueva_Contrasena) use (&$Login_Correspondiente) {
                 $Usuario->forceFill(['password' => $Nueva_Contrasena])->setRememberToken(null);
                 $Usuario->save();
-                $Login_Correspondiente = $Usuario->Es_Staff() ? '/admin/login' : '/login';
+                $Login_Correspondiente = $Usuario->Es_Personal_Blockfinity() ? '/admin/login' : '/login';
             }
         );
 

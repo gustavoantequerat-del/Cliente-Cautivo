@@ -14,9 +14,20 @@ class Modelo_Usuario extends Usuario_Autenticable
 {
     use Notifiable;
 
-    public const Rol_Staff = 'staff';                                       // Staff Blockfinity con acceso al CMS
-    public const Rol_Administrador_Institucion = 'administrador_institucion';
-    public const Rol_Funcionario = 'funcionario';
+    // Personal de Blockfinity (entra por /admin/login)
+    public const Rol_Staff = 'staff';                          // Todo el CMS
+    public const Rol_Ejecutivo_Cuenta = 'ejecutivo_cuenta';    // Solo las instituciones que tiene a su cargo
+
+    // Personal de la institución cliente (entra por /login)
+    public const Rol_Cliente_Institucional = 'cliente_institucional'; // Facturación, horas, aprobaciones y su equipo
+    public const Rol_Cliente_Basico = 'cliente_basico';               // Formación y los proyectos donde lo inscribieron
+
+    public const Roles = [
+        self::Rol_Cliente_Basico => 'Cliente básico',
+        self::Rol_Cliente_Institucional => 'Cliente institucional',
+        self::Rol_Ejecutivo_Cuenta => 'Ejecutivo/a de cuenta',
+        self::Rol_Staff => 'Staff Blockfinity (todo el CMS)',
+    ];
 
     protected $table = 'usuarios';
 
@@ -41,7 +52,7 @@ class Modelo_Usuario extends Usuario_Autenticable
     protected static function booted(): void
     {
         static::creating(function (Modelo_Usuario $Usuario) {
-            if ($Usuario->rol !== self::Rol_Staff && ! $Usuario->codigo_credencial) {
+            if (! $Usuario->Es_Personal_Blockfinity() && ! $Usuario->codigo_credencial) {
                 $Usuario->codigo_credencial = (string) Str::uuid();
                 $Usuario->fecha_emision_credencial = now();
             }
@@ -64,9 +75,30 @@ class Modelo_Usuario extends Usuario_Autenticable
         return $this->rol === self::Rol_Staff;
     }
 
-    public function Es_Administrador_Institucion(): bool
+    public function Es_Ejecutivo_Cuenta(): bool
     {
-        return $this->rol === self::Rol_Administrador_Institucion;
+        return $this->rol === self::Rol_Ejecutivo_Cuenta;
+    }
+
+    /** Staff o ejecutivo/a: usa el CMS y no el portal */
+    public function Es_Personal_Blockfinity(): bool
+    {
+        return $this->Es_Staff() || $this->Es_Ejecutivo_Cuenta();
+    }
+
+    public function Es_Cliente_Institucional(): bool
+    {
+        return $this->rol === self::Rol_Cliente_Institucional;
+    }
+
+    /** Instituciones que puede gestionar en el CMS (null = todas, para el staff) */
+    public function Obtener_Ids_Instituciones_A_Cargo(): ?array
+    {
+        if ($this->Es_Staff()) {
+            return null;
+        }
+
+        return Modelo_Institucion::where('ejecutivo_cuenta_id', $this->id)->pluck('id')->all();
     }
 
     public function Obtener_Iniciales(): string

@@ -1,6 +1,7 @@
 <script setup>
 /*
- * Calcula la huella SHA-256 de un archivo EN EL NAVEGADOR (Web Crypto).
+ * Calcula el código de verificación (SHA-256) de un archivo EN EL NAVEGADOR (Web Crypto).
+ * No es una firma digital ni un dato biométrico: es un código que cambia si el archivo cambia.
  * El archivo nunca se envía al servidor.
  */
 import { ref } from 'vue';
@@ -8,37 +9,37 @@ import Componente_Icono from './Componente_Icono.vue';
 
 defineProps({
     Etiqueta: { type: String, default: 'Arrastre o seleccione un archivo' },
-    Ayuda: { type: String, default: 'El archivo no se sube: la huella se calcula en su equipo.' },
+    Ayuda: { type: String, default: 'El archivo no se sube: se revisa en su equipo.' },
 });
-const Emitir = defineEmits(['Huella_Calculada']);
+const Emitir = defineEmits(['Codigo_Calculado']);
 const Esta_Calculando = ref(false);
 const Nombre_Archivo = ref('');
 const Esta_Arrastrando = ref(false);
-const Id_Campo = `calculadora-huella-${Math.random().toString(36).slice(2, 8)}`;
+const Id_Campo = `calculadora-codigo-${Math.random().toString(36).slice(2, 8)}`;
 
-async function Calcular_Huella(Archivo) {
+async function Calcular_Codigo(Archivo) {
     if (!Archivo) return;
     Esta_Calculando.value = true;
     Nombre_Archivo.value = Archivo.name;
     try {
         const Resumen = await crypto.subtle.digest('SHA-256', await Archivo.arrayBuffer());
-        const Huella_Hexadecimal = Array.from(new Uint8Array(Resumen)).map((Byte) => Byte.toString(16).padStart(2, '0')).join('');
-        Emitir('Huella_Calculada', Huella_Hexadecimal);
+        const Codigo_Hexadecimal = Array.from(new Uint8Array(Resumen)).map((Byte) => Byte.toString(16).padStart(2, '0')).join('');
+        Emitir('Codigo_Calculado', Codigo_Hexadecimal);
     } finally {
         Esta_Calculando.value = false;
     }
 }
 
-const Al_Elegir_Archivo = (Evento) => Calcular_Huella(Evento.target.files[0]);
-const Al_Soltar_Archivo = (Evento) => { Esta_Arrastrando.value = false; Calcular_Huella(Evento.dataTransfer.files[0]); };
+const Al_Elegir_Archivo = (Evento) => Calcular_Codigo(Evento.target.files[0]);
+const Al_Soltar_Archivo = (Evento) => { Esta_Arrastrando.value = false; Calcular_Codigo(Evento.dataTransfer.files[0]); };
 </script>
 
 <template>
     <label :for="Id_Campo" :class="[$style.drop, Esta_Arrastrando && $style.dragging]"
            @dragover.prevent="Esta_Arrastrando = true" @dragleave="Esta_Arrastrando = false" @drop.prevent="Al_Soltar_Archivo">
         <input :id="Id_Campo" type="file" class="sr-only" @change="Al_Elegir_Archivo">
-        <span class="burbuja" :class="$style.icon"><Componente_Icono :Nombre="Esta_Calculando ? 'cargando' : 'huella'" :class="Esta_Calculando && 'girando'" /></span>
-        <strong>{{ Esta_Calculando ? 'Calculando huella…' : (Nombre_Archivo || Etiqueta) }}</strong>
+        <span class="burbuja" :class="$style.icon"><Componente_Icono :Nombre="Esta_Calculando ? 'cargando' : 'codigo'" :class="Esta_Calculando && 'girando'" /></span>
+        <strong>{{ Esta_Calculando ? 'Revisando…' : (Nombre_Archivo || Etiqueta) }}</strong>
         <span>{{ Ayuda }}</span>
     </label>
 </template>
