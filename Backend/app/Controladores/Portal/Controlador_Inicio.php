@@ -56,6 +56,7 @@ class Controlador_Inicio
             ] : null,
             'Mi_Avance' => [
                 'Completados' => $Videos_Completados->count(),
+                'Monedas' => $Usuario->Calcular_Saldo_Monedas(),
                 'Horas' => round(Modelo_Video::whereIn('id', $Videos_Completados)->sum('duracion_minutos') / 60, 1),
             ],
             'Nivel_Alianza' => $Institucion->Calcular_Nivel_Alianza(),

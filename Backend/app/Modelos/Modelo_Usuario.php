@@ -101,6 +101,19 @@ class Modelo_Usuario extends Usuario_Autenticable
         return Modelo_Institucion::where('ejecutivo_cuenta_id', $this->id)->pluck('id')->all();
     }
 
+    public function Calcular_Saldo_Monedas(): int
+    {
+        return Modelo_Movimiento_Monedas::Calcular_Saldo($this->id);
+    }
+
+    /** Objetos que lleva puestos el avatar, listos para Dibujo_Avatar.js */
+    public function Obtener_Objetos_Equipados(): array
+    {
+        return Modelo_Inventario_Avatar::with('Item')->where('usuario_id', $this->id)->where('esta_equipado', true)
+            ->orderBy('updated_at')->get()
+            ->map(fn (Modelo_Inventario_Avatar $Inventario) => $Inventario->Item->Formatear_Para_Dibujo())->all();
+    }
+
     public function Obtener_Iniciales(): string
     {
         $Palabras = preg_split('/\s+/', trim($this->nombre));

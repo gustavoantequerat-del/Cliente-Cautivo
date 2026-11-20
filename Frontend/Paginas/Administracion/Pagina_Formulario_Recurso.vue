@@ -5,6 +5,7 @@ import Componente_Calculadora_Codigo from '../../Componentes/Componente_Calculad
 import Componente_Reproductor_Video from '../../Componentes/Componente_Reproductor_Video.vue';
 import Componente_Encabezado_Pagina from '../../Componentes/Componente_Encabezado_Pagina.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
+import Componente_Avatar from '../../Componentes/Componente_Avatar.vue';
 
 const Propiedades = defineProps({ Recurso: Object, Campos: Array, Valores: Object, Opciones: Object, Id_Registro: Number, Proveedores_Video: Object });
 
@@ -26,9 +27,9 @@ for (const Campo of Propiedades.Campos) {
 }
 const Formulario = useForm(Valores_Iniciales);
 const Es_Edicion = computed(() => !!Propiedades.Id_Registro);
-const Tipo_Input_Por_Campo = { email: 'email', enlace: 'url', telefono: 'tel', fecha: 'date', fecha_hora: 'datetime-local', contrasena: 'password' };
-const Teclado_Por_Campo = { email: 'email', enlace: 'url', telefono: 'tel', numerico: 'numeric', entero: 'numeric', decimal: 'decimal' };
-const Largo_Maximo_Por_Campo = { texto: 255, nombre_persona: 120, email: 255, enlace: 500, telefono: 16, numerico: 20, identificador: 80, codigo: 20, entero: 9, codigo_verificacion: 64 };
+const Tipo_Input_Por_Campo = { email: 'email', enlace: 'url', enlace_drive: 'url', color: 'color', telefono: 'tel', fecha: 'date', fecha_hora: 'datetime-local', contrasena: 'password' };
+const Teclado_Por_Campo = { email: 'email', enlace: 'url', enlace_drive: 'url', telefono: 'tel', numerico: 'numeric', entero: 'numeric', decimal: 'decimal' };
+const Largo_Maximo_Por_Campo = { texto: 255, nombre_persona: 120, email: 255, enlace: 500, enlace_drive: 500, telefono: 16, numerico: 20, identificador: 80, codigo: 20, entero: 9, codigo_verificacion: 64 };
 const Campos_Ancho_Completo = ['texto_largo', 'unidades', 'enlace_video', 'codigo_verificacion'];
 
 // Qué se puede teclear en cada tipo de campo (el Backend vuelve a validar lo mismo)
@@ -54,6 +55,11 @@ function Filtrar_Entrada(Evento, Campo) {
     Evento.target.value = Valor_Limpio;
     Formulario[Campo.Nombre] = Valor_Limpio;
 }
+// Forja: el objeto que se está diseñando, puesto sobre el avatar
+const Objeto_En_Diseno = computed(() => {
+    const [Tipo, Estilo] = String(Formulario.estilo ?? '').split('.');
+    return { Tipo, Estilo, Color_Principal: Formulario.color_principal, Color_Secundario: Formulario.color_secundario };
+});
 const Texto_Rango = (Campo) => (Campo.Minimo !== undefined && Campo.Maximo !== undefined ? `${Campo.Minimo} – ${Campo.Maximo}` : undefined);
 
 function Guardar_Registro() {
@@ -100,6 +106,12 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
     <Link :href="`/admin/${Recurso.Clave}`" :class="$style.back">← {{ Recurso.Titulo }}</Link>
     <Componente_Encabezado_Pagina :Icono="Es_Edicion ? 'lapiz' : 'agregar'" :Antetitulo="Recurso.Titulo" :Titulo="`${Es_Edicion ? 'Editar' : 'Nuevo/a'} ${Recurso.Singular}`" />
 
+    <div :class="Recurso.Vista_Previa && $style.withPreview">
+    <aside v-if="Recurso.Vista_Previa === 'avatar'" class="card" :class="$style.previewCard">
+        <span class="eyebrow">Vista previa</span>
+        <div :class="$style.previewAvatar"><Componente_Avatar :Objetos="[Objeto_En_Diseno]" /></div>
+        <span class="muted" :class="$style.previewHint">Así se verá sobre el avatar.</span>
+    </aside>
     <form class="card" :class="$style.form" novalidate @submit.prevent="Guardar_Registro">
         <div v-for="Campo in Campos" :key="Campo.Nombre" :class="['field', Campos_Ancho_Completo.includes(Campo.Tipo) && $style.wide]">
             <template v-if="Campo.Tipo === 'si_no'">
@@ -170,9 +182,10 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
                 <Componente_Icono :Nombre="Formulario.processing ? 'cargando' : 'visto'" :Tamano="16" :class="Formulario.processing && 'girando'" />
                 {{ Formulario.processing ? 'Guardando…' : 'Guardar' }}
             </button>
-            <button v-if="Es_Edicion" type="button" class="btn btn-danger" @click="Eliminar_Registro"><Componente_Icono Nombre="basura" :Tamano="16" />Eliminar</button>
+            <button v-if="Es_Edicion && Recurso.Permite_Eliminar" type="button" class="btn btn-danger" @click="Eliminar_Registro"><Componente_Icono Nombre="basura" :Tamano="16" />Eliminar</button>
         </div>
     </form>
+    </div>
 </template>
 
 <style module>
@@ -183,5 +196,10 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
 .units { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
 .unit { border: 1.5px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.2s, background 0.2s; }
 .unit:has(input[type='checkbox']:checked) { border-color: var(--navy-500); background: var(--blue-50); }
+.withPreview { display: flex; flex-wrap: wrap-reverse; gap: 20px; align-items: flex-start; }
+.withPreview .form { flex: 999 1 520px; }
+.previewCard { flex: 1 1 220px; position: sticky; top: 90px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.previewAvatar { width: 180px; height: 252px; border-radius: 18px; background: radial-gradient(circle at 50% 30%, #FFFFFF 0%, #E3E9F2 75%); }
+.previewHint { font-size: 12px; }
 .preview { max-width: 520px; display: flex; flex-direction: column; gap: 6px; }
 </style>

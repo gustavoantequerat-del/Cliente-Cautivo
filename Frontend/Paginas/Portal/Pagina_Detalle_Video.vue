@@ -42,7 +42,7 @@ const Inscribirse_Webinar = () => router.post(`/academia/${Propiedades.Video.Id}
                 <span class="badge badge-ok"><Componente_Icono Nombre="visto" :Tamano="14" />Completado</span>
             </template>
             <template v-else>
-                <span class="badge badge-blue" :class="$style.points"><Componente_Icono Nombre="estrella" :Tamano="14" />+{{ Video.Puntos }} puntos al terminar</span>
+                <span class="badge badge-blue" :class="$style.points"><Componente_Icono Nombre="estrella" :Tamano="14" />+{{ Video.Puntos }} monedas al terminar</span>
                 <button type="button" class="btn btn-secondary" :disabled="!Video.Url_Embebida" @click="Marcar_Como_Visto">
                     <Componente_Icono Nombre="visto" :Tamano="16" />Marcar como visto
                 </button>

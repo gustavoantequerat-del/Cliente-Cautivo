@@ -1,27 +1,29 @@
 <script setup>
 import { computed } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import Componente_Encabezado_Pagina from '../../Componentes/Componente_Encabezado_Pagina.vue';
 import Componente_Codigo_QR from '../../Componentes/Componente_Codigo_QR.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 import Componente_Numero_Animado from '../../Componentes/Componente_Numero_Animado.vue';
+import Componente_Avatar from '../../Componentes/Componente_Avatar.vue';
 
-const Propiedades = defineProps({ Tarjeta: Object, Nivel_Alianza: Object, Niveles_Alianza: Array, Videos_Completados: Number, Miembros_Institucion: Array });
-const Porcentaje_Nivel = computed(() => {
-    const Nivel_Siguiente = Propiedades.Nivel_Alianza.Nivel_Siguiente;
-    return Nivel_Siguiente ? Math.min(100, Math.round((Propiedades.Nivel_Alianza.Puntos / Nivel_Siguiente.Puntos_Minimos) * 100)) : 100;
-});
+const Propiedades = defineProps({ Tarjeta: Object, Nivel_Alianza: Object, Videos_Completados: Number, Saldo_Monedas: Number, Miembros_Institucion: Array });
+const Objetos_Avatar = computed(() => usePage().props.Usuario_Actual.Objetos_Avatar);
+const Porcentaje_Nivel = computed(() => Math.round((Propiedades.Nivel_Alianza.Servicios_Contratados / Math.max(1, Propiedades.Nivel_Alianza.Servicios_Totales)) * 100));
 // "actual" = nivel de la institución, "alcanzado" = ya superado, "siguiente" = aún no alcanzado
 function Obtener_Situacion_Nivel(Nivel) {
-    if (Propiedades.Nivel_Alianza.Puntos < Nivel.Puntos_Minimos) return 'siguiente';
+    if (Propiedades.Nivel_Alianza.Servicios_Contratados < Nivel.Servicios_Requeridos) return 'siguiente';
     return Nivel.Clave === Propiedades.Nivel_Alianza.Nivel_Actual.Clave ? 'actual' : 'alcanzado';
 }
 function Obtener_Texto_Situacion(Nivel) {
     const Situacion = Obtener_Situacion_Nivel(Nivel);
     if (Situacion === 'actual') return 'Nivel actual';
     if (Situacion === 'alcanzado') return 'Alcanzado';
-    return `Faltan ${Nivel.Puntos_Minimos - Propiedades.Nivel_Alianza.Puntos}`;
+    const Faltan = Nivel.Servicios_Requeridos - Propiedades.Nivel_Alianza.Servicios_Contratados;
+    return `Falta${Faltan === 1 ? '' : 'n'} ${Faltan} servicio${Faltan === 1 ? '' : 's'}`;
 }
+const Texto_Requisito = (Nivel) => (Nivel.Servicios_Requeridos >= Propiedades.Nivel_Alianza.Servicios_Totales
+    ? 'TODOS LOS SERVICIOS' : `${Nivel.Servicios_Requeridos} SERVICIO${Nivel.Servicios_Requeridos === 1 ? '' : 'S'}`);
 </script>
 
 <template>
@@ -35,9 +37,12 @@ function Obtener_Texto_Situacion(Nivel) {
                     <span :class="$style.cardLabel">CREDENCIAL DE ACCESO</span>
                     <span :class="$style.pill">Intransferible</span>
                 </div>
-                <div class="stack" :class="$style.who">
-                    <span :class="$style.name">{{ Tarjeta.Nombre }}</span>
-                    <span :class="$style.org">{{ Tarjeta.Area }}<template v-if="Tarjeta.Area"> · </template>{{ Tarjeta.Institucion }}</span>
+                <div :class="$style.identity">
+                    <Link href="/avatar" :class="$style.cardAvatar" aria-label="Vestir mi avatar"><Componente_Avatar :Objetos="Objetos_Avatar" Recorte="busto" /></Link>
+                    <div class="stack" :class="$style.who">
+                        <span :class="$style.name">{{ Tarjeta.Nombre }}</span>
+                        <span :class="$style.org">{{ Tarjeta.Area }}<template v-if="Tarjeta.Area"> · </template>{{ Tarjeta.Institucion }}</span>
+                    </div>
                 </div>
                 <div :class="$style.facts">
                     <div><span>NIVEL</span><strong>{{ Nivel_Alianza.Nivel_Actual.Nombre }}</strong></div>
@@ -57,18 +62,18 @@ function Obtener_Texto_Situacion(Nivel) {
     <section class="card stack">
         <div class="row between">
             <div class="row"><span class="burbuja burbuja-ambar"><Componente_Icono Nombre="estrella" /></span><h2>Niveles de alianza</h2></div>
-            <span class="badge badge-blue"><Componente_Numero_Animado :Valor="Nivel_Alianza.Puntos" /><template v-if="Nivel_Alianza.Nivel_Siguiente"> / {{ Nivel_Alianza.Nivel_Siguiente.Puntos_Minimos }}</template> pts</span>
+            <span class="badge badge-blue">{{ Nivel_Alianza.Servicios_Contratados }} de {{ Nivel_Alianza.Servicios_Totales }} servicios</span>
         </div>
         <div class="barra"><span :style="{ width: Porcentaje_Nivel + '%' }" /></div>
         <div :class="$style.levels" class="escalonado">
-            <article v-for="Nivel in Niveles_Alianza" :key="Nivel.Clave" :class="[$style.level, $style[Obtener_Situacion_Nivel(Nivel)]]">
-                <span :class="$style.pts">{{ Nivel.Puntos_Minimos }} PTS</span>
+            <article v-for="Nivel in Nivel_Alianza.Niveles" :key="Nivel.Clave" :class="[$style.level, $style[Obtener_Situacion_Nivel(Nivel)]]">
+                <span :class="$style.pts">{{ Texto_Requisito(Nivel) }}</span>
                 <strong>{{ Nivel.Nombre }}</strong>
                 <span :class="$style.tag">{{ Obtener_Texto_Situacion(Nivel) }}</span>
                 <p :class="$style.benefit">{{ Nivel.Beneficios }}</p>
             </article>
         </div>
-        <p class="muted" :class="$style.small"><Componente_Icono Nombre="reproducir" :Tamano="14" /> Usted completó {{ Videos_Completados }} contenido(s) de formación.</p>
+        <p class="muted" :class="$style.small"><Componente_Icono Nombre="info" :Tamano="14" /> El nivel sube al contratar más servicios de Blockfinity. Sus monedas personales (<Componente_Numero_Animado :Valor="Saldo_Monedas" />) son para su avatar.</p>
     </section>
 
     <section v-if="Miembros_Institucion" class="stack">
@@ -108,6 +113,9 @@ function Obtener_Texto_Situacion(Nivel) {
 @keyframes brillo { 0%, 60% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 .cardLabel { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; color: var(--side-text); }
 .pill { font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1px solid #5A6B85; color: #DDE3EB; }
+.identity { display: flex; align-items: center; gap: 14px; }
+.cardAvatar { width: 64px; height: 64px; flex: none; border-radius: 50%; overflow: hidden; background: rgba(255, 255, 255, 0.14); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25); transition: transform 0.2s var(--ease); }
+.cardAvatar:hover { transform: scale(1.06); }
 .who { gap: 4px; }
 .name { font-size: 26px; font-weight: 800; }
 .org { font-size: 14px; color: var(--side-text); }

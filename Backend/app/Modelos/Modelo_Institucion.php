@@ -12,12 +12,12 @@ class Modelo_Institucion extends Model
 
     protected $fillable = [
         'nombre', 'identificador', 'razon_social', 'nit', 'correo_facturacion', 'direccion_facturacion',
-        'puntos_alianza', 'ejecutivo_cuenta_id', 'esta_activa',
+        'ejecutivo_cuenta_id', 'esta_activa',
     ];
 
     protected function casts(): array
     {
-        return ['esta_activa' => 'boolean', 'puntos_alianza' => 'integer'];
+        return ['esta_activa' => 'boolean'];
     }
 
     public function Ejecutivo_Cuenta(): BelongsTo
@@ -41,19 +41,30 @@ class Modelo_Institucion extends Model
         return round((float) Modelo_Movimiento_Horas::where('institucion_id', $this->id)->sum('horas'), 2);
     }
 
-    /** Nivel de alianza actual y siguiente según config/Configuracion_Portal.php */
+    /**
+     * Nivel de alianza según cuántos servicios (unidades de negocio) tiene contratados.
+     * Los requisitos están en config/Configuracion_Portal.php; null = todos los servicios.
+     */
     public function Calcular_Nivel_Alianza(): array
     {
-        $Niveles = config('Configuracion_Portal.Niveles_Alianza');
-        $Nivel_Actual = $Niveles[0];
-        $Nivel_Siguiente = null;
+        $Servicios_Totales = Modelo_Unidad_Negocio::count();
+        $Servicios_Contratados = $this->Unidades_Contratadas->count();
+        $Niveles = array_map(fn ($Nivel) => $Nivel + ['Servicios_Requeridos' => $Nivel['Servicios_Minimos'] ?? $Servicios_Totales],
+            config('Configuracion_Portal.Niveles_Alianza'));
+
+        $Posicion_Actual = 0;
         foreach ($Niveles as $Posicion => $Nivel) {
-            if ($this->puntos_alianza >= $Nivel['Puntos_Minimos']) {
-                $Nivel_Actual = $Nivel;
-                $Nivel_Siguiente = $Niveles[$Posicion + 1] ?? null;
+            if ($Servicios_Contratados >= $Nivel['Servicios_Requeridos']) {
+                $Posicion_Actual = $Posicion;
             }
         }
 
-        return ['Nivel_Actual' => $Nivel_Actual, 'Nivel_Siguiente' => $Nivel_Siguiente, 'Puntos' => $this->puntos_alianza];
+        return [
+            'Nivel_Actual' => $Niveles[$Posicion_Actual],
+            'Nivel_Siguiente' => $Niveles[$Posicion_Actual + 1] ?? null,
+            'Servicios_Contratados' => $Servicios_Contratados,
+            'Servicios_Totales' => $Servicios_Totales,
+            'Niveles' => $Niveles,
+        ];
     }
 }

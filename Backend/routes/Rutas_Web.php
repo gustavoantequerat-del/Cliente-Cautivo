@@ -7,6 +7,7 @@ use App\Controladores\Administracion\Controlador_Panel_Administracion;
 use App\Controladores\Administracion\Controlador_Recursos_Cms;
 use App\Controladores\Administracion\Controlador_Solicitudes_Horas;
 use App\Controladores\Portal\Controlador_Academia;
+use App\Controladores\Portal\Controlador_Avatar;
 use App\Controladores\Portal\Controlador_Bolsa_Horas;
 use App\Controladores\Portal\Controlador_Credencial;
 use App\Controladores\Portal\Controlador_Entregables;
@@ -54,7 +55,9 @@ Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function ()
 
     Route::middleware(Middleware_Exigir_Unidad_Contratada::class.':RESEARCH')->group(function () {
         Route::get('/research', [Controlador_Research::class, 'Listar_Reportes']);
-        Route::get('/research/{Reporte}/abrir', [Controlador_Research::class, 'Abrir_Reporte']);
+        Route::get('/research/{Reporte}', [Controlador_Research::class, 'Mostrar_Reporte']);
+        Route::get('/research/{Reporte}/documento', [Controlador_Research::class, 'Obtener_Documento'])->middleware('throttle:30,1');
+        Route::post('/research/{Reporte}/leido', [Controlador_Research::class, 'Marcar_Reporte_Leido']);
     });
 
     Route::get('/academia', [Controlador_Academia::class, 'Listar_Videos']);
@@ -64,6 +67,10 @@ Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function ()
     Route::get('/academia/{Video}/calendario.ics', [Controlador_Academia::class, 'Descargar_Calendario_Webinar']);
 
     Route::get('/credencial', [Controlador_Credencial::class, 'Mostrar_Credencial']);
+
+    Route::get('/avatar', [Controlador_Avatar::class, 'Mostrar_Avatar']);
+    Route::post('/avatar/{Item}/comprar', [Controlador_Avatar::class, 'Comprar_Item'])->middleware('throttle:20,1');
+    Route::post('/avatar/{Item}/equipar', [Controlador_Avatar::class, 'Equipar_Item']);
 
     Route::get('/perfil', [Controlador_Perfil::class, 'Mostrar_Perfil']);
     Route::put('/perfil/contrasena', [Controlador_Perfil::class, 'Cambiar_Contrasena']);

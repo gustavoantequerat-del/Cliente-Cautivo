@@ -14,5 +14,7 @@ export default defineConfig({
         }),
         vue({ template: { transformAssetUrls: { base: null, includeAbsolute: false } } }),
     ],
-    build: { emptyOutDir: true },
+    // es2022: PDF.js usa "await" a nivel de módulo
+    build: { emptyOutDir: true, target: 'es2022' },
+    optimizeDeps: { esbuildOptions: { target: 'es2022' } },
 });

@@ -4,6 +4,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 import Componente_Numero_Animado from '../../Componentes/Componente_Numero_Animado.vue';
 import Componente_Estado_Vacio from '../../Componentes/Componente_Estado_Vacio.vue';
+import Componente_Avatar from '../../Componentes/Componente_Avatar.vue';
 
 const Propiedades = defineProps({
     Fecha_Hoy: String, Proyectos_Activos: Array, Reporte_Destacado: Object, Proximo_Webinar: Object,
@@ -16,10 +17,7 @@ const Saludo = computed(() => {
     const Hora = new Date().getHours();
     return Hora < 12 ? 'Buenos días' : Hora < 19 ? 'Buenas tardes' : 'Buenas noches';
 });
-const Porcentaje_Nivel = computed(() => {
-    const Nivel_Siguiente = Propiedades.Nivel_Alianza.Nivel_Siguiente;
-    return Nivel_Siguiente ? Math.min(100, Math.round((Propiedades.Nivel_Alianza.Puntos / Nivel_Siguiente.Puntos_Minimos) * 100)) : 100;
-});
+const Porcentaje_Nivel = computed(() => Math.round((Propiedades.Nivel_Alianza.Servicios_Contratados / Math.max(1, Propiedades.Nivel_Alianza.Servicios_Totales)) * 100));
 const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
 const Seccion_Por_Unidad = { BCS: '/proyectos', NEXUM: '/academia', RESEARCH: '/research' };
 const Icono_Por_Unidad = { BCS: 'escudo', NEXUM: 'reproducir', RESEARCH: 'grafico', LABS: 'estrella', BUILD: 'capas', W3M: 'correo' };
@@ -48,13 +46,19 @@ const Icono_Por_Unidad = { BCS: 'escudo', NEXUM: 'reproducir', RESEARCH: 'grafic
             <span :class="$style.label">Nivel de alianza</span>
             <strong :class="$style.big">{{ Nivel_Alianza.Nivel_Actual.Nombre }}</strong>
             <div class="barra" :class="$style.barDark"><span :style="{ width: Porcentaje_Nivel + '%' }" /></div>
-            <span :class="$style.onDarkMuted"><Componente_Numero_Animado :Valor="Nivel_Alianza.Puntos" /> pts</span>
+            <span :class="$style.onDarkMuted">{{ Nivel_Alianza.Servicios_Contratados }} de {{ Nivel_Alianza.Servicios_Totales }} servicios contratados</span>
         </Link>
         <Link href="/academia" :class="$style.tile" class="elevable">
             <span class="burbuja burbuja-violeta"><Componente_Icono Nombre="reproducir" /></span>
             <span :class="$style.label">Mi formación</span>
             <strong :class="$style.big"><Componente_Numero_Animado :Valor="Mi_Avance.Completados" /> <small :class="$style.unit">completados</small></strong>
             <span class="muted" :class="$style.small"><Componente_Numero_Animado :Valor="Mi_Avance.Horas" :Decimales="1" /> h de formación</span>
+        </Link>
+        <Link href="/avatar" :class="$style.tile" class="elevable">
+            <span :class="$style.avatarTile"><Componente_Avatar :Objetos="$page.props.Usuario_Actual.Objetos_Avatar" Recorte="busto" /></span>
+            <span :class="$style.label">Mis monedas</span>
+            <strong :class="$style.big"><Componente_Numero_Animado :Valor="Mi_Avance.Monedas" /> <small :class="$style.unit">monedas</small></strong>
+            <span class="link-arrow">Vestir mi avatar <Componente_Icono Nombre="flecha" :Tamano="16" /></span>
         </Link>
         <Link v-if="Proximo_Webinar" :href="`/academia/${Proximo_Webinar.Id}`" :class="$style.tile" class="elevable">
             <span class="burbuja burbuja-roja"><Componente_Icono Nombre="calendario" /></span>
@@ -116,9 +120,9 @@ const Icono_Por_Unidad = { BCS: 'escudo', NEXUM: 'reproducir', RESEARCH: 'grafic
             <h2>{{ Reporte_Destacado.Titulo }}</h2>
             <p :class="$style.summary">{{ Reporte_Destacado.Resumen }}</p>
             <span v-if="Reporte_Destacado.Minutos_Lectura" class="muted" :class="$style.small"><Componente_Icono Nombre="reloj" :Tamano="14" /> {{ Reporte_Destacado.Minutos_Lectura }} min de lectura</span>
-            <a :href="`/research/${Reporte_Destacado.Id}/abrir`" target="_blank" rel="noopener" class="btn btn-primary" :class="$style.self">
-                Abrir reporte <Componente_Icono Nombre="externo" :Tamano="16" />
-            </a>
+            <Link :href="`/research/${Reporte_Destacado.Id}`" class="btn btn-primary" :class="$style.self">
+                Leer reporte <Componente_Icono Nombre="flecha" :Tamano="16" />
+            </Link>
         </div>
     </section>
 
@@ -173,6 +177,7 @@ const Icono_Por_Unidad = { BCS: 'escudo', NEXUM: 'reproducir', RESEARCH: 'grafic
 .barDark > span { background: linear-gradient(90deg, #8FC7F0, #fff); }
 .big { font-size: 26px; font-weight: 800; line-height: 1.1; }
 .unit { font-size: 14px; font-weight: 700; color: var(--muted); }
+.avatarTile { width: 44px; height: 44px; border-radius: 14px; overflow: hidden; background: var(--blue-100); }
 .mid { font-size: 16px; font-weight: 800; line-height: 1.35; color: var(--navy-950); }
 .small { font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
 .manage { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }

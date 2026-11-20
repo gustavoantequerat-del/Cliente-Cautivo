@@ -2,6 +2,7 @@
 
 namespace App\Controladores\Portal;
 
+use App\Modelos\Modelo_Movimiento_Monedas;
 use App\Modelos\Modelo_Progreso_Video;
 use App\Modelos\Modelo_Registro_Auditoria;
 use App\Modelos\Modelo_Video;
@@ -9,7 +10,6 @@ use App\Servicios\Servicio_Enlaces_Video;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as Respuesta_Archivo;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -72,24 +72,18 @@ class Controlador_Academia
         $this->Validar_Acceso_Video($Peticion, $Video);
         $Usuario = $Peticion->user();
 
-        $Sumo_Puntos = DB::transaction(function () use ($Usuario, $Video) {
-            $Progreso = Modelo_Progreso_Video::firstOrNew(['video_id' => $Video->id, 'usuario_id' => $Usuario->id]);
-            if ($Progreso->fecha_completado) {
-                return false;
-            }
-            $Progreso->fecha_completado = now();
-            $Progreso->save();
-            $Usuario->Institucion->increment('puntos_alianza', $Video->puntos);
+        $Progreso = Modelo_Progreso_Video::firstOrNew(['video_id' => $Video->id, 'usuario_id' => $Usuario->id]);
+        $Progreso->fecha_completado ??= now();
+        $Progreso->save();
+        // Las monedas van al usuario, para su avatar (una sola vez por video)
+        $Gano_Monedas = Modelo_Movimiento_Monedas::Otorgar_Una_Vez($Usuario, $Video->puntos, 'video', $Video->id, 'Completó «'.$Video->titulo.'»');
 
-            return true;
-        });
-
-        if ($Sumo_Puntos) {
-            Modelo_Registro_Auditoria::Registrar_Evento('video.completar', $Video, 'Completó «'.$Video->titulo.'»', ['Puntos' => $Video->puntos]);
+        if ($Gano_Monedas) {
+            Modelo_Registro_Auditoria::Registrar_Evento('video.completar', $Video, 'Completó «'.$Video->titulo.'»', ['Monedas' => $Video->puntos]);
         }
 
-        return back()->with('Mensaje_Exito', $Sumo_Puntos
-            ? "¡Listo! Sumó {$Video->puntos} puntos de alianza para su institución."
+        return back()->with('Mensaje_Exito', $Gano_Monedas
+            ? "¡Listo! Ganó {$Video->puntos} monedas para su avatar."
             : 'Este contenido ya estaba marcado como visto.');
     }
 

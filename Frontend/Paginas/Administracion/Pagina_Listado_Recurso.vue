@@ -28,7 +28,7 @@ const Valor_Si_No = (Valor) => Valor === 'Sí' || Valor === 'No';
 <template>
     <Head :title="Recurso.Titulo" />
     <Componente_Encabezado_Pagina :Icono="Recurso.Icono" :Titulo="Recurso.Titulo" :Introduccion="`${Filas.total} registro(s)`">
-        <Link :href="`/admin/${Recurso.Clave}/crear`" class="btn btn-primary"><Componente_Icono Nombre="agregar" :Tamano="16" />Nuevo</Link>
+        <Link v-if="Recurso.Permite_Crear" :href="`/admin/${Recurso.Clave}/crear`" class="btn btn-primary"><Componente_Icono Nombre="agregar" :Tamano="16" />Nuevo</Link>
     </Componente_Encabezado_Pagina>
 
     <form class="row" :class="$style.tools" @submit.prevent="Aplicar_Busqueda">
@@ -44,7 +44,7 @@ const Valor_Si_No = (Valor) => Valor === 'Sí' || Valor === 'No';
     </form>
 
     <Componente_Estado_Vacio v-if="!Filas.data.length" :Icono="Recurso.Icono" Texto="Sin registros">
-        <Link :href="`/admin/${Recurso.Clave}/crear`" class="btn btn-secondary btn-sm"><Componente_Icono Nombre="agregar" :Tamano="14" />Crear {{ Recurso.Singular }}</Link>
+        <Link v-if="Recurso.Permite_Crear" :href="`/admin/${Recurso.Clave}/crear`" class="btn btn-secondary btn-sm"><Componente_Icono Nombre="agregar" :Tamano="14" />Crear {{ Recurso.Singular }}</Link>
     </Componente_Estado_Vacio>
     <div v-else class="table-wrap">
         <table class="table">

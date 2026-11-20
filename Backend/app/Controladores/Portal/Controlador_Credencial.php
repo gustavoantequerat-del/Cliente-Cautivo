@@ -25,8 +25,8 @@ class Controlador_Credencial
                 'Url_Verificacion' => $Usuario->codigo_credencial ? url('/verificar/'.$Usuario->codigo_credencial) : null,
             ],
             'Nivel_Alianza' => $Institucion->Calcular_Nivel_Alianza(),
-            'Niveles_Alianza' => config('Configuracion_Portal.Niveles_Alianza'),
             'Videos_Completados' => Modelo_Progreso_Video::where('usuario_id', $Usuario->id)->whereNotNull('fecha_completado')->count(),
+            'Saldo_Monedas' => $Usuario->Calcular_Saldo_Monedas(),
             // Solo el cliente institucional ve las credenciales de su organización
             'Miembros_Institucion' => $Usuario->Es_Cliente_Institucional()
                 ? Modelo_Usuario::where('institucion_id', $Institucion->id)->orderBy('nombre')->get()->map(fn (Modelo_Usuario $Miembro) => [
