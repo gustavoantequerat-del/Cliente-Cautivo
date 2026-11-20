@@ -11,7 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Dos puertas separadas por seguridad: /login solo para clientes y /admin/login solo para el staff.
+ * Dos puertas separadas por seguridad: /login solo para clientes y /admin/login solo para el personal de Blockfinity.
  * Una cuenta que entra por la puerta equivocada recibe el mismo error que una contraseña incorrecta.
  */
 class Controlador_Inicio_Sesion
@@ -42,7 +42,7 @@ class Controlador_Inicio_Sesion
 
     public function Cerrar_Sesion(Request $Peticion): RedirectResponse
     {
-        $Era_Staff = $Peticion->user()->Es_Staff();
+        $Era_Staff = $Peticion->user()->Es_Personal_Blockfinity();
         Auth::logout();
         $Peticion->session()->invalidate();
         $Peticion->session()->regenerateToken();
@@ -58,7 +58,7 @@ class Controlador_Inicio_Sesion
         ]);
 
         $Es_Valido = Auth::attempt($Credenciales + ['esta_activo' => true], $Peticion->boolean('recordarme'));
-        if ($Es_Valido && $Peticion->user()->Es_Staff() !== $Debe_Ser_Staff) {
+        if ($Es_Valido && $Peticion->user()->Es_Personal_Blockfinity() !== $Debe_Ser_Staff) {
             Modelo_Registro_Auditoria::Registrar_Evento('inicio_sesion.puerta_equivocada', null, 'Intentó ingresar por el acceso que no le corresponde');
             Auth::logout();
             $Es_Valido = false;

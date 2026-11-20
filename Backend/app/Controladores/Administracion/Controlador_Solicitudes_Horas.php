@@ -18,6 +18,10 @@ class Controlador_Solicitudes_Horas
     {
         $Filtro_Estado = $Peticion->query('estado', 'abiertas');
         $Consulta = Modelo_Solicitud_Horas::with(['Usuario', 'Institucion'])->latest();
+        $Ids_Instituciones = $Peticion->user()->Obtener_Ids_Instituciones_A_Cargo();
+        if ($Ids_Instituciones !== null) {
+            $Consulta->whereIn('institucion_id', $Ids_Instituciones);
+        }
         if ($Filtro_Estado === 'abiertas') {
             $Consulta->whereIn('estado', ['pendiente', 'en_atencion']);
         }
@@ -46,6 +50,9 @@ class Controlador_Solicitudes_Horas
     /** Al marcarla como atendida se descuentan las horas cobradas de la bolsa (una sola vez) */
     public function Actualizar_Solicitud(Request $Peticion, Modelo_Solicitud_Horas $Solicitud): RedirectResponse
     {
+        $Ids_Instituciones = $Peticion->user()->Obtener_Ids_Instituciones_A_Cargo();
+        abort_unless($Ids_Instituciones === null || in_array($Solicitud->institucion_id, $Ids_Instituciones), 404);
+
         $Datos = $Peticion->validate([
             'estado' => ['required', Rule::in(array_keys(Modelo_Solicitud_Horas::Estados))],
             'horas_cobradas' => ['nullable', 'numeric', 'min:0', 'max:100', 'required_if:estado,atendida'],

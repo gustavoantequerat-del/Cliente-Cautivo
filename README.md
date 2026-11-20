@@ -23,7 +23,7 @@ Los videos **no se suben al servidor** (BYOS): se publican en Google Drive, YouT
 | Acceso con correo y contraseña; revocación inmediata | Instituciones con sus unidades contratadas |
 | Inicio: nivel de alianza, horas, webinar, facturas, unidades activas y por descubrir, proyectos | Usuarios, credenciales y roles |
 | Proyectos: fases, entregables, bitácora | Proyectos, fases y bitácora |
-| **Aprobación de entregables** con contraseña, huella SHA-256, IP y auditoría | Entregables (archivo ≤10 MB o enlace de Drive + huella) |
+| **Aprobación de entregables** con contraseña, código de verificación, IP y auditoría | Entregables (archivo ≤10 MB o enlace de Drive + código de verificación) |
 | Bóveda de entregables + **verificación de documentos en el navegador** (el archivo no se sube) | Videos y webinars por enlace, con vista previa |
 | Research (solo si tienen la unidad RESEARCH contratada) | Reportes de Research (generales o exclusivos) |
 | Academia: webinars en vivo (inscripción + `.ics`), grabados y píldoras con reproductor embebido | Facturas (PDF + XML del SIAT) y contratos |
@@ -59,12 +59,13 @@ pnpm run dev       # o "pnpm run build" para compilar dentro de Backend/public/b
 
 Usuarios de la demo (**solo para local; no use el seeder demo en producción**):
 
-| Rol | Correo | Contraseña |
-|---|---|---|
-| Staff / CMS (entra por `/admin/login`) | admin@blockfinity.test | Blockfinity2026 |
-| Ejecutiva de cuenta (entra por `/admin/login`) | ejecutiva@blockfinity.test | Blockfinity2026 |
-| Cliente (admin de la institución) | maria.rojas@bancodemo.test | Cliente2026demo |
-| Cliente (funcionario) | jorge.quiroga@bancodemo.test | Cliente2026demo |
+| Rol | Correo | Contraseña | Entra por |
+|---|---|---|---|
+| Staff (todo el CMS) | admin@blockfinity.test | Blockfinity2026 | `/admin/login` |
+| Ejecutiva de cuenta (solo Banco Demo) | ejecutiva@blockfinity.test | Blockfinity2026 | `/admin/login` |
+| Cliente institucional | maria.rojas@bancodemo.test | Cliente2026demo | `/login` |
+| Cliente básico (inscrito en el proyecto Crystal) | jorge.quiroga@bancodemo.test | Cliente2026demo | `/login` |
+| Cliente básico (sin proyectos) | lucia.fernandez@bancodemo.test | Cliente2026demo | `/login` |
 
 Pruebas: `cd Backend && composer test` (27 pruebas: aislamiento entre instituciones, aprobaciones, verificación, bolsa de horas, enlaces de video y CMS).
 Las pruebas también comprueban que cada página que pide el Backend exista en `Frontend/Paginas`.
@@ -127,7 +128,7 @@ Suba los archivos nuevos (o `git pull`; en ese caso el dominio apunta a `.../Bac
 - Drive no informa cuánto se reprodujo. Por eso el avance se registra con **"Marcar como visto"**, que da los puntos una sola vez.
 - Algunas redes bancarias bloquean Drive. Para webinars importantes, **YouTube no listado** o **Vimeo con restricción de dominio** son más fiables.
 
-Documentos pesados: súbalos también a Drive y pegue el enlace en el entregable. Use el botón **"Calcular huella"** con el archivo original para que la verificación siga funcionando: la huella se calcula en su navegador y el archivo no se sube.
+Documentos pesados: súbalos también a Drive y pegue el enlace en el entregable. Use el botón **"Calcular código"** con el archivo original para que la verificación siga funcionando: el código se calcula en su navegador y el archivo no se sube.
 
 ---
 
@@ -156,7 +157,16 @@ Scripts/Empaquetar_Para_Cpanel.sh
 
 Accesos separados por seguridad: los clientes ingresan por `/login` y el staff por `/admin/login` (con límite más estricto de intentos). Una cuenta que usa la puerta que no le corresponde recibe el mismo error que una contraseña incorrecta y queda registrada en la auditoría.
 
-Roles: `staff` (Blockfinity, ve el CMS), `administrador_institucion` (ve las credenciales de su organización y el registro de accesos) y `funcionario`.
+Roles:
+
+| Rol | Qué hace |
+|---|---|
+| `staff` | Personal de Blockfinity con todo el CMS: instituciones, contenido general (videos, research), auditoría. |
+| `ejecutivo_cuenta` | Encargado/a ejecutivo/a: en el CMS solo ve y administra las instituciones a su cargo (sus usuarios institucionales y básicos, proyectos, entregables, facturas y horas). |
+| `cliente_institucional` | Responsable de la institución en el portal: facturación, bolsa de horas, aprobación de entregables, y decide qué clientes básicos participan en cada proyecto. |
+| `cliente_basico` | Portal simple: píldoras y webinars, los proyectos donde lo inscribieron, research y su credencial. |
+
+El **código de verificación** de un documento es un código único que se calcula a partir del archivo (SHA-256): si el archivo cambia, el código cambia. No es una firma digital ni un dato biométrico.
 
 ---
 

@@ -27,10 +27,12 @@ class Controlador_Credencial
             'Nivel_Alianza' => $Institucion->Calcular_Nivel_Alianza(),
             'Niveles_Alianza' => config('Configuracion_Portal.Niveles_Alianza'),
             'Videos_Completados' => Modelo_Progreso_Video::where('usuario_id', $Usuario->id)->whereNotNull('fecha_completado')->count(),
-            // Solo el administrador de la institución ve las credenciales de su organización
-            'Miembros_Institucion' => $Usuario->Es_Administrador_Institucion()
+            // Solo el cliente institucional ve las credenciales de su organización
+            'Miembros_Institucion' => $Usuario->Es_Cliente_Institucional()
                 ? Modelo_Usuario::where('institucion_id', $Institucion->id)->orderBy('nombre')->get()->map(fn (Modelo_Usuario $Miembro) => [
                     'Nombre' => $Miembro->nombre,
+                    'Iniciales' => $Miembro->Obtener_Iniciales(),
+                    'Nombre_Rol' => Modelo_Usuario::Roles[$Miembro->rol] ?? $Miembro->rol,
                     'Area' => $Miembro->area,
                     'Numero' => $Miembro->numero_credencial,
                     'Esta_Activo' => $Miembro->esta_activo,

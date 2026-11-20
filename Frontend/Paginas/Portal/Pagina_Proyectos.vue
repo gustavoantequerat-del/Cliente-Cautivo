@@ -1,17 +1,18 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import Componente_Encabezado_Pagina from '../../Componentes/Componente_Encabezado_Pagina.vue';
 import Componente_Etiqueta_Estado from '../../Componentes/Componente_Etiqueta_Estado.vue';
 import Componente_Estado_Vacio from '../../Componentes/Componente_Estado_Vacio.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 
 defineProps({ Lista_Proyectos: Array });
+const Es_Cliente_Institucional = usePage().props.Usuario_Actual.Es_Cliente_Institucional;
 </script>
 
 <template>
     <Head title="Proyectos" />
     <Componente_Encabezado_Pagina Icono="proyectos" Titulo="Proyectos" Introduccion="Avance, fases y entregables de cada proyecto." />
-    <Componente_Estado_Vacio v-if="!Lista_Proyectos.length" Icono="proyectos" Texto="Aún no hay proyectos registrados" />
+    <Componente_Estado_Vacio v-if="!Lista_Proyectos.length" Icono="proyectos" :Texto="Es_Cliente_Institucional ? 'Aún no hay proyectos registrados' : 'Aún no participa en proyectos'" />
     <div class="grid-2 escalonado">
         <Link v-for="Proyecto in Lista_Proyectos" :key="Proyecto.Id" :href="`/proyectos/${Proyecto.Id}`" :class="$style.card" class="elevable">
             <div class="row between">

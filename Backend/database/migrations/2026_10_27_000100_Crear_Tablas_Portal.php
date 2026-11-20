@@ -43,6 +43,15 @@ return new class extends Migration
             $Tabla->timestamps();
         });
 
+        // Clientes básicos inscritos en cada proyecto (los inscribe el cliente institucional)
+        Schema::create('proyectos_participantes', function (Blueprint $Tabla) {
+            $Tabla->id();
+            $Tabla->foreignId('proyecto_id')->constrained('proyectos')->cascadeOnDelete();
+            $Tabla->foreignId('usuario_id')->constrained('usuarios')->cascadeOnDelete();
+            $Tabla->timestamps();
+            $Tabla->unique(['proyecto_id', 'usuario_id']);
+        });
+
         Schema::create('fases_proyecto', function (Blueprint $Tabla) {
             $Tabla->id();
             $Tabla->foreignId('proyecto_id')->constrained('proyectos')->cascadeOnDelete();
@@ -62,7 +71,7 @@ return new class extends Migration
             $Tabla->timestamps();
         });
 
-        // Entregables: archivo local (pequeño) o enlace externo (Drive). Siempre con huella SHA-256.
+        // Entregables: archivo local (pequeño) o enlace externo (Drive). Siempre con código de verificación (SHA-256 del archivo).
         Schema::create('entregables', function (Blueprint $Tabla) {
             $Tabla->id();
             $Tabla->foreignId('institucion_id')->constrained('instituciones')->cascadeOnDelete();
@@ -76,7 +85,7 @@ return new class extends Migration
             $Tabla->string('nombre_archivo')->nullable();
             $Tabla->unsignedBigInteger('tamano_archivo')->nullable();
             $Tabla->string('enlace_externo', 500)->nullable();
-            $Tabla->char('huella_sha256', 64)->nullable()->index();
+            $Tabla->char('codigo_verificacion', 64)->nullable()->index();
             $Tabla->string('estado', 30)->default('publicado'); // borrador | pendiente_aprobacion | aprobado | publicado
             $Tabla->foreignId('aprobado_por')->nullable()->constrained('usuarios')->nullOnDelete();
             $Tabla->timestamp('fecha_aprobacion')->nullable();
@@ -165,7 +174,7 @@ return new class extends Migration
             $Tabla->string('ruta_archivo')->nullable();
             $Tabla->string('nombre_archivo')->nullable();
             $Tabla->string('enlace_externo', 500)->nullable();
-            $Tabla->char('huella_sha256', 64)->nullable();
+            $Tabla->char('codigo_verificacion', 64)->nullable();
             $Tabla->timestamps();
         });
 
@@ -215,7 +224,7 @@ return new class extends Migration
     public function down(): void
     {
         foreach (['registros_auditoria', 'solicitudes_horas', 'movimientos_horas', 'contratos', 'facturas', 'progreso_videos',
-            'videos', 'reportes_research', 'entregables', 'bitacora_proyectos', 'fases_proyecto', 'proyectos',
+            'videos', 'reportes_research', 'entregables', 'bitacora_proyectos', 'fases_proyecto', 'proyectos_participantes', 'proyectos',
             'instituciones_unidades', 'unidades_negocio'] as $Nombre_Tabla) {
             Schema::dropIfExists($Nombre_Tabla);
         }

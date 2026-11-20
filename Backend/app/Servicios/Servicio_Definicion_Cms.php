@@ -3,20 +3,25 @@
 namespace App\Servicios;
 
 use App\Modelos;
+use App\Modelos\Modelo_Proyecto;
+use App\Modelos\Modelo_Usuario;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Definición declarativa del CMS. Cada recurso genera su listado y su formulario
  * sin escribir una pantalla por tabla. Para agregar un campo: añadirlo aquí.
  *
  * Cada recurso lleva Icono (nombre de Componente_Icono), Titulo, Singular, Modelo, Columnas_Busqueda, Orden y Grupo.
+ * Además: Solo_Staff (contenido global que el ejecutivo de cuenta no ve) o Alcance (cómo se filtra por
+ * institución para el ejecutivo: 'institucion' por la columna institucion_id, 'proyecto' por el proyecto).
  *
  * Claves de cada campo: Nombre (columna), Etiqueta, Tipo, Obligatorio, En_Tabla, Unico, Por_Defecto,
  * Ayuda, Solo_Lectura, Opciones, Minimo, Maximo, y según el tipo: Modelo, Columna_Etiqueta, Filtro_Donde
- * (relacion) o Carpeta, Guardar_Nombre_En, Guardar_Tamano_En, Guardar_Huella_En, Extensiones (archivo).
+ * (relacion) o Carpeta, Guardar_Nombre_En, Guardar_Tamano_En, Guardar_Codigo_En, Extensiones (archivo).
  *
  * Tipos de campo: texto, nombre_persona, email, telefono, numerico (solo dígitos), identificador (slug),
  * codigo (MAYÚSCULAS), enlace, texto_largo, entero, decimal, fecha, fecha_hora, lista, si_no, relacion,
- * archivo, contrasena, huella, enlace_video, unidades. El Frontend filtra lo que se teclea según el tipo
+ * archivo, contrasena, codigo_verificacion, enlace_video, unidades. El Frontend filtra lo que se teclea según el tipo
  * y el Backend lo vuelve a validar.
  */
 class Servicio_Definicion_Cms
@@ -30,7 +35,7 @@ class Servicio_Definicion_Cms
 
         return [
             'instituciones' => [
-                'Icono' => 'edificio', 'Titulo' => 'Instituciones', 'Singular' => 'institución', 'Modelo' => Modelos\Modelo_Institucion::class,
+                'Solo_Staff' => true, 'Icono' => 'edificio', 'Titulo' => 'Instituciones', 'Singular' => 'institución', 'Modelo' => Modelos\Modelo_Institucion::class,
                 'Columnas_Busqueda' => ['nombre', 'nit'], 'Orden' => ['nombre', 'asc'], 'Grupo' => 'Cuentas',
                 'Campos' => [
                     ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
@@ -41,14 +46,14 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'correo_facturacion', 'Etiqueta' => 'Correo de facturación', 'Tipo' => 'email'],
                     ['Nombre' => 'direccion_facturacion', 'Etiqueta' => 'Dirección de facturación', 'Tipo' => 'texto'],
                     ['Nombre' => 'ejecutivo_cuenta_id', 'Etiqueta' => 'Ejecutiva/o de cuenta', 'Tipo' => 'relacion', 'En_Tabla' => true,
-                        'Modelo' => Modelos\Modelo_Usuario::class, 'Columna_Etiqueta' => 'nombre', 'Filtro_Donde' => ['rol', Modelos\Modelo_Usuario::Rol_Staff]],
+                        'Modelo' => Modelos\Modelo_Usuario::class, 'Columna_Etiqueta' => 'nombre', 'Filtro_Donde' => ['rol', [Modelos\Modelo_Usuario::Rol_Ejecutivo_Cuenta, Modelos\Modelo_Usuario::Rol_Staff]]],
                     ['Nombre' => 'puntos_alianza', 'Etiqueta' => 'Puntos de alianza', 'Tipo' => 'entero', 'Minimo' => 0, 'En_Tabla' => true, 'Por_Defecto' => 0],
                     ['Nombre' => 'esta_activa', 'Etiqueta' => 'Acceso activo', 'Tipo' => 'si_no', 'En_Tabla' => true, 'Por_Defecto' => true],
                     ['Nombre' => 'unidades_contratadas', 'Etiqueta' => 'Unidades contratadas', 'Tipo' => 'unidades'],
                 ],
             ],
             'usuarios' => [
-                'Icono' => 'usuarios', 'Titulo' => 'Usuarios y credenciales', 'Singular' => 'usuario', 'Modelo' => Modelos\Modelo_Usuario::class,
+                'Alcance' => 'institucion', 'Icono' => 'usuarios', 'Titulo' => 'Usuarios y credenciales', 'Singular' => 'usuario', 'Modelo' => Modelos\Modelo_Usuario::class,
                 'Columnas_Busqueda' => ['nombre', 'email', 'area'], 'Orden' => ['nombre', 'asc'], 'Grupo' => 'Cuentas',
                 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
@@ -57,13 +62,12 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'password', 'Etiqueta' => 'Contraseña', 'Tipo' => 'contrasena',
                         'Ayuda' => 'Mínimo 10 caracteres. Déjela vacía al editar para no cambiarla.'],
                     ['Nombre' => 'rol', 'Etiqueta' => 'Rol', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true,
-                        'Por_Defecto' => Modelos\Modelo_Usuario::Rol_Funcionario, 'Opciones' => [
-                            Modelos\Modelo_Usuario::Rol_Funcionario => 'Funcionario',
-                            Modelos\Modelo_Usuario::Rol_Administrador_Institucion => 'Administrador de la institución',
-                            Modelos\Modelo_Usuario::Rol_Staff => 'Staff Blockfinity (CMS)',
-                        ]],
+                        'Por_Defecto' => Modelos\Modelo_Usuario::Rol_Cliente_Basico, 'Opciones' => Modelos\Modelo_Usuario::Roles,
+                        // El ejecutivo de cuenta solo crea clientes de sus instituciones
+                        'Opciones_Para_Ejecutivo' => [Modelos\Modelo_Usuario::Rol_Cliente_Basico, Modelos\Modelo_Usuario::Rol_Cliente_Institucional]],
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'En_Tabla' => true,
-                        'Ayuda' => 'Vacío solo para staff de Blockfinity.'] + $Campo_Institucion,
+                        'Obligatorio_Si' => 'rol,'.Modelos\Modelo_Usuario::Rol_Cliente_Basico.','.Modelos\Modelo_Usuario::Rol_Cliente_Institucional,
+                        'Ayuda' => 'Vacío solo para el personal de Blockfinity.'] + $Campo_Institucion,
                     ['Nombre' => 'area', 'Etiqueta' => 'Área', 'Tipo' => 'texto', 'En_Tabla' => true],
                     ['Nombre' => 'cargo', 'Etiqueta' => 'Cargo', 'Tipo' => 'texto'],
                     ['Nombre' => 'telefono', 'Etiqueta' => 'Teléfono', 'Tipo' => 'telefono', 'Ayuda' => 'Solo números, con + opcional al inicio. Ej.: +59170000000'],
@@ -75,7 +79,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'unidades' => [
-                'Icono' => 'capas', 'Titulo' => 'Unidades de negocio', 'Singular' => 'unidad', 'Modelo' => Modelos\Modelo_Unidad_Negocio::class,
+                'Solo_Staff' => true, 'Icono' => 'capas', 'Titulo' => 'Unidades de negocio', 'Singular' => 'unidad', 'Modelo' => Modelos\Modelo_Unidad_Negocio::class,
                 'Columnas_Busqueda' => ['codigo', 'nombre'], 'Orden' => ['orden', 'asc'], 'Grupo' => 'Cuentas',
                 'Campos' => [
                     ['Nombre' => 'codigo', 'Etiqueta' => 'Código', 'Tipo' => 'codigo', 'Obligatorio' => true, 'Unico' => true, 'En_Tabla' => true],
@@ -85,7 +89,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'proyectos' => [
-                'Icono' => 'proyectos', 'Titulo' => 'Proyectos', 'Singular' => 'proyecto', 'Modelo' => Modelos\Modelo_Proyecto::class,
+                'Alcance' => 'institucion', 'Icono' => 'proyectos', 'Titulo' => 'Proyectos', 'Singular' => 'proyecto', 'Modelo' => Modelos\Modelo_Proyecto::class,
                 'Columnas_Busqueda' => ['nombre'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
@@ -101,7 +105,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'fases' => [
-                'Icono' => 'lista', 'Titulo' => 'Fases de proyecto', 'Singular' => 'fase', 'Modelo' => Modelos\Modelo_Fase_Proyecto::class,
+                'Alcance' => 'proyecto', 'Icono' => 'lista', 'Titulo' => 'Fases de proyecto', 'Singular' => 'fase', 'Modelo' => Modelos\Modelo_Fase_Proyecto::class,
                 'Columnas_Busqueda' => ['nombre'], 'Orden' => ['proyecto_id', 'asc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'proyecto_id',
                 'Campos' => [
                     ['Nombre' => 'proyecto_id', 'Etiqueta' => 'Proyecto', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Proyecto,
@@ -113,7 +117,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'bitacora' => [
-                'Icono' => 'libro', 'Titulo' => 'Bitácora de proyectos', 'Singular' => 'entrada', 'Modelo' => Modelos\Modelo_Bitacora_Proyecto::class,
+                'Alcance' => 'proyecto', 'Icono' => 'libro', 'Titulo' => 'Bitácora de proyectos', 'Singular' => 'entrada', 'Modelo' => Modelos\Modelo_Bitacora_Proyecto::class,
                 'Columnas_Busqueda' => ['detalle'], 'Orden' => ['fecha', 'desc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'proyecto_id',
                 'Campos' => [
                     ['Nombre' => 'proyecto_id', 'Etiqueta' => 'Proyecto', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Proyecto,
@@ -122,7 +126,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'entregables' => [
-                'Icono' => 'boveda', 'Titulo' => 'Entregables', 'Singular' => 'entregable', 'Modelo' => Modelos\Modelo_Entregable::class,
+                'Alcance' => 'institucion', 'Icono' => 'boveda', 'Titulo' => 'Entregables', 'Singular' => 'entregable', 'Modelo' => Modelos\Modelo_Entregable::class,
                 'Columnas_Busqueda' => ['titulo'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
@@ -134,11 +138,11 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'version', 'Etiqueta' => 'Versión', 'Tipo' => 'texto'],
                     ['Nombre' => 'etiqueta_fase', 'Etiqueta' => 'Fase (ej. F3)', 'Tipo' => 'texto'],
                     ['Nombre' => 'ruta_archivo', 'Etiqueta' => 'Archivo (PDF/DOCX/PPTX, máx. 10 MB)', 'Tipo' => 'archivo', 'Carpeta' => 'entregables',
-                        'Guardar_Nombre_En' => 'nombre_archivo', 'Guardar_Tamano_En' => 'tamano_archivo', 'Guardar_Huella_En' => 'huella_sha256'],
+                        'Guardar_Nombre_En' => 'nombre_archivo', 'Guardar_Tamano_En' => 'tamano_archivo', 'Guardar_Codigo_En' => 'codigo_verificacion'],
                     ['Nombre' => 'enlace_externo', 'Etiqueta' => 'O enlace externo (Drive)', 'Tipo' => 'enlace',
-                        'Ayuda' => 'Para archivos pesados. Calcule abajo la huella del archivo original para poder verificarlo.'],
-                    ['Nombre' => 'huella_sha256', 'Etiqueta' => 'Huella SHA-256', 'Tipo' => 'huella',
-                        'Ayuda' => 'Se calcula sola al subir un archivo. Para enlaces externos, use el botón para calcularla en su equipo.'],
+                        'Ayuda' => 'Para archivos pesados. Calcule abajo el código de verificación del archivo original.'],
+                    ['Nombre' => 'codigo_verificacion', 'Etiqueta' => 'Código de verificación', 'Tipo' => 'codigo_verificacion',
+                        'Ayuda' => 'Se calcula solo al subir un archivo. Para enlaces externos, use el botón para calcularlo en su equipo.'],
                     ['Nombre' => 'estado', 'Etiqueta' => 'Estado', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'publicado',
                         'Opciones' => ['borrador' => 'Borrador (oculto)', 'pendiente_aprobacion' => 'Requiere aprobación del cliente',
                             'aprobado' => 'Aprobado', 'publicado' => 'Publicado']],
@@ -146,7 +150,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'research' => [
-                'Icono' => 'grafico', 'Titulo' => 'Reportes de Research', 'Singular' => 'reporte', 'Modelo' => Modelos\Modelo_Reporte_Research::class,
+                'Solo_Staff' => true, 'Icono' => 'grafico', 'Titulo' => 'Reportes de Research', 'Singular' => 'reporte', 'Modelo' => Modelos\Modelo_Reporte_Research::class,
                 'Columnas_Busqueda' => ['titulo', 'autor'], 'Orden' => ['fecha_publicacion', 'desc'], 'Grupo' => 'Contenido',
                 'Campos' => [
                     ['Nombre' => 'titulo', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
@@ -166,7 +170,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'videos' => [
-                'Icono' => 'reproducir', 'Titulo' => 'Videos y webinars', 'Singular' => 'video', 'Modelo' => Modelos\Modelo_Video::class,
+                'Solo_Staff' => true, 'Icono' => 'reproducir', 'Titulo' => 'Videos y webinars', 'Singular' => 'video', 'Modelo' => Modelos\Modelo_Video::class,
                 'Columnas_Busqueda' => ['titulo', 'expositor'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Contenido',
                 'Campos' => [
                     ['Nombre' => 'formato', 'Etiqueta' => 'Formato', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'grabado',
@@ -188,7 +192,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'facturas' => [
-                'Icono' => 'facturacion', 'Titulo' => 'Facturas', 'Singular' => 'factura', 'Modelo' => Modelos\Modelo_Factura::class,
+                'Alcance' => 'institucion', 'Icono' => 'facturacion', 'Titulo' => 'Facturas', 'Singular' => 'factura', 'Modelo' => Modelos\Modelo_Factura::class,
                 'Columnas_Busqueda' => ['numero', 'concepto'], 'Orden' => ['fecha_emision', 'desc'], 'Grupo' => 'Administración', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
@@ -206,7 +210,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'contratos' => [
-                'Icono' => 'archivo', 'Titulo' => 'Contratos y presupuestos', 'Singular' => 'contrato', 'Modelo' => Modelos\Modelo_Contrato::class,
+                'Alcance' => 'institucion', 'Icono' => 'archivo', 'Titulo' => 'Contratos y presupuestos', 'Singular' => 'contrato', 'Modelo' => Modelos\Modelo_Contrato::class,
                 'Columnas_Busqueda' => ['titulo'], 'Orden' => ['fecha_firma', 'desc'], 'Grupo' => 'Administración', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
@@ -218,13 +222,13 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'fecha_vencimiento', 'Etiqueta' => 'Vigencia hasta', 'Tipo' => 'fecha'],
                     ['Nombre' => 'monto', 'Etiqueta' => 'Monto', 'Tipo' => 'decimal', 'Minimo' => 0],
                     ['Nombre' => 'ruta_archivo', 'Etiqueta' => 'Archivo (PDF)', 'Tipo' => 'archivo', 'Carpeta' => 'contratos',
-                        'Guardar_Nombre_En' => 'nombre_archivo', 'Guardar_Huella_En' => 'huella_sha256'],
+                        'Guardar_Nombre_En' => 'nombre_archivo', 'Guardar_Codigo_En' => 'codigo_verificacion'],
                     ['Nombre' => 'enlace_externo', 'Etiqueta' => 'O enlace externo', 'Tipo' => 'enlace'],
-                    ['Nombre' => 'huella_sha256', 'Etiqueta' => 'Huella SHA-256', 'Tipo' => 'huella'],
+                    ['Nombre' => 'codigo_verificacion', 'Etiqueta' => 'Código de verificación', 'Tipo' => 'codigo_verificacion'],
                 ],
             ],
             'horas' => [
-                'Icono' => 'dinero', 'Titulo' => 'Movimientos de horas', 'Singular' => 'movimiento', 'Modelo' => Modelos\Modelo_Movimiento_Horas::class,
+                'Alcance' => 'institucion', 'Icono' => 'dinero', 'Titulo' => 'Movimientos de horas', 'Singular' => 'movimiento', 'Modelo' => Modelos\Modelo_Movimiento_Horas::class,
                 'Columnas_Busqueda' => ['descripcion'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Administración', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
@@ -236,11 +240,60 @@ class Servicio_Definicion_Cms
         ];
     }
 
-    public static function Obtener_Recurso(string $Clave_Recurso): array
+    /** Los recursos que este usuario puede usar, ya ajustados a su rol */
+    public static function Obtener_Recursos_Permitidos(Modelo_Usuario $Usuario): array
+    {
+        $Recursos = [];
+        foreach (static::Obtener_Todos_Los_Recursos() as $Clave_Recurso => $Recurso) {
+            if ($Usuario->Es_Staff() || ! ($Recurso['Solo_Staff'] ?? false)) {
+                $Recursos[$Clave_Recurso] = static::Ajustar_Recurso_Al_Usuario($Recurso + ['Clave' => $Clave_Recurso], $Usuario);
+            }
+        }
+
+        return $Recursos;
+    }
+
+    public static function Obtener_Recurso(string $Clave_Recurso, Modelo_Usuario $Usuario): array
     {
         $Recursos = static::Obtener_Todos_Los_Recursos();
         abort_unless(isset($Recursos[$Clave_Recurso]), 404);
+        abort_if(($Recursos[$Clave_Recurso]['Solo_Staff'] ?? false) && ! $Usuario->Es_Staff(), 403);
 
-        return $Recursos[$Clave_Recurso] + ['Clave' => $Clave_Recurso];
+        return static::Ajustar_Recurso_Al_Usuario($Recursos[$Clave_Recurso] + ['Clave' => $Clave_Recurso], $Usuario);
+    }
+
+    /** Consulta del recurso limitada a las instituciones a cargo del usuario (el staff ve todo) */
+    public static function Consultar_Registros(array $Recurso, Modelo_Usuario $Usuario): Builder
+    {
+        $Consulta = $Recurso['Modelo']::query();
+        $Ids_Instituciones = $Usuario->Obtener_Ids_Instituciones_A_Cargo();
+        if ($Ids_Instituciones === null) {
+            return $Consulta;
+        }
+
+        return match ($Recurso['Alcance'] ?? null) {
+            'institucion' => $Consulta->whereIn('institucion_id', $Ids_Instituciones),
+            'proyecto' => $Consulta->whereIn('proyecto_id', Modelo_Proyecto::whereIn('institucion_id', $Ids_Instituciones)->select('id')),
+            default => $Consulta->whereRaw('1 = 0'),
+        };
+    }
+
+    /** Para el ejecutivo: menos roles disponibles y la institución siempre obligatoria */
+    private static function Ajustar_Recurso_Al_Usuario(array $Recurso, Modelo_Usuario $Usuario): array
+    {
+        if ($Usuario->Es_Staff()) {
+            return $Recurso;
+        }
+        foreach ($Recurso['Campos'] as &$Campo) {
+            if (isset($Campo['Opciones_Para_Ejecutivo'])) {
+                $Campo['Opciones'] = array_intersect_key($Campo['Opciones'], array_flip($Campo['Opciones_Para_Ejecutivo']));
+            }
+            if ($Campo['Nombre'] === 'institucion_id') {
+                $Campo['Obligatorio'] = true;
+            }
+        }
+        unset($Campo);
+
+        return $Recurso;
     }
 }

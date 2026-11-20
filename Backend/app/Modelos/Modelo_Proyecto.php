@@ -3,8 +3,11 @@
 namespace App\Modelos;
 
 use App\Modelos\Rasgos\Rasgo_Exclusivo_De_Institucion;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Modelo_Proyecto extends Model
@@ -41,5 +44,21 @@ class Modelo_Proyecto extends Model
     public function Entregables(): HasMany
     {
         return $this->hasMany(Modelo_Entregable::class, 'proyecto_id');
+    }
+
+    /** Clientes básicos inscritos por el cliente institucional */
+    public function Participantes(): BelongsToMany
+    {
+        return $this->belongsToMany(Modelo_Usuario::class, 'proyectos_participantes', 'proyecto_id', 'usuario_id')->withTimestamps();
+    }
+
+    /** El cliente institucional ve todos los proyectos de su institución; el básico, solo donde está inscrito */
+    #[Scope]
+    protected function Accesibles_Para_Usuario(Builder $Consulta, Modelo_Usuario $Usuario): void
+    {
+        $Consulta->where('proyectos.institucion_id', $Usuario->institucion_id);
+        if (! $Usuario->Es_Cliente_Institucional()) {
+            $Consulta->whereHas('Participantes', fn (Builder $Participante) => $Participante->where('usuarios.id', $Usuario->id));
+        }
     }
 }

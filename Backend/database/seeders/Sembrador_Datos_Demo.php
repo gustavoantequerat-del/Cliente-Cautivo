@@ -31,7 +31,7 @@ class Sembrador_Datos_Demo extends Seeder
         ]);
         $Ejecutiva = Modelo_Usuario::create([
             'nombre' => 'Alejandra Antezana', 'email' => 'ejecutiva@blockfinity.test',
-            'password' => 'Blockfinity2026', 'rol' => Modelo_Usuario::Rol_Staff, 'cargo' => 'Client Success',
+            'password' => 'Blockfinity2026', 'rol' => Modelo_Usuario::Rol_Ejecutivo_Cuenta, 'cargo' => 'Ejecutiva de cuenta',
             'telefono' => '+59170000000', 'enlace_agenda' => 'https://calendly.com/',
         ]);
 
@@ -50,12 +50,12 @@ class Sembrador_Datos_Demo extends Seeder
 
         Modelo_Usuario::create([
             'nombre' => 'María Rojas', 'email' => 'maria.rojas@bancodemo.test', 'password' => 'Cliente2026demo',
-            'rol' => Modelo_Usuario::Rol_Administrador_Institucion, 'institucion_id' => $Banco->id,
+            'rol' => Modelo_Usuario::Rol_Cliente_Institucional, 'institucion_id' => $Banco->id,
             'area' => 'Gerencia de Riesgos', 'cargo' => 'Gerente de Riesgos',
         ]);
-        Modelo_Usuario::create([
+        $Jorge = Modelo_Usuario::create([
             'nombre' => 'Jorge Quiroga', 'email' => 'jorge.quiroga@bancodemo.test', 'password' => 'Cliente2026demo',
-            'rol' => Modelo_Usuario::Rol_Funcionario, 'institucion_id' => $Banco->id, 'area' => 'Cumplimiento',
+            'rol' => Modelo_Usuario::Rol_Cliente_Basico, 'institucion_id' => $Banco->id, 'area' => 'Cumplimiento',
         ]);
 
         // --- Proyecto activo BCS -------------------------------------------
@@ -65,6 +65,12 @@ class Sembrador_Datos_Demo extends Seeder
             'descripcion' => 'Diagnóstico, configuración, capacitación y operación asistida de Crystal Expert en la Gerencia de Riesgos y Cumplimiento.',
             'avance' => 68, 'proximo_hito' => 'Comité de seguimiento · 30 oct',
             'fecha_inicio' => '2026-03-01', 'fecha_fin' => '2026-12-15',
+        ]);
+        // Jorge (cliente básico) participa en este proyecto; Lucía todavía no
+        $Proyecto_Crystal->Participantes()->attach($Jorge->id);
+        Modelo_Usuario::create([
+            'nombre' => 'Lucía Fernández', 'email' => 'lucia.fernandez@bancodemo.test', 'password' => 'Cliente2026demo',
+            'rol' => Modelo_Usuario::Rol_Cliente_Basico, 'institucion_id' => $Banco->id, 'area' => 'Operaciones',
         ]);
         foreach ([['Diagnóstico', 'completada'], ['Configuración', 'completada'], ['Capacitación y piloto', 'en_curso'], ['Operación asistida', 'pendiente']] as $Posicion => [$Nombre, $Estado]) {
             $Proyecto_Crystal->Fases()->create(['posicion' => $Posicion + 1, 'nombre' => $Nombre, 'estado' => $Estado]);
@@ -89,7 +95,7 @@ class Sembrador_Datos_Demo extends Seeder
                 'institucion_id' => $Banco->id, 'proyecto_id' => $Proyecto_Crystal->id, 'unidad_negocio_id' => $Ids_Unidades['BCS'],
                 'titulo' => $Titulo, 'tipo' => 'informe', 'version' => $Estado === 'pendiente_aprobacion' ? '2.1' : '1.0',
                 'etiqueta_fase' => $Fase, 'estado' => $Estado,
-                'huella_sha256' => $Estado === 'borrador' ? null : hash('sha256', $Titulo),
+                'codigo_verificacion' => $Estado === 'borrador' ? null : hash('sha256', $Titulo),
                 'enlace_externo' => $Estado === 'borrador' ? null : 'https://drive.google.com/',
                 'fecha_publicacion' => now()->subDays(rand(5, 120)),
             ]);
@@ -107,7 +113,7 @@ class Sembrador_Datos_Demo extends Seeder
             'institucion_id' => $Banco->id, 'proyecto_id' => $Proyecto_Nexum->id, 'unidad_negocio_id' => $Ids_Unidades['NEXUM'],
             'titulo' => 'Activos virtuales: riesgos, oportunidades y gobierno corporativo (Directorio)',
             'tipo' => 'presentacion', 'version' => '1.0', 'estado' => 'publicado',
-            'huella_sha256' => hash('sha256', 'presentacion-directorio'), 'enlace_externo' => 'https://drive.google.com/',
+            'codigo_verificacion' => hash('sha256', 'presentacion-directorio'), 'enlace_externo' => 'https://drive.google.com/',
             'fecha_publicacion' => '2026-09-12',
         ]);
 
@@ -170,7 +176,7 @@ class Sembrador_Datos_Demo extends Seeder
         Modelo_Contrato::create([
             'institucion_id' => $Banco->id, 'unidad_negocio_id' => $Ids_Unidades['BCS'], 'tipo' => 'contrato',
             'titulo' => 'Contrato de servicios BCS · Crystal Expert', 'fecha_firma' => '2026-02-20', 'fecha_vencimiento' => '2027-02-20',
-            'monto' => 168000, 'huella_sha256' => hash('sha256', 'contrato-bcs'), 'enlace_externo' => 'https://drive.google.com/',
+            'monto' => 168000, 'codigo_verificacion' => hash('sha256', 'contrato-bcs'), 'enlace_externo' => 'https://drive.google.com/',
         ]);
         Modelo_Contrato::create([
             'institucion_id' => $Banco->id, 'unidad_negocio_id' => $Ids_Unidades['RESEARCH'], 'tipo' => 'presupuesto',

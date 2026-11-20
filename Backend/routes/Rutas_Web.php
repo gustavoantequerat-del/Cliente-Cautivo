@@ -17,6 +17,8 @@ use App\Controladores\Portal\Controlador_Proyectos;
 use App\Controladores\Portal\Controlador_Research;
 use App\Controladores\Publico\Controlador_Verificar_Credencial;
 use App\Middleware\Middleware_Exigir_Cliente;
+use App\Middleware\Middleware_Exigir_Cliente_Institucional;
+use App\Middleware\Middleware_Exigir_Personal_Blockfinity;
 use App\Middleware\Middleware_Exigir_Staff;
 use App\Middleware\Middleware_Exigir_Unidad_Contratada;
 use Illuminate\Support\Facades\Route;
@@ -48,11 +50,7 @@ Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function ()
 
     Route::get('/proyectos', [Controlador_Proyectos::class, 'Listar_Proyectos']);
     Route::get('/proyectos/{Proyecto}', [Controlador_Proyectos::class, 'Mostrar_Proyecto']);
-
-    Route::get('/entregables', [Controlador_Entregables::class, 'Listar_Entregables']);
     Route::get('/entregables/{Entregable}/descargar', [Controlador_Entregables::class, 'Descargar_Entregable']);
-    Route::post('/entregables/{Entregable}/aprobar', [Controlador_Entregables::class, 'Aprobar_Entregable'])->middleware('throttle:10,1');
-    Route::post('/entregables/verificar', [Controlador_Entregables::class, 'Verificar_Huella_Documento'])->middleware('throttle:30,1');
 
     Route::middleware(Middleware_Exigir_Unidad_Contratada::class.':RESEARCH')->group(function () {
         Route::get('/research', [Controlador_Research::class, 'Listar_Reportes']);
@@ -65,27 +63,37 @@ Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function ()
     Route::post('/academia/{Video}/inscribirme', [Controlador_Academia::class, 'Inscribirse_Webinar']);
     Route::get('/academia/{Video}/calendario.ics', [Controlador_Academia::class, 'Descargar_Calendario_Webinar']);
 
-    Route::get('/facturacion', [Controlador_Facturacion::class, 'Mostrar_Facturacion']);
-    Route::get('/facturacion/factura/{Factura}/{Tipo_Archivo}', [Controlador_Facturacion::class, 'Descargar_Archivo_Factura'])->whereIn('Tipo_Archivo', ['pdf', 'xml']);
-    Route::get('/facturacion/contrato/{Contrato}', [Controlador_Facturacion::class, 'Descargar_Contrato']);
-
-    Route::get('/bolsa-de-horas', [Controlador_Bolsa_Horas::class, 'Mostrar_Bolsa_Horas']);
-    Route::post('/bolsa-de-horas', [Controlador_Bolsa_Horas::class, 'Crear_Solicitud_Horas'])->middleware('throttle:5,1');
-
     Route::get('/credencial', [Controlador_Credencial::class, 'Mostrar_Credencial']);
 
     Route::get('/perfil', [Controlador_Perfil::class, 'Mostrar_Perfil']);
     Route::put('/perfil/contrasena', [Controlador_Perfil::class, 'Cambiar_Contrasena']);
+
+    // Solo el cliente institucional: gestiona su institución y su equipo
+    Route::middleware(Middleware_Exigir_Cliente_Institucional::class)->group(function () {
+        Route::post('/proyectos/{Proyecto}/participantes', [Controlador_Proyectos::class, 'Actualizar_Participante']);
+
+        Route::get('/entregables', [Controlador_Entregables::class, 'Listar_Entregables']);
+        Route::post('/entregables/{Entregable}/aprobar', [Controlador_Entregables::class, 'Aprobar_Entregable'])->middleware('throttle:10,1');
+        Route::post('/entregables/verificar', [Controlador_Entregables::class, 'Verificar_Codigo_Documento'])->middleware('throttle:30,1');
+
+        Route::get('/facturacion', [Controlador_Facturacion::class, 'Mostrar_Facturacion']);
+        Route::get('/facturacion/factura/{Factura}/{Tipo_Archivo}', [Controlador_Facturacion::class, 'Descargar_Archivo_Factura'])->whereIn('Tipo_Archivo', ['pdf', 'xml']);
+        Route::get('/facturacion/contrato/{Contrato}', [Controlador_Facturacion::class, 'Descargar_Contrato']);
+
+        Route::get('/bolsa-de-horas', [Controlador_Bolsa_Horas::class, 'Mostrar_Bolsa_Horas']);
+        Route::post('/bolsa-de-horas', [Controlador_Bolsa_Horas::class, 'Crear_Solicitud_Horas'])->middleware('throttle:5,1');
+    });
 });
 
-// --- CMS (staff Blockfinity) ----------------------------------------------
-Route::middleware(['auth', Middleware_Exigir_Staff::class])->prefix('admin')->group(function () {
+// --- CMS (staff y ejecutivos de cuenta) -----------------------------------
+// El ejecutivo de cuenta solo ve las instituciones a su cargo (ver Controlador_Recursos_Cms)
+Route::middleware(['auth', Middleware_Exigir_Personal_Blockfinity::class])->prefix('admin')->group(function () {
     Route::get('/', [Controlador_Panel_Administracion::class, 'Mostrar_Resumen']);
 
     Route::get('/solicitudes-horas', [Controlador_Solicitudes_Horas::class, 'Listar_Solicitudes']);
     Route::put('/solicitudes-horas/{Solicitud}', [Controlador_Solicitudes_Horas::class, 'Actualizar_Solicitud']);
 
-    Route::get('/auditoria', [Controlador_Auditoria::class, 'Listar_Registros_Auditoria']);
+    Route::get('/auditoria', [Controlador_Auditoria::class, 'Listar_Registros_Auditoria'])->middleware(Middleware_Exigir_Staff::class);
 
     Route::get('/archivo/{Clave_Recurso}/{Id_Registro}/{Nombre_Campo}', [Controlador_Recursos_Cms::class, 'Descargar_Archivo_Registro']);
     Route::get('/{Clave_Recurso}', [Controlador_Recursos_Cms::class, 'Listar_Registros']);

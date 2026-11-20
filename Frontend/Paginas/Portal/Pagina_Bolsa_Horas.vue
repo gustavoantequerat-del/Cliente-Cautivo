@@ -90,18 +90,13 @@ const Pasos = [
             </section>
             <section class="card stack">
                 <h3>Movimientos</h3>
-                <div class="table-wrap">
-                    <table class="table">
-                        <thead><tr><th>Fecha</th><th>Detalle</th><th>Horas</th></tr></thead>
-                        <tbody>
-                            <tr v-for="(Movimiento, Posicion) in Movimientos" :key="Posicion">
-                                <td :class="$style.nowrap">{{ Movimiento.Fecha }}</td>
-                                <td>{{ Movimiento.Descripcion }}</td>
-                                <td class="mono" :class="Movimiento.Es_Abono ? $style.pos : $style.neg">{{ Movimiento.Horas }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <ul :class="$style.moves">
+                    <li v-for="(Movimiento, Posicion) in Movimientos" :key="Posicion">
+                        <span :class="[$style.moveIcon, Movimiento.Es_Abono ? $style.pos : $style.neg]"><Componente_Icono :Nombre="Movimiento.Es_Abono ? 'agregar' : 'reloj'" :Tamano="14" /></span>
+                        <span class="lista-texto"><span>{{ Movimiento.Descripcion }}</span><span class="lista-detalle">{{ Movimiento.Fecha }}</span></span>
+                        <strong :class="Movimiento.Es_Abono ? $style.pos : $style.neg">{{ Movimiento.Horas }} h</strong>
+                    </li>
+                </ul>
             </section>
         </div>
     </div>
@@ -124,7 +119,9 @@ const Pasos = [
 .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 14px; }
 .list li { display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid #E8EBEF; padding-bottom: 10px; }
 .resp { background: var(--surface-2); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
-.nowrap { white-space: nowrap; }
-.pos { color: var(--ok-fg); font-weight: 600; }
+.moves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 14px; }
+.moves li { display: flex; align-items: center; gap: 12px; }
+.moveIcon { width: 28px; height: 28px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--surface-2); }
+.pos { color: var(--ok-fg); }
 .neg { color: var(--text-2); }
 </style>

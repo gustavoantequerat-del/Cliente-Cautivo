@@ -28,7 +28,7 @@ class Controlador_Entregables
             'Nombre_Proyecto' => $Entregable->Proyecto?->nombre,
             'Estado' => $Entregable->estado,
             'Fecha' => ($Entregable->fecha_publicacion ?? $Entregable->created_at)?->translatedFormat('j M Y'),
-            'Huella_Sha256' => $Entregable->huella_sha256,
+            'Codigo_Verificacion' => $Entregable->codigo_verificacion,
             'Tiene_Archivo' => (bool) ($Entregable->ruta_archivo || $Entregable->enlace_externo),
             'Es_Enlace_Externo' => ! $Entregable->ruta_archivo && (bool) $Entregable->enlace_externo,
             'Aprobado_Por' => $Entregable->Aprobador?->nombre,
@@ -52,9 +52,11 @@ class Controlador_Entregables
 
         $Cantidad_Por_Tipo = Modelo_Entregable::Visibles_Para_Usuario($Usuario)->Visibles_Para_Cliente()
             ->selectRaw('tipo, count(*) as total')->groupBy('tipo')->pluck('total', 'tipo');
+        $Cantidad_Por_Estado = Modelo_Entregable::Visibles_Para_Usuario($Usuario)->Visibles_Para_Cliente()
+            ->selectRaw('estado, count(*) as total')->groupBy('estado')->pluck('total', 'estado');
 
         // El administrador de la institución ve quién descargó o aprobó documentos
-        $Registro_Accesos = $Usuario->Es_Administrador_Institucion()
+        $Registro_Accesos = $Usuario->Es_Cliente_Institucional()
             ? Modelo_Registro_Auditoria::with('Usuario')->where('institucion_id', $Usuario->institucion_id)
                 ->whereIn('accion', ['entregable.descargar', 'entregable.aprobar', 'inicio_sesion'])
                 ->latest('created_at')->limit(8)->get()
@@ -75,6 +77,11 @@ class Controlador_Entregables
                 ->map(fn (Modelo_Proyecto $Proyecto) => ['Id' => $Proyecto->id, 'Nombre' => $Proyecto->nombre]),
             'Filtros_Aplicados' => ['Tipo' => $Tipo_Filtrado, 'Proyecto' => $Proyecto_Filtrado],
             'Registro_Accesos' => $Registro_Accesos,
+            'Resumen' => [
+                'Total' => $Cantidad_Por_Estado->sum(),
+                'Por_Aprobar' => $Cantidad_Por_Estado['pendiente_aprobacion'] ?? 0,
+                'Aprobados' => $Cantidad_Por_Estado['aprobado'] ?? 0,
+            ],
         ]);
     }
 
@@ -92,7 +99,7 @@ class Controlador_Entregables
     }
 
     /**
-     * Aprobación con re-autenticación. Se registra quién, cuándo, desde qué IP y la huella
+     * Aprobación con re-autenticación. Se registra quién, cuándo, desde qué IP y el código de verificación
      * del documento aprobado (fase 2: además se ancla en Stamping.io).
      */
     public function Aprobar_Entregable(Request $Peticion, Modelo_Entregable $Entregable): RedirectResponse
@@ -103,13 +110,13 @@ class Controlador_Entregables
         ]);
         abort_unless($Entregable->Esta_Pendiente_De_Aprobacion(), 422, 'Este entregable no está pendiente de aprobación.');
 
-        // Integridad: si el archivo está en el servidor, su huella debe coincidir con la registrada
+        // Integridad: si el archivo está en el servidor, su código de verificación debe coincidir con la registrada
         if ($Entregable->ruta_archivo && Storage::disk('local')->exists($Entregable->ruta_archivo)) {
-            $Huella_Actual = hash_file('sha256', Storage::disk('local')->path($Entregable->ruta_archivo));
-            if ($Entregable->huella_sha256 && $Huella_Actual !== $Entregable->huella_sha256) {
-                return back()->with('Mensaje_Error', 'La huella del archivo no coincide con la registrada. Contacte a su ejecutiva.');
+            $Codigo_Actual = hash_file('sha256', Storage::disk('local')->path($Entregable->ruta_archivo));
+            if ($Entregable->codigo_verificacion && $Codigo_Actual !== $Entregable->codigo_verificacion) {
+                return back()->with('Mensaje_Error', 'El código de verificación del archivo no coincide con el registrado. Contacte a su ejecutiva.');
             }
-            $Entregable->huella_sha256 = $Huella_Actual;
+            $Entregable->codigo_verificacion = $Codigo_Actual;
         }
 
         $Entregable->forceFill([
@@ -120,35 +127,37 @@ class Controlador_Entregables
         ])->save();
 
         Modelo_Registro_Auditoria::Registrar_Evento('entregable.aprobar', $Entregable, 'Aprobó «'.$Entregable->titulo.'»', [
-            'Huella_Sha256' => $Entregable->huella_sha256,
+            'Codigo_Verificacion' => $Entregable->codigo_verificacion,
         ]);
 
-        return back()->with('Mensaje_Exito', 'Entregable aprobado. Su aprobación quedó registrada con la huella del documento.');
+        return back()->with('Mensaje_Exito', 'Entregable aprobado. Su aprobación quedó registrada con el código de verificación del documento.');
     }
 
-    /** Recibe solo la huella calculada en el navegador; el archivo nunca se sube. */
-    public function Verificar_Huella_Documento(Request $Peticion): RedirectResponse
+    /** Recibe solo el código calculado en el navegador; el archivo nunca se sube. */
+    public function Verificar_Codigo_Documento(Request $Peticion): RedirectResponse
     {
-        $Datos = $Peticion->validate(['huella_sha256' => ['required', 'regex:/^[a-f0-9]{64}$/i']]);
-        $Huella = strtolower($Datos['huella_sha256']);
+        $Datos = $Peticion->validate(['codigo_verificacion' => ['required', 'regex:/^[a-f0-9]{64}$/i']]);
+        $Codigo = strtolower($Datos['codigo_verificacion']);
         $Usuario = $Peticion->user();
 
-        $Documento = Modelo_Entregable::Visibles_Para_Usuario($Usuario)->Visibles_Para_Cliente()->where('huella_sha256', $Huella)->first()
-            ?? Modelo_Contrato::Visibles_Para_Usuario($Usuario)->where('huella_sha256', $Huella)->first();
+        $Documento = Modelo_Entregable::Visibles_Para_Usuario($Usuario)->Visibles_Para_Cliente()->where('codigo_verificacion', $Codigo)->first()
+            ?? Modelo_Contrato::Visibles_Para_Usuario($Usuario)->where('codigo_verificacion', $Codigo)->first();
 
         return back()->with('Resultado_Verificacion', [
             'Es_Autentico' => (bool) $Documento,
             'Titulo' => $Documento?->titulo,
             'Fecha' => $Documento?->created_at->translatedFormat('j M Y'),
-            'Huella' => $Huella,
+            'Codigo' => $Codigo,
         ]);
     }
 
+    /** El cliente institucional accede a todo lo de su institución; el básico, solo a lo de sus proyectos */
     private function Validar_Acceso_Entregable(Request $Peticion, Modelo_Entregable $Entregable): void
     {
-        abort_unless(
-            $Entregable->institucion_id == $Peticion->user()->institucion_id && $Entregable->estado !== 'borrador',
-            404
-        );
+        $Usuario = $Peticion->user();
+        $Es_De_Su_Institucion = $Entregable->institucion_id == $Usuario->institucion_id && $Entregable->estado !== 'borrador';
+        $Puede_Verlo = $Usuario->Es_Cliente_Institucional() || ($Entregable->proyecto_id
+            && Modelo_Proyecto::Accesibles_Para_Usuario($Usuario)->whereKey($Entregable->proyecto_id)->exists());
+        abort_unless($Es_De_Su_Institucion && $Puede_Verlo, 404);
     }
 }

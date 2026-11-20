@@ -16,7 +16,7 @@ class Prueba_Entregables extends Caso_Prueba_Base
     {
         return Modelo_Entregable::create([
             'institucion_id' => $Institucion->id, 'titulo' => 'Informe v2', 'estado' => 'pendiente_aprobacion',
-            'huella_sha256' => hash('sha256', 'contenido'), 'enlace_externo' => 'https://drive.google.com/x',
+            'codigo_verificacion' => hash('sha256', 'contenido'), 'enlace_externo' => 'https://drive.google.com/x',
         ]);
     }
 
@@ -32,7 +32,7 @@ class Prueba_Entregables extends Caso_Prueba_Base
     }
 
     #[Test]
-    public function La_Aprobacion_Queda_Registrada_Con_Huella(): void
+    public function La_Aprobacion_Queda_Registrada_Con_Codigo(): void
     {
         $Usuario = $this->Crear_Cliente();
         $Entregable = $this->Crear_Entregable_Pendiente($Usuario->Institucion);
@@ -59,19 +59,19 @@ class Prueba_Entregables extends Caso_Prueba_Base
     }
 
     #[Test]
-    public function Verificar_Huella_Solo_Encuentra_Documentos_Propios(): void
+    public function Verificar_Codigo_Solo_Encuentra_Documentos_Propios(): void
     {
         $Usuario = $this->Crear_Cliente();
         $this->Crear_Entregable_Pendiente($Usuario->Institucion);
-        $Huella = hash('sha256', 'contenido');
+        $Codigo = hash('sha256', 'contenido');
 
-        $this->actingAs($Usuario)->post('/entregables/verificar', ['huella_sha256' => $Huella])
+        $this->actingAs($Usuario)->post('/entregables/verificar', ['codigo_verificacion' => $Codigo])
             ->assertSessionHas('Resultado_Verificacion', fn ($Resultado) => $Resultado['Es_Autentico'] === true);
 
         $Otro_Usuario = $this->Crear_Cliente();
-        $this->actingAs($Otro_Usuario)->post('/entregables/verificar', ['huella_sha256' => $Huella])
+        $this->actingAs($Otro_Usuario)->post('/entregables/verificar', ['codigo_verificacion' => $Codigo])
             ->assertSessionHas('Resultado_Verificacion', fn ($Resultado) => $Resultado['Es_Autentico'] === false);
 
-        $this->actingAs($Usuario)->post('/entregables/verificar', ['huella_sha256' => 'no-es-huella'])->assertSessionHasErrors('huella_sha256');
+        $this->actingAs($Usuario)->post('/entregables/verificar', ['codigo_verificacion' => 'no-es-codigo'])->assertSessionHasErrors('codigo_verificacion');
     }
 }

@@ -15,18 +15,19 @@ const Menu_Movil_Abierto = ref(false);
 watch(() => Pagina.url, () => { Menu_Movil_Abierto.value = false; });
 
 const Tiene_Research = computed(() => (Institucion_Actual.value?.Codigos_Unidades ?? []).includes('RESEARCH'));
+// El cliente básico ve lo esencial; el institucional, además, la gestión de su institución
 const Elementos_Menu = computed(() => [
-    { Titulo: 'Mi cuenta' },
     { Url: '/', Etiqueta: 'Inicio', Icono: 'inicio', Coincidencia_Exacta: true },
     { Url: '/proyectos', Etiqueta: 'Proyectos', Icono: 'proyectos' },
-    { Url: '/entregables', Etiqueta: 'Historial de entregables', Icono: 'boveda' },
-    { Url: '/facturacion', Etiqueta: 'Facturación y contratos', Icono: 'facturacion' },
-    { Url: '/bolsa-de-horas', Etiqueta: 'Bolsa de horas', Icono: 'reloj' },
-    { Titulo: 'Conocimiento' },
-    ...(Tiene_Research.value ? [{ Url: '/research', Etiqueta: 'Research e inteligencia', Icono: 'grafico' }] : []),
     { Url: '/academia', Etiqueta: 'Píldoras y webinars', Icono: 'reproducir' },
-    { Titulo: 'Ecosistema' },
-    { Url: '/credencial', Etiqueta: 'Credencial y beneficios', Icono: 'credencial' },
+    ...(Tiene_Research.value ? [{ Url: '/research', Etiqueta: 'Research', Icono: 'grafico' }] : []),
+    { Url: '/credencial', Etiqueta: 'Mi credencial', Icono: 'credencial' },
+    ...(Usuario_Actual.value?.Es_Cliente_Institucional ? [
+        { Titulo: 'Gestión institucional' },
+        { Url: '/entregables', Etiqueta: 'Entregables', Icono: 'boveda' },
+        { Url: '/facturacion', Etiqueta: 'Facturación', Icono: 'facturacion' },
+        { Url: '/bolsa-de-horas', Etiqueta: 'Bolsa de horas', Icono: 'reloj' },
+    ] : []),
 ]);
 
 const Es_Enlace_Activo = (Elemento) => (Elemento.Coincidencia_Exacta ? Pagina.url === Elemento.Url : Pagina.url.startsWith(Elemento.Url));
@@ -47,6 +48,7 @@ const Cerrar_Sesion = () => router.post('/logout');
             <div :class="$style.account">
                 <span :class="$style.accountLabel">PORTAL CLIENTE</span>
                 <span :class="$style.accountName">{{ Institucion_Actual?.Nombre }}</span>
+                <span :class="$style.role">{{ Usuario_Actual?.Nombre_Rol }}</span>
             </div>
             <nav :class="$style.nav">
                 <template v-for="(Elemento, Posicion) in Elementos_Menu" :key="Posicion">
@@ -56,7 +58,6 @@ const Cerrar_Sesion = () => router.post('/logout');
                         <Componente_Icono :Nombre="Elemento.Icono" :Tamano="18" />{{ Elemento.Etiqueta }}
                     </Link>
                 </template>
-                <Link v-if="Usuario_Actual?.Es_Staff" href="/admin" :class="$style.link"><Componente_Icono Nombre="cuadricula" :Tamano="18" />Ir al CMS</Link>
             </nav>
             <div v-if="Ejecutivo_Cuenta" :class="$style.manager">
                 <span :class="$style.accountLabel">SU EJECUTIVA DE CUENTA</span>
@@ -117,6 +118,7 @@ const Cerrar_Sesion = () => router.post('/logout');
 .account { margin: 0 8px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--navy-line); display: flex; flex-direction: column; gap: 2px; }
 .accountLabel { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: var(--side-label); }
 .accountName { font-size: 15px; font-weight: 700; color: #fff; }
+.role { align-self: flex-start; margin-top: 6px; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: rgba(90, 169, 230, 0.18); color: #CFE0F5; }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .heading { padding: 14px 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--side-label); }
 .link {
@@ -166,7 +168,7 @@ const Cerrar_Sesion = () => router.post('/logout');
 }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: #3E9B66; box-shadow: 0 0 0 3px rgba(62, 155, 102, 0.2); }
 .me { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
-.content { padding: 32px 40px 56px; width: 100%; max-width: 1280px; }
+.content { padding: 32px 40px 56px; width: 100%; max-width: 1280px; margin: 0 auto; }
 .page { display: flex; flex-direction: column; gap: 32px; }
 .backdrop { display: none; }
 

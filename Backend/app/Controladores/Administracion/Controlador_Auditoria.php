@@ -18,7 +18,7 @@ class Controlador_Auditoria
                     'Usuario' => $Registro->Usuario?->nombre ?? '—',
                     'Accion' => $Registro->accion,
                     'Descripcion' => $Registro->descripcion,
-                    'Huella_Sha256' => $Registro->datos_extra['Huella_Sha256'] ?? null,
+                    'Codigo_Verificacion' => $Registro->datos_extra['Codigo_Verificacion'] ?? null,
                     'Ip' => $Registro->ip,
                 ]),
         ]);

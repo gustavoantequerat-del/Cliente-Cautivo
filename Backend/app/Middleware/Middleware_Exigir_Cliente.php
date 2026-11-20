@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Las pantallas del portal requieren pertenecer a una institución activa.
- * El staff sin institución se redirige al CMS.
+ * El personal de Blockfinity no usa el portal: se le lleva al CMS.
  */
 class Middleware_Exigir_Cliente
 {
@@ -16,7 +16,7 @@ class Middleware_Exigir_Cliente
     {
         $Usuario = $Peticion->user();
 
-        if ($Usuario->Es_Staff() && ! $Usuario->institucion_id) {
+        if ($Usuario->Es_Personal_Blockfinity()) {
             return redirect('/admin');
         }
 

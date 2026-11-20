@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import Componente_Calculadora_Huella from '../../Componentes/Componente_Calculadora_Huella.vue';
+import Componente_Calculadora_Codigo from '../../Componentes/Componente_Calculadora_Codigo.vue';
 import Componente_Reproductor_Video from '../../Componentes/Componente_Reproductor_Video.vue';
 import Componente_Encabezado_Pagina from '../../Componentes/Componente_Encabezado_Pagina.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
@@ -28,8 +28,8 @@ const Formulario = useForm(Valores_Iniciales);
 const Es_Edicion = computed(() => !!Propiedades.Id_Registro);
 const Tipo_Input_Por_Campo = { email: 'email', enlace: 'url', telefono: 'tel', fecha: 'date', fecha_hora: 'datetime-local', contrasena: 'password' };
 const Teclado_Por_Campo = { email: 'email', enlace: 'url', telefono: 'tel', numerico: 'numeric', entero: 'numeric', decimal: 'decimal' };
-const Largo_Maximo_Por_Campo = { texto: 255, nombre_persona: 120, email: 255, enlace: 500, telefono: 16, numerico: 20, identificador: 80, codigo: 20, entero: 9, huella: 64 };
-const Campos_Ancho_Completo = ['texto_largo', 'unidades', 'enlace_video', 'huella'];
+const Largo_Maximo_Por_Campo = { texto: 255, nombre_persona: 120, email: 255, enlace: 500, telefono: 16, numerico: 20, identificador: 80, codigo: 20, entero: 9, codigo_verificacion: 64 };
+const Campos_Ancho_Completo = ['texto_largo', 'unidades', 'enlace_video', 'codigo_verificacion'];
 
 // Qué se puede teclear en cada tipo de campo (el Backend vuelve a validar lo mismo)
 const Limpiadores_Por_Tipo = {
@@ -46,7 +46,7 @@ const Limpiadores_Por_Tipo = {
         .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-{2,}/g, '-').slice(0, 80),
     codigo: (Valor) => Valor.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20),
     nombre_persona: (Valor) => Valor.replace(/[^\p{L}\s'.-]/gu, '').slice(0, 120),
-    huella: (Valor) => Valor.toLowerCase().replace(/[^0-9a-f]/g, '').slice(0, 64),
+    codigo_verificacion: (Valor) => Valor.toLowerCase().replace(/[^0-9a-f]/g, '').slice(0, 64),
 };
 function Filtrar_Entrada(Evento, Campo) {
     const Limpiar = Limpiadores_Por_Tipo[Campo.Tipo];
@@ -138,11 +138,11 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
                     <progress v-if="Formulario.progress" :value="Formulario.progress.percentage" max="100">{{ Formulario.progress.percentage }}%</progress>
                 </template>
 
-                <template v-else-if="Campo.Tipo === 'huella'">
+                <template v-else-if="Campo.Tipo === 'codigo_verificacion'">
                     <input :id="Campo.Nombre" :value="Formulario[Campo.Nombre]" class="input mono" maxlength="64" placeholder="64 caracteres hexadecimales"
                            autocomplete="off" spellcheck="false" @input="Filtrar_Entrada($event, Campo)">
-                    <Componente_Calculadora_Huella Etiqueta="Calcular huella desde el archivo original" Ayuda="El archivo no se sube: solo se calcula su huella en este equipo."
-                                                   @Huella_Calculada="(Huella) => (Formulario[Campo.Nombre] = Huella)" />
+                    <Componente_Calculadora_Codigo Etiqueta="Calcular código desde el archivo original" Ayuda="El archivo no se sube: el código se calcula en este equipo."
+                                                   @Codigo_Calculado="(Codigo) => (Formulario[Campo.Nombre] = Codigo)" />
                 </template>
 
                 <template v-else-if="Campo.Tipo === 'enlace_video'">

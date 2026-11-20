@@ -17,7 +17,7 @@ class Servicio_Archivos
             'Ruta' => $Archivo->store($Carpeta, 'local'),
             'Nombre' => $Archivo->getClientOriginalName(),
             'Tamano' => $Archivo->getSize(),
-            'Huella_Sha256' => hash_file('sha256', $Archivo->getRealPath()),
+            'Codigo_Verificacion' => hash_file('sha256', $Archivo->getRealPath()),
         ];
     }
 

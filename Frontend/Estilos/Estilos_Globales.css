@@ -72,11 +72,12 @@ button { font: inherit; }
 /* ---------------------------------------------------------------------------
  * Animaciones
  * ------------------------------------------------------------------------- */
-@keyframes aparecer { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-@keyframes aparecer-escala { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+/* Se animan "translate" y "scale" (no "transform") para no pisar el efecto al pasar el mouse */
+@keyframes aparecer { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
+@keyframes aparecer-escala { from { opacity: 0; scale: 0.96; } to { opacity: 1; scale: 1; } }
 @keyframes crecer-barra { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes latido { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 94, 0.55); } 50% { box-shadow: 0 0 0 8px rgba(255, 107, 94, 0); } }
-@keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+@keyframes flotar { 0%, 100% { translate: 0 0; } 50% { translate: 0 -14px; } }
 @keyframes girar { to { transform: rotate(360deg); } }
 
 /* Entrada suave de cada página */
@@ -139,6 +140,22 @@ button { font: inherit; }
   background: var(--surface); border: 1.5px dashed var(--line-2); border-radius: var(--radius-lg);
 }
 .vacio .burbuja { width: 56px; height: 56px; border-radius: 18px; }
+
+/* ---------------------------------------------------------------------------
+ * Listas simples (en lugar de tablas): una fila por elemento, con lo esencial
+ * ------------------------------------------------------------------------- */
+.lista { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
+.lista > li { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid #EDF0F3; transition: background 0.15s; }
+.lista > li:last-child { border-bottom: 0; }
+.lista > li:hover { background: var(--blue-50); }
+.lista-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lista-texto strong { overflow-wrap: anywhere; }
+.lista-detalle { font-size: 13px; color: var(--muted); }
+.lista-acciones { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 600px) {
+  .lista > li { flex-wrap: wrap; }
+  .lista-acciones { width: 100%; justify-content: flex-start; }
+}
 
 /* ---------------------------------------------------------------------------
  * Botones

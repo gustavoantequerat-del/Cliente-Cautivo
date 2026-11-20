@@ -25,7 +25,7 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
     {
         $Usuario = $this->Crear_Cliente();
         $this->post('/login', ['email' => $Usuario->email, 'password' => self::Contrasena_Prueba])->assertRedirect('/');
-        $this->get('/')->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->component('Portal/Pagina_Inicio')->has('Unidades_Negocio'));
+        $this->get('/')->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->component('Portal/Pagina_Inicio')->has('Panel_Institucional.Unidades_Negocio'));
         $this->assertDatabaseHas('registros_auditoria', ['usuario_id' => $Usuario->id, 'accion' => 'inicio_sesion']);
     }
 
@@ -92,7 +92,7 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
     #[Test]
     public function Todas_Las_Paginas_Del_Portal_Cargan(): void
     {
-        $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['BCS', 'RESEARCH']), Modelo_Usuario::Rol_Administrador_Institucion);
+        $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['BCS', 'RESEARCH']), Modelo_Usuario::Rol_Cliente_Institucional);
         foreach (['/', '/proyectos', '/entregables', '/research', '/academia', '/facturacion', '/bolsa-de-horas', '/credencial', '/perfil'] as $Url) {
             $this->actingAs($Usuario)->get($Url)->assertOk();
         }

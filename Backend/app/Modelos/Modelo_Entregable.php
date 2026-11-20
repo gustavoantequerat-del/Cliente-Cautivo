@@ -21,7 +21,7 @@ class Modelo_Entregable extends Model
 
     protected $fillable = [
         'institucion_id', 'proyecto_id', 'unidad_negocio_id', 'titulo', 'tipo', 'version', 'etiqueta_fase',
-        'ruta_archivo', 'nombre_archivo', 'tamano_archivo', 'enlace_externo', 'huella_sha256', 'estado',
+        'ruta_archivo', 'nombre_archivo', 'tamano_archivo', 'enlace_externo', 'codigo_verificacion', 'estado',
         'fecha_publicacion',
     ];
 

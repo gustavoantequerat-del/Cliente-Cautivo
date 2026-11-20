@@ -30,8 +30,9 @@ return new class extends Migration
             $Tabla->string('nombre');
             $Tabla->string('email')->unique();
             $Tabla->string('password');
-            // staff = Blockfinity con acceso al CMS · administrador_institucion · funcionario
-            $Tabla->string('rol', 30)->default('funcionario')->index();
+            // Blockfinity: staff (todo el CMS) · ejecutivo_cuenta (solo sus instituciones)
+            // Institución: cliente_institucional (gestiona su institución) · cliente_basico (formación y sus proyectos)
+            $Tabla->string('rol', 30)->default('cliente_basico')->index();
             $Tabla->string('area')->nullable();           // Gerencia de Riesgos, Cumplimiento...
             $Tabla->string('cargo')->nullable();          // Cargo visible (ej. Client Success)
             $Tabla->string('telefono', 40)->nullable();
