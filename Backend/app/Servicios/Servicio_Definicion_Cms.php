@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
  * sin escribir una pantalla por tabla. Para agregar un campo: añadirlo aquí.
  *
  * Cada recurso lleva Icono (nombre de Componente_Icono), Titulo, Singular, Modelo, Columnas_Busqueda, Orden y Grupo.
+ * Opcionales: Permite_Crear / Permite_Eliminar (false para ajustes fijos), Vista_Previa ('avatar' en la Forja).
  * Además: Solo_Staff (contenido global que el ejecutivo de cuenta no ve) o Alcance (cómo se filtra por
  * institución para el ejecutivo: 'institucion' por la columna institucion_id, 'proyecto' por el proyecto).
  *
@@ -19,7 +20,7 @@ use Illuminate\Database\Eloquent\Builder;
  * Ayuda, Solo_Lectura, Opciones, Minimo, Maximo, y según el tipo: Modelo, Columna_Etiqueta, Filtro_Donde
  * (relacion) o Carpeta, Guardar_Nombre_En, Guardar_Tamano_En, Guardar_Codigo_En, Extensiones (archivo).
  *
- * Tipos de campo: texto, nombre_persona, email, telefono, numerico (solo dígitos), identificador (slug),
+ * Tipos de campo: texto, nombre_persona, email, telefono, color (#RRGGBB), enlace_drive (enlace de Google Drive), numerico (solo dígitos), identificador (slug),
  * codigo (MAYÚSCULAS), enlace, texto_largo, entero, decimal, fecha, fecha_hora, lista, si_no, relacion,
  * archivo, contrasena, codigo_verificacion, enlace_video, unidades. El Frontend filtra lo que se teclea según el tipo
  * y el Backend lo vuelve a validar.
@@ -47,7 +48,6 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'direccion_facturacion', 'Etiqueta' => 'Dirección de facturación', 'Tipo' => 'texto'],
                     ['Nombre' => 'ejecutivo_cuenta_id', 'Etiqueta' => 'Ejecutiva/o de cuenta', 'Tipo' => 'relacion', 'En_Tabla' => true,
                         'Modelo' => Modelos\Modelo_Usuario::class, 'Columna_Etiqueta' => 'nombre', 'Filtro_Donde' => ['rol', [Modelos\Modelo_Usuario::Rol_Ejecutivo_Cuenta, Modelos\Modelo_Usuario::Rol_Staff]]],
-                    ['Nombre' => 'puntos_alianza', 'Etiqueta' => 'Puntos de alianza', 'Tipo' => 'entero', 'Minimo' => 0, 'En_Tabla' => true, 'Por_Defecto' => 0],
                     ['Nombre' => 'esta_activa', 'Etiqueta' => 'Acceso activo', 'Tipo' => 'si_no', 'En_Tabla' => true, 'Por_Defecto' => true],
                     ['Nombre' => 'unidades_contratadas', 'Etiqueta' => 'Unidades contratadas', 'Tipo' => 'unidades'],
                 ],
@@ -163,7 +163,9 @@ class Servicio_Definicion_Cms
                         'Ayuda' => 'Vacío = visible para todas las instituciones con Research.'] + $Campo_Institucion,
                     ['Nombre' => 'ruta_archivo', 'Etiqueta' => 'Archivo PDF (máx. 10 MB)', 'Tipo' => 'archivo', 'Carpeta' => 'research',
                         'Guardar_Nombre_En' => 'nombre_archivo'],
-                    ['Nombre' => 'enlace_externo', 'Etiqueta' => 'O enlace externo (Drive, tablero)', 'Tipo' => 'enlace'],
+                    ['Nombre' => 'enlace_externo', 'Etiqueta' => 'O enlace de Google Drive del PDF', 'Tipo' => 'enlace_drive',
+                        'Ayuda' => 'Compártalo como "Cualquier persona con el enlace". Se muestra en el portal sin opción de descarga.'],
+                    ['Nombre' => 'puntos', 'Etiqueta' => 'Monedas por leerlo', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 1000, 'Por_Defecto' => 10],
                     ['Nombre' => 'es_destacado', 'Etiqueta' => 'Destacado', 'Tipo' => 'si_no', 'En_Tabla' => true],
                     ['Nombre' => 'esta_publicado', 'Etiqueta' => 'Publicado', 'Tipo' => 'si_no', 'Por_Defecto' => true, 'En_Tabla' => true],
                     ['Nombre' => 'fecha_publicacion', 'Etiqueta' => 'Fecha de publicación', 'Tipo' => 'fecha', 'En_Tabla' => true],
@@ -186,7 +188,7 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'fecha_programada', 'Etiqueta' => 'Fecha y hora (en vivo)', 'Tipo' => 'fecha_hora', 'En_Tabla' => true],
                     ['Nombre' => 'enlace_sala', 'Etiqueta' => 'Enlace de la sala (Meet/Zoom/Teams)', 'Tipo' => 'enlace'],
                     ['Nombre' => 'enlace_miniatura', 'Etiqueta' => 'Miniatura (URL de imagen, opcional)', 'Tipo' => 'enlace'],
-                    ['Nombre' => 'puntos', 'Etiqueta' => 'Puntos de alianza al completarlo', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 1000, 'Por_Defecto' => 10],
+                    ['Nombre' => 'puntos', 'Etiqueta' => 'Monedas al completarlo', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 1000, 'Por_Defecto' => 10],
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Exclusivo para', 'Ayuda' => 'Vacío = visible para todos.'] + $Campo_Institucion,
                     ['Nombre' => 'esta_publicado', 'Etiqueta' => 'Publicado', 'Tipo' => 'si_no', 'Por_Defecto' => true, 'En_Tabla' => true],
                 ],
@@ -235,6 +237,32 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'horas', 'Etiqueta' => 'Horas (+ abono / − consumo)', 'Tipo' => 'decimal', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'descripcion', 'Etiqueta' => 'Detalle', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'fecha_vencimiento', 'Etiqueta' => 'Vencen el (solo abonos)', 'Tipo' => 'fecha', 'En_Tabla' => true],
+                ],
+            ],
+            'forja' => [
+                'Solo_Staff' => true, 'Icono' => 'estrella', 'Titulo' => 'Forja', 'Singular' => 'objeto', 'Modelo' => Modelos\Modelo_Item_Avatar::class,
+                'Columnas_Busqueda' => ['nombre'], 'Orden' => ['tipo', 'asc'], 'Grupo' => 'Avatares', 'Vista_Previa' => 'avatar',
+                'Campos' => [
+                    ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'estilo', 'Etiqueta' => 'Parte y estilo', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true,
+                        'Por_Defecto' => 'camisa.manga_corta', 'Opciones' => Modelos\Modelo_Item_Avatar::Estilos,
+                        'Ayuda' => 'Extra = se lleva en la mano (máximo 2). Accesorio = va encima (mochila, capa…). Pose = cómo se para el avatar.'],
+                    ['Nombre' => 'color_principal', 'Etiqueta' => 'Color principal', 'Tipo' => 'color', 'Obligatorio' => true, 'Por_Defecto' => '#3B5B8C'],
+                    ['Nombre' => 'color_secundario', 'Etiqueta' => 'Color de detalles', 'Tipo' => 'color', 'Obligatorio' => true, 'Por_Defecto' => '#FFFFFF'],
+                    ['Nombre' => 'precio', 'Etiqueta' => 'Precio (monedas)', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 100000, 'Por_Defecto' => 50,
+                        'Obligatorio' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'detalle', 'Etiqueta' => 'Detalle', 'Tipo' => 'texto_largo'],
+                    ['Nombre' => 'esta_publicado', 'Etiqueta' => 'Disponible en la tienda', 'Tipo' => 'si_no', 'Por_Defecto' => true, 'En_Tabla' => true],
+                ],
+            ],
+            'configuracion' => [
+                'Solo_Staff' => true, 'Icono' => 'lista', 'Titulo' => 'Configuración', 'Singular' => 'ajuste', 'Modelo' => Modelos\Modelo_Configuracion::class,
+                'Columnas_Busqueda' => ['etiqueta'], 'Orden' => ['etiqueta', 'asc'], 'Grupo' => 'Administración',
+                'Permite_Crear' => false, 'Permite_Eliminar' => false,
+                'Campos' => [
+                    ['Nombre' => 'etiqueta', 'Etiqueta' => 'Ajuste', 'Tipo' => 'texto', 'Solo_Lectura' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'valor', 'Etiqueta' => 'Valor', 'Tipo' => 'texto_largo', 'En_Tabla' => true,
+                        'Ayuda' => 'En la marca de agua puede usar {usuario}, {institucion} y {fecha}.'],
                 ],
             ],
         ];

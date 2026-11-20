@@ -99,6 +99,7 @@ Si el cPanel tiene *Terminal* y Composer, puede clonar el repo con *Git Version 
    php artisan key:generate --force
    php artisan migrate --force
    php artisan db:seed --class=Sembrador_Unidades_Negocio --force
+   php artisan db:seed --class=Sembrador_Forja_Inicial --force      # catálogo inicial de objetos del avatar
    ADMIN_EMAIL=usted@blockfinityadvisors.com php artisan db:seed --class=Sembrador_Administrador --force   # muestra la contraseña
    php artisan config:cache && php artisan route:cache && php artisan view:cache
    ```
@@ -114,6 +115,28 @@ Si su PHP de consola no es 8.2+, use la ruta completa, por ejemplo `/opt/cpanel/
 
 ### 5. Actualizar
 Suba los archivos nuevos (o `git pull`; en ese caso el dominio apunta a `.../Backend/public`), luego, dentro de `Backend/`, `php artisan migrate --force` y `php artisan optimize`.
+
+---
+
+## Reportes de Research (visor protegido)
+
+Los reportes se leen dentro del portal, **sin opción de descarga**:
+
+1. En el CMS, en **Reportes de Research**, suba el PDF o pegue el enlace de Google Drive (compartido como "Cualquier persona con el enlace").
+2. El navegador no puede pedir el archivo directo a Drive (CORS), así que lo pide al Backend (`/research/{id}/documento`), que lo descarga con el ID del enlace y lo guarda en caché 12 horas. **El hosting debe permitir conexiones salientes a Google.**
+3. El portal dibuja cada página con PDF.js en un `<canvas>` (el texto queda como imagen y no se puede seleccionar), con una **marca de agua diagonal** encima, sin clic derecho y sin impresión.
+4. El texto de la marca de agua se edita en **CMS → Configuración**. Admite `{usuario}`, `{institucion}` y `{fecha}`, para saber de quién salió una copia.
+
+> Esto desalienta copiar, pero no lo impide del todo: una captura de pantalla siempre es posible. Por eso conviene que la marca de agua lleve el nombre de quien lee.
+
+---
+
+## Niveles de alianza y avatares
+
+- **Nivel de alianza** (de la institución): depende de cuántos servicios (unidades de negocio) tiene contratados. 1 servicio = Explorador, 2 o más = Aliado, todos = Socio Estratégico. Se ajusta en `config/Configuracion_Portal.php`.
+- **Monedas** (de cada persona): se ganan una sola vez por cada webinar o píldora completados y por cada reporte leído hasta el final. La cantidad se define en cada video o reporte en el CMS.
+- **Avatar**: en **Mi avatar**, cada persona gasta sus monedas en objetos y los combina. Hay 7 partes: camisa, pantalones, zapatos, gorra, extra (en la mano, máximo 2), accesorio (mochila, capa…) y pose.
+- **Forja** (CMS, solo staff): crea los objetos eligiendo la parte y el estilo, dos colores, un precio y un detalle, con vista previa en vivo. Los dibujos están en `Frontend/Utilidades/Dibujo_Avatar.js`: para un estilo nuevo, se agrega allí su dibujo y en `Modelo_Item_Avatar::Estilos` su nombre.
 
 ---
 

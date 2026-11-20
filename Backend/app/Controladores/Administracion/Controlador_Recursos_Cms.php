@@ -10,6 +10,7 @@ use App\Modelos\Modelo_Usuario;
 use App\Servicios\Servicio_Archivos;
 use App\Servicios\Servicio_Definicion_Cms;
 use App\Servicios\Servicio_Enlaces_Video;
+use App\Servicios\Servicio_Google_Drive;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,7 +62,7 @@ class Controlador_Recursos_Cms
         $Campo_Filtro = $Columna_Filtro ? collect($Recurso['Campos'])->firstWhere('Nombre', $Columna_Filtro) : null;
 
         return Inertia::render('Administracion/Pagina_Listado_Recurso', [
-            'Recurso' => Arr::only($Recurso, ['Clave', 'Titulo', 'Singular', 'Icono']),
+            'Recurso' => $this->Datos_Publicos_Recurso($Recurso),
             'Columnas' => array_map(fn ($Campo) => Arr::only($Campo, ['Nombre', 'Etiqueta']), $Campos_En_Tabla),
             'Filas' => $Filas,
             'Filtro' => $Campo_Filtro ? [
@@ -76,6 +77,7 @@ class Controlador_Recursos_Cms
     public function Mostrar_Formulario_Crear(Request $Peticion, string $Clave_Recurso): Response
     {
         $Recurso = Servicio_Definicion_Cms::Obtener_Recurso($Clave_Recurso, $Peticion->user());
+        abort_if(($Recurso['Permite_Crear'] ?? true) === false, 403);
         $Valores = [];
         foreach ($Recurso['Campos'] as $Campo) {
             $Valores[$Campo['Nombre']] = $Campo['Por_Defecto'] ?? match ($Campo['Tipo']) {
@@ -113,6 +115,7 @@ class Controlador_Recursos_Cms
     public function Crear_Registro(Request $Peticion, string $Clave_Recurso): RedirectResponse
     {
         $Recurso = Servicio_Definicion_Cms::Obtener_Recurso($Clave_Recurso, $Peticion->user());
+        abort_if(($Recurso['Permite_Crear'] ?? true) === false, 403);
         $Registro = new $Recurso['Modelo'];
         $this->Validar_Y_Guardar($Peticion, $Recurso, $Registro);
         Modelo_Registro_Auditoria::Registrar_Evento('cms.crear', $Registro, 'Creó '.$Recurso['Singular'].' #'.$Registro->getKey());
@@ -133,6 +136,7 @@ class Controlador_Recursos_Cms
     public function Eliminar_Registro(Request $Peticion, string $Clave_Recurso, int $Id_Registro): RedirectResponse
     {
         $Recurso = Servicio_Definicion_Cms::Obtener_Recurso($Clave_Recurso, $Peticion->user());
+        abort_if(($Recurso['Permite_Eliminar'] ?? true) === false, 403);
         $Registro = Servicio_Definicion_Cms::Consultar_Registros($Recurso, $Peticion->user())->findOrFail($Id_Registro);
         abort_if($Registro->is($Peticion->user()), 422, 'No puede eliminar su propio usuario.');
 
@@ -161,6 +165,15 @@ class Controlador_Recursos_Cms
 
     // ---------------------------------------------------------------------
 
+    /** Lo que la pantalla necesita saber del recurso (sin el modelo ni las reglas) */
+    private function Datos_Publicos_Recurso(array $Recurso): array
+    {
+        return Arr::only($Recurso, ['Clave', 'Titulo', 'Singular', 'Icono', 'Vista_Previa']) + [
+            'Permite_Crear' => $Recurso['Permite_Crear'] ?? true,
+            'Permite_Eliminar' => $Recurso['Permite_Eliminar'] ?? true,
+        ];
+    }
+
     private function Mostrar_Formulario(array $Recurso, array $Valores, ?Model $Registro, Modelo_Usuario $Usuario): Response
     {
         $Campos = array_map(function ($Campo) use ($Registro, $Recurso) {
@@ -176,7 +189,7 @@ class Controlador_Recursos_Cms
         }, $Recurso['Campos']);
 
         return Inertia::render('Administracion/Pagina_Formulario_Recurso', [
-            'Recurso' => Arr::only($Recurso, ['Clave', 'Titulo', 'Singular', 'Icono']),
+            'Recurso' => $this->Datos_Publicos_Recurso($Recurso),
             'Campos' => $Campos,
             'Valores' => $Valores,
             'Opciones' => $this->Obtener_Opciones_De_Listas($Recurso['Campos'], $Usuario) + [
@@ -276,7 +289,8 @@ class Controlador_Recursos_Cms
             'numerico' => [$Requerido, 'regex:/^[0-9]{1,20}$/'],
             'identificador' => [$Requerido, 'max:80', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
             'codigo' => [$Requerido, 'regex:/^[A-Z0-9]{2,20}$/'],
-            'enlace', 'enlace_video' => [$Requerido, 'url', 'max:500'],
+            'color' => [$Requerido, 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'enlace', 'enlace_video', 'enlace_drive' => [$Requerido, 'url', 'max:500'],
             'texto_largo' => [$Requerido, 'string', 'max:10000'],
             'entero' => [$Requerido, 'integer', 'min:'.($Campo['Minimo'] ?? -1000000), 'max:'.($Campo['Maximo'] ?? 1000000)],
             'decimal' => [$Requerido, 'numeric', 'min:'.($Campo['Minimo'] ?? -999999999), 'max:999999999'],
@@ -294,6 +308,13 @@ class Controlador_Recursos_Cms
 
         if ($Campo['Unico'] ?? false) {
             $Reglas[] = Rule::unique($Registro->getTable(), $Campo['Nombre'])->ignore($Registro->getKey());
+        }
+        if ($Campo['Tipo'] === 'enlace_drive') {
+            $Reglas[] = function ($Atributo, $Valor, $Fallar) {
+                if ($Valor && ! Servicio_Google_Drive::Extraer_Id_Archivo($Valor)) {
+                    $Fallar('Pegue el enlace de compartir de Google Drive (drive.google.com/file/d/…).');
+                }
+            };
         }
         if ($Campo['Tipo'] === 'enlace_video') {
             $Reglas[] = function ($Atributo, $Valor, $Fallar) {

@@ -1,16 +1,15 @@
 <?php
 
 return [
-    // Niveles de alianza: puntos mínimos y beneficios (editable sin tocar la base de datos)
+    // Niveles de alianza: dependen de cuántos servicios (unidades de negocio) contrató la institución.
+    // Servicios_Minimos null = todos los servicios.
     'Niveles_Alianza' => [
-        ['Clave' => 'explorador', 'Nombre' => 'Explorador', 'Puntos_Minimos' => 0,
-            'Beneficios' => 'Acceso al portal, biblioteca básica de Research y agenda de eventos.'],
-        ['Clave' => 'aliado', 'Nombre' => 'Aliado', 'Puntos_Minimos' => 250,
+        ['Clave' => 'explorador', 'Nombre' => 'Explorador', 'Servicios_Minimos' => 1,
+            'Beneficios' => 'Acceso al portal, biblioteca de Research y agenda de eventos.'],
+        ['Clave' => 'aliado', 'Nombre' => 'Aliado', 'Servicios_Minimos' => 2,
             'Beneficios' => 'Reportes completos, Laboratorio de herramientas y certificados verificables.'],
-        ['Clave' => 'socio_estrategico', 'Nombre' => 'Socio Estratégico', 'Puntos_Minimos' => 500,
-            'Beneficios' => 'Análisis a medida, cupos NEXUM de cortesía y mesas regulatorias con socios.'],
-        ['Clave' => 'socio_fundador', 'Nombre' => 'Socio Fundador', 'Puntos_Minimos' => 1000,
-            'Beneficios' => 'Asiento en el Consejo Consultivo, co-autoría de reportes y acceso anticipado a productos.'],
+        ['Clave' => 'socio_estrategico', 'Nombre' => 'Socio Estratégico', 'Servicios_Minimos' => null,
+            'Beneficios' => 'Todos los beneficios: análisis a medida, cupos NEXUM de cortesía, Consejo Consultivo y acceso anticipado a productos.'],
     ],
 
     // Tamaño máximo de subida en KB (los videos nunca se suben: van por enlace)

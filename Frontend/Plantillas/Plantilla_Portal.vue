@@ -4,6 +4,7 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import Componente_Icono from '../Componentes/Componente_Icono.vue';
 import Componente_Mensaje_Flash from '../Componentes/Componente_Mensaje_Flash.vue';
 import Componente_Marca_Blockfinity from '../Componentes/Componente_Marca_Blockfinity.vue';
+import Componente_Avatar from '../Componentes/Componente_Avatar.vue';
 
 const Pagina = usePage();
 const Usuario_Actual = computed(() => Pagina.props.Usuario_Actual);
@@ -21,6 +22,7 @@ const Elementos_Menu = computed(() => [
     { Url: '/proyectos', Etiqueta: 'Proyectos', Icono: 'proyectos' },
     { Url: '/academia', Etiqueta: 'Píldoras y webinars', Icono: 'reproducir' },
     ...(Tiene_Research.value ? [{ Url: '/research', Etiqueta: 'Research', Icono: 'grafico' }] : []),
+    { Url: '/avatar', Etiqueta: 'Mi avatar', Icono: 'estrella' },
     { Url: '/credencial', Etiqueta: 'Mi credencial', Icono: 'credencial' },
     ...(Usuario_Actual.value?.Es_Cliente_Institucional ? [
         { Titulo: 'Gestión institucional' },
@@ -84,7 +86,7 @@ const Cerrar_Sesion = () => router.post('/logout');
                     <span :class="$style.dot" />Credencial #{{ Usuario_Actual.Numero_Credencial }}
                 </Link>
                 <Link href="/perfil" :class="$style.me" aria-label="Mi perfil">
-                    <span :class="$style.avatar">{{ Usuario_Actual?.Iniciales }}</span>
+                    <span :class="[$style.avatar, $style.avatarDibujo]"><Componente_Avatar :Objetos="Usuario_Actual?.Objetos_Avatar ?? []" Recorte="busto" /></span>
                     <span :class="$style.person">
                         <strong>{{ Usuario_Actual?.Nombre }}</strong>
                         <span>{{ Usuario_Actual?.Area }}</span>
@@ -145,6 +147,7 @@ const Cerrar_Sesion = () => router.post('/logout');
   display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
 }
 .avatarManager { background: var(--navy-500); }
+.avatarDibujo { background: var(--blue-100); overflow: hidden; }
 .person { display: flex; flex-direction: column; min-width: 0; }
 .person strong { font-size: 14px; color: var(--navy-950); }
 .person span { font-size: 12px; color: var(--muted); }

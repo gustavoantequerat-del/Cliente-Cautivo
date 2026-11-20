@@ -6,6 +6,7 @@ use App\Modelos\Modelo_Contrato;
 use App\Modelos\Modelo_Entregable;
 use App\Modelos\Modelo_Factura;
 use App\Modelos\Modelo_Institucion;
+use App\Modelos\Modelo_Movimiento_Monedas;
 use App\Modelos\Modelo_Movimiento_Horas;
 use App\Modelos\Modelo_Proyecto;
 use App\Modelos\Modelo_Reporte_Research;
@@ -23,7 +24,7 @@ class Sembrador_Datos_Demo extends Seeder
 {
     public function run(): void
     {
-        $this->call(Sembrador_Unidades_Negocio::class);
+        $this->call([Sembrador_Unidades_Negocio::class, Sembrador_Forja_Inicial::class]);
 
         $Administrador = Modelo_Usuario::create([
             'nombre' => 'Administrador Blockfinity', 'email' => 'admin@blockfinity.test',
@@ -38,7 +39,7 @@ class Sembrador_Datos_Demo extends Seeder
         $Banco = Modelo_Institucion::create([
             'nombre' => 'Banco Demo S.A.', 'identificador' => 'banco-demo', 'razon_social' => 'Banco Demo Sociedad Anónima',
             'nit' => '1020304050', 'correo_facturacion' => 'facturacion@bancodemo.test',
-            'direccion_facturacion' => 'Av. Arce 1234, La Paz', 'puntos_alianza' => 720,
+            'direccion_facturacion' => 'Av. Arce 1234, La Paz',
             'ejecutivo_cuenta_id' => $Ejecutiva->id,
         ]);
         $Ids_Unidades = Modelo_Unidad_Negocio::pluck('id', 'codigo');
@@ -48,7 +49,7 @@ class Sembrador_Datos_Demo extends Seeder
             $Ids_Unidades['RESEARCH'] => ['activa_desde' => '2026-01-01', 'nota' => 'Activa · suscripción anual'],
         ]);
 
-        Modelo_Usuario::create([
+        $Maria = Modelo_Usuario::create([
             'nombre' => 'María Rojas', 'email' => 'maria.rojas@bancodemo.test', 'password' => 'Cliente2026demo',
             'rol' => Modelo_Usuario::Rol_Cliente_Institucional, 'institucion_id' => $Banco->id,
             'area' => 'Gerencia de Riesgos', 'cargo' => 'Gerente de Riesgos',
@@ -195,6 +196,11 @@ class Sembrador_Datos_Demo extends Seeder
                 'institucion_id' => $Banco->id, 'horas' => $Horas, 'descripcion' => $Descripcion,
                 'fecha_vencimiento' => $Fecha_Vencimiento, 'creado_por' => $Creado_Por,
             ]);
+        }
+
+        // --- Monedas de demostración para probar la tienda del avatar ----------
+        foreach ([$Maria, $Jorge] as $Usuario_Demo) {
+            Modelo_Movimiento_Monedas::Otorgar_Una_Vez($Usuario_Demo, 150, 'bono', 1, 'Monedas de bienvenida (demo)');
         }
     }
 }

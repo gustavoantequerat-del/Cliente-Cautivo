@@ -19,9 +19,9 @@ defineProps({ Reporte_Destacado: Object, Reportes: Object, Temas: Array, Tema_Se
             <h2 :class="$style.featTitle">{{ Reporte_Destacado.Titulo }}</h2>
             <p :class="$style.featSummary">{{ Reporte_Destacado.Resumen }}</p>
             <span :class="$style.featMeta">{{ Reporte_Destacado.Autor }}<template v-if="Reporte_Destacado.Minutos_Lectura"> · lectura de {{ Reporte_Destacado.Minutos_Lectura }} min</template> · {{ Reporte_Destacado.Fecha }}</span>
-            <a v-if="Reporte_Destacado.Tiene_Archivo" :href="`/research/${Reporte_Destacado.Id}/abrir`" target="_blank" rel="noopener" :class="$style.featBtn">
+            <Link :href="`/research/${Reporte_Destacado.Id}`" :class="$style.featBtn">
                 <Componente_Icono Nombre="grafico" :Tamano="18" />Leer reporte
-            </a>
+            </Link>
         </div>
     </section>
 
@@ -38,10 +38,14 @@ defineProps({ Reporte_Destacado: Object, Reportes: Object, Temas: Array, Tema_Se
             </div>
             <h3 :class="$style.title">{{ Reporte.Titulo }}</h3>
             <p v-if="Reporte.Resumen" :class="$style.summary">{{ Reporte.Resumen }}</p>
-            <span v-if="Reporte.Minutos_Lectura" class="muted" :class="$style.small"><Componente_Icono Nombre="reloj" :Tamano="13" /> {{ Reporte.Minutos_Lectura }} min</span>
+            <span class="row" :class="$style.meta">
+                <span v-if="Reporte.Minutos_Lectura" class="muted" :class="$style.small"><Componente_Icono Nombre="reloj" :Tamano="13" /> {{ Reporte.Minutos_Lectura }} min</span>
+                <span v-if="Reporte.Esta_Leido" class="badge badge-ok"><Componente_Icono Nombre="visto" :Tamano="12" />Leído</span>
+                <span v-else class="badge badge-warn"><Componente_Icono Nombre="estrella" :Tamano="12" />+{{ Reporte.Monedas }} monedas</span>
+            </span>
             <div class="row between" :class="$style.foot">
                 <span :class="['badge', Reporte.Es_Exclusivo ? 'badge-navy' : 'badge-blue']">{{ Reporte.Es_Exclusivo ? 'Exclusivo' : 'Incluido' }}</span>
-                <a v-if="Reporte.Tiene_Archivo" :href="`/research/${Reporte.Id}/abrir`" target="_blank" rel="noopener" class="link-arrow">Leer <Componente_Icono Nombre="flecha" :Tamano="16" /></a>
+                <Link :href="`/research/${Reporte.Id}`" class="link-arrow">Leer <Componente_Icono Nombre="flecha" :Tamano="16" /></Link>
             </div>
         </article>
     </div>
@@ -66,4 +70,5 @@ defineProps({ Reporte_Destacado: Object, Reportes: Object, Temas: Array, Tema_Se
 .summary { font-size: 14px; color: var(--text-2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .foot { margin-top: auto; }
 .small { font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
+.meta { gap: 8px; }
 </style>

@@ -29,7 +29,7 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
     }
 
     #[Test]
-    public function Marcar_Video_Visto_Suma_Puntos_Una_Sola_Vez(): void
+    public function Marcar_Video_Visto_Da_Monedas_Una_Sola_Vez(): void
     {
         $Usuario = $this->Crear_Cliente();
         $Video = Modelo_Video::create(['titulo' => 'Píldora', 'formato' => 'pildora', 'puntos' => 10,
@@ -41,7 +41,7 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
 
         $this->actingAs($Usuario)->post("/academia/{$Video->id}/visto");
         $this->actingAs($Usuario)->post("/academia/{$Video->id}/visto");
-        $this->assertSame(10, $Usuario->Institucion->fresh()->puntos_alianza);
+        $this->assertSame(10, $Usuario->Calcular_Saldo_Monedas());
     }
 
     #[Test]
@@ -73,8 +73,8 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
         ])->assertSessionHasErrors(['nombre', 'telefono', 'institucion_id' => 'Complete el campo institución.']);
 
         $this->actingAs($Staff)->post('/admin/instituciones', [
-            'nombre' => 'Banco X', 'identificador' => 'Banco X!', 'nit' => '12A45', 'puntos_alianza' => -5,
-        ])->assertSessionHasErrors(['identificador', 'nit', 'puntos_alianza']);
+            'nombre' => 'Banco X', 'identificador' => 'Banco X!', 'nit' => '12A45',
+        ])->assertSessionHasErrors(['identificador', 'nit']);
 
         $this->actingAs($Staff)->post('/admin/usuarios', [
             'nombre' => 'Ana María Pérez', 'email' => 'ana@prueba.test', 'password' => 'Clave12345segura',
@@ -88,7 +88,7 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
         $Staff = $this->Crear_Staff();
         $Unidad = Modelo_Unidad_Negocio::create(['codigo' => 'BCS', 'nombre' => 'Compliance']);
         $this->actingAs($Staff)->post('/admin/instituciones', [
-            'nombre' => 'Cooperativa X', 'identificador' => 'coop-x', 'esta_activa' => 1, 'puntos_alianza' => 0,
+            'nombre' => 'Cooperativa X', 'identificador' => 'coop-x', 'esta_activa' => 1,
             'unidades_contratadas' => [$Unidad->id => ['activa' => 1, 'nota' => '10 licencias']],
         ])->assertRedirect('/admin/instituciones');
 

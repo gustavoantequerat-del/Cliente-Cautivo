@@ -30,10 +30,14 @@ const Todos_Los_Grupos = [
         { Url: '/admin/videos', Etiqueta: 'Videos y webinars', Icono: 'reproducir', Solo_Staff: true },
         { Url: '/admin/research', Etiqueta: 'Research', Icono: 'grafico', Solo_Staff: true },
     ] },
+    { Titulo: 'Avatares', Enlaces: [
+        { Url: '/admin/forja', Etiqueta: 'Forja', Icono: 'estrella', Solo_Staff: true },
+    ] },
     { Titulo: 'Administración', Enlaces: [
         { Url: '/admin/facturas', Etiqueta: 'Facturas', Icono: 'facturacion' },
         { Url: '/admin/contratos', Etiqueta: 'Contratos', Icono: 'archivo' },
         { Url: '/admin/horas', Etiqueta: 'Movimientos de horas', Icono: 'dinero' },
+        { Url: '/admin/configuracion', Etiqueta: 'Configuración', Icono: 'lista', Solo_Staff: true },
     ] },
 ];
 
