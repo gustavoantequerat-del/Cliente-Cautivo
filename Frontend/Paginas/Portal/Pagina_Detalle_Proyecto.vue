@@ -8,8 +8,8 @@ import Componente_Estado_Vacio from '../../Componentes/Componente_Estado_Vacio.v
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 
 const Propiedades = defineProps({ Proyecto: Object, Entregables: Array, Equipo: Array });
-const Es_Cliente_Institucional = computed(() => usePage().props.Usuario_Actual.Es_Cliente_Institucional);
-const Entregables_Pendientes = computed(() => (Es_Cliente_Institucional.value
+const Es_Administrador_Delegado = computed(() => usePage().props.Usuario_Actual.Es_Administrador_Delegado);
+const Entregables_Pendientes = computed(() => (Es_Administrador_Delegado.value
     ? Propiedades.Entregables.filter((Entregable) => Entregable.Estado === 'pendiente_aprobacion') : []));
 const Nombres_Estado_Fase = { completada: 'Completada', en_curso: 'En curso', pendiente: 'Pendiente' };
 const Cantidad_Inscritos = computed(() => (Propiedades.Equipo ?? []).filter((Miembro) => Miembro.Esta_Inscrito).length);
@@ -87,7 +87,7 @@ function Cambiar_Inscripcion(Miembro) {
                 <span class="badge badge-blue">{{ Cantidad_Inscritos }}/{{ Equipo.length }}</span>
             </div>
             <p class="muted" :class="$style.hint">Quien esté activado verá este proyecto en su portal.</p>
-            <p v-if="!Equipo.length" class="vacio">Aún no hay clientes básicos en su institución. Pídalos a su ejecutiva.</p>
+            <p v-if="!Equipo.length" class="vacio">Aún no hay usuarios institucionales en su institución. Pídalos a su ejecutiva.</p>
             <ul :class="$style.members">
                 <li v-for="Miembro in Equipo" :key="Miembro.Id">
                     <span :class="$style.avatar">{{ Miembro.Iniciales }}</span>

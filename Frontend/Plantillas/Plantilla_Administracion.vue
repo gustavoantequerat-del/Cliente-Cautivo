@@ -8,41 +8,42 @@ import Componente_Marca_Blockfinity from '../Componentes/Componente_Marca_Blockf
 const Pagina = usePage();
 const Usuario_Actual = computed(() => Pagina.props.Usuario_Actual);
 
-// Solo_Staff: contenido global que el ejecutivo de cuenta no gestiona
+// Solo_Superadmin: contenido global que el usuario ejecutivo no gestiona
 const Todos_Los_Grupos = [
     { Titulo: 'General', Enlaces: [
         { Url: '/admin', Etiqueta: 'Resumen', Icono: 'cuadricula', Coincidencia_Exacta: true },
         { Url: '/admin/solicitudes-horas', Etiqueta: 'Solicitudes de horas', Icono: 'reloj' },
-        { Url: '/admin/auditoria', Etiqueta: 'Auditoría', Icono: 'escudo', Solo_Staff: true },
+        { Url: '/admin/auditoria', Etiqueta: 'Auditoría', Icono: 'escudo', Solo_Superadmin: true },
     ] },
     { Titulo: 'Cuentas', Enlaces: [
-        { Url: '/admin/instituciones', Etiqueta: 'Instituciones', Icono: 'edificio', Solo_Staff: true },
+        { Url: '/admin/instituciones', Etiqueta: 'Instituciones', Icono: 'edificio' },
         { Url: '/admin/usuarios', Etiqueta: 'Usuarios', Icono: 'usuarios' },
-        { Url: '/admin/unidades', Etiqueta: 'Unidades de negocio', Icono: 'capas', Solo_Staff: true },
+        { Url: '/admin/unidades', Etiqueta: 'Unidades de negocio', Icono: 'capas', Solo_Superadmin: true },
     ] },
     { Titulo: 'Relación', Enlaces: [
         { Url: '/admin/proyectos', Etiqueta: 'Proyectos', Icono: 'proyectos' },
         { Url: '/admin/fases', Etiqueta: 'Fases', Icono: 'lista' },
         { Url: '/admin/bitacora', Etiqueta: 'Bitácora', Icono: 'libro' },
         { Url: '/admin/entregables', Etiqueta: 'Entregables', Icono: 'boveda' },
+        { Url: '/admin/certificados', Etiqueta: 'Certificados', Icono: 'certificado' },
     ] },
     { Titulo: 'Contenido', Enlaces: [
-        { Url: '/admin/videos', Etiqueta: 'Videos y webinars', Icono: 'reproducir', Solo_Staff: true },
-        { Url: '/admin/research', Etiqueta: 'Research', Icono: 'grafico', Solo_Staff: true },
+        { Url: '/admin/videos', Etiqueta: 'Videos y webinars', Icono: 'reproducir', Solo_Superadmin: true },
+        { Url: '/admin/research', Etiqueta: 'Research', Icono: 'grafico', Solo_Superadmin: true },
     ] },
     { Titulo: 'Avatares', Enlaces: [
-        { Url: '/admin/forja', Etiqueta: 'Forja', Icono: 'estrella', Solo_Staff: true },
+        { Url: '/admin/forja', Etiqueta: 'Forja', Icono: 'estrella', Solo_Superadmin: true },
     ] },
     { Titulo: 'Administración', Enlaces: [
         { Url: '/admin/facturas', Etiqueta: 'Facturas', Icono: 'facturacion' },
         { Url: '/admin/contratos', Etiqueta: 'Contratos', Icono: 'archivo' },
         { Url: '/admin/horas', Etiqueta: 'Movimientos de horas', Icono: 'dinero' },
-        { Url: '/admin/configuracion', Etiqueta: 'Configuración', Icono: 'lista', Solo_Staff: true },
+        { Url: '/admin/configuracion', Etiqueta: 'Configuración', Icono: 'lista', Solo_Superadmin: true },
     ] },
 ];
 
 const Grupos_Menu = computed(() => Todos_Los_Grupos
-    .map((Grupo) => ({ ...Grupo, Enlaces: Grupo.Enlaces.filter((Enlace) => Usuario_Actual.value?.Es_Staff || !Enlace.Solo_Staff) }))
+    .map((Grupo) => ({ ...Grupo, Enlaces: Grupo.Enlaces.filter((Enlace) => Usuario_Actual.value?.Es_Superadmin || !Enlace.Solo_Superadmin) }))
     .filter((Grupo) => Grupo.Enlaces.length));
 const Ruta_Actual = computed(() => Pagina.url.split('?')[0]);
 const Es_Enlace_Activo = (Enlace) => (Enlace.Coincidencia_Exacta ? Ruta_Actual.value === Enlace.Url : Ruta_Actual.value.startsWith(Enlace.Url));

@@ -12,8 +12,9 @@ use Illuminate\Database\Eloquent\Builder;
  * sin escribir una pantalla por tabla. Para agregar un campo: añadirlo aquí.
  *
  * Cada recurso lleva Icono (nombre de Componente_Icono), Titulo, Singular, Modelo, Columnas_Busqueda, Orden y Grupo.
- * Opcionales: Permite_Crear / Permite_Eliminar (false para ajustes fijos), Vista_Previa ('avatar' en la Forja).
- * Además: Solo_Staff (contenido global que el ejecutivo de cuenta no ve) o Alcance (cómo se filtra por
+ * Opcionales: Permite_Crear / Permite_Eliminar (false para ajustes fijos), Eliminar_Solo_Superadmin,
+ * Vista_Previa ('avatar' en la Forja, 'marca' en instituciones). Un campo con Solo_Superadmin no se le muestra al usuario ejecutivo.
+ * Además: Solo_Superadmin (contenido global que el usuario ejecutivo no ve) o Alcance (cómo se filtra por
  * institución para el ejecutivo: 'institucion' por la columna institucion_id, 'proyecto' por el proyecto).
  *
  * Claves de cada campo: Nombre (columna), Etiqueta, Tipo, Obligatorio, En_Tabla, Unico, Por_Defecto,
@@ -36,7 +37,9 @@ class Servicio_Definicion_Cms
 
         return [
             'instituciones' => [
-                'Solo_Staff' => true, 'Icono' => 'edificio', 'Titulo' => 'Instituciones', 'Singular' => 'institución', 'Modelo' => Modelos\Modelo_Institucion::class,
+                // El usuario ejecutivo ve y edita solo las suyas (y las que crea quedan a su cargo); eliminar, solo el superadmin
+                'Alcance' => 'propia', 'Eliminar_Solo_Superadmin' => true, 'Vista_Previa' => 'marca',
+                'Icono' => 'edificio', 'Titulo' => 'Instituciones', 'Singular' => 'institución', 'Modelo' => Modelos\Modelo_Institucion::class,
                 'Columnas_Busqueda' => ['nombre', 'nit'], 'Orden' => ['nombre', 'asc'], 'Grupo' => 'Cuentas',
                 'Campos' => [
                     ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
@@ -46,10 +49,30 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'nit', 'Etiqueta' => 'NIT', 'Tipo' => 'numerico', 'En_Tabla' => true],
                     ['Nombre' => 'correo_facturacion', 'Etiqueta' => 'Correo de facturación', 'Tipo' => 'email'],
                     ['Nombre' => 'direccion_facturacion', 'Etiqueta' => 'Dirección de facturación', 'Tipo' => 'texto'],
-                    ['Nombre' => 'ejecutivo_cuenta_id', 'Etiqueta' => 'Ejecutiva/o de cuenta', 'Tipo' => 'relacion', 'En_Tabla' => true,
-                        'Modelo' => Modelos\Modelo_Usuario::class, 'Columna_Etiqueta' => 'nombre', 'Filtro_Donde' => ['rol', [Modelos\Modelo_Usuario::Rol_Ejecutivo_Cuenta, Modelos\Modelo_Usuario::Rol_Staff]]],
+                    ['Nombre' => 'ejecutivo_cuenta_id', 'Etiqueta' => 'Usuario ejecutivo a cargo', 'Tipo' => 'relacion', 'En_Tabla' => true, 'Solo_Superadmin' => true,
+                        'Modelo' => Modelos\Modelo_Usuario::class, 'Columna_Etiqueta' => 'nombre', 'Filtro_Donde' => ['rol', [Modelos\Modelo_Usuario::Rol_Usuario_Ejecutivo, Modelos\Modelo_Usuario::Rol_Superadmin]]],
                     ['Nombre' => 'esta_activa', 'Etiqueta' => 'Acceso activo', 'Tipo' => 'si_no', 'En_Tabla' => true, 'Por_Defecto' => true],
                     ['Nombre' => 'unidades_contratadas', 'Etiqueta' => 'Unidades contratadas', 'Tipo' => 'unidades'],
+                    ['Nombre' => 'color_primario', 'Etiqueta' => 'Color principal del portal', 'Tipo' => 'color', 'Obligatorio' => true, 'Por_Defecto' => '#1F3F73',
+                        'Ayuda' => 'Menú, botones y encabezados del portal de esta institución.'],
+                    ['Nombre' => 'color_secundario', 'Etiqueta' => 'Color de acento', 'Tipo' => 'color', 'Obligatorio' => true, 'Por_Defecto' => '#5AA9E6'],
+                    ['Nombre' => 'ruta_logo', 'Etiqueta' => 'Logo de la institución (PNG, JPG o WEBP)', 'Tipo' => 'archivo', 'Carpeta' => 'logos',
+                        'Extensiones' => 'png,jpg,jpeg,webp', 'Ayuda' => 'Se muestra en el portal junto al logo de Blockfinity.'],
+                ],
+            ],
+            'certificados' => [
+                'Alcance' => 'institucion', 'Icono' => 'certificado', 'Titulo' => 'Certificados', 'Singular' => 'certificado', 'Modelo' => Modelos\Modelo_Certificado::class,
+                'Columnas_Busqueda' => ['titulo'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Relación',
+                'Campos' => [
+                    ['Nombre' => 'usuario_id', 'Etiqueta' => 'Persona', 'Tipo' => 'relacion', 'Obligatorio' => true, 'En_Tabla' => true,
+                        'Modelo' => Modelos\Modelo_Usuario::class, 'Columna_Etiqueta' => 'nombre',
+                        'Filtro_Donde' => ['rol', [Modelos\Modelo_Usuario::Rol_Usuario_Institucional, Modelos\Modelo_Usuario::Rol_Administrador_Delegado]]],
+                    ['Nombre' => 'titulo', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'descripcion', 'Etiqueta' => 'Descripción', 'Tipo' => 'texto_largo'],
+                    ['Nombre' => 'puntaje', 'Etiqueta' => 'Puntaje (monedas que gana la persona)', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 10000,
+                        'Por_Defecto' => 0, 'En_Tabla' => true, 'Ayuda' => 'Se suman a sus monedas una sola vez, al crear el certificado.'],
+                    ['Nombre' => 'ruta_archivo', 'Etiqueta' => 'Certificado (PDF)', 'Tipo' => 'archivo', 'Obligatorio' => true, 'Carpeta' => 'certificados',
+                        'Extensiones' => 'pdf', 'Guardar_Nombre_En' => 'nombre_archivo', 'Guardar_Codigo_En' => 'codigo_verificacion'],
                 ],
             ],
             'usuarios' => [
@@ -62,11 +85,11 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'password', 'Etiqueta' => 'Contraseña', 'Tipo' => 'contrasena',
                         'Ayuda' => 'Mínimo 10 caracteres. Déjela vacía al editar para no cambiarla.'],
                     ['Nombre' => 'rol', 'Etiqueta' => 'Rol', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true,
-                        'Por_Defecto' => Modelos\Modelo_Usuario::Rol_Cliente_Basico, 'Opciones' => Modelos\Modelo_Usuario::Roles,
-                        // El ejecutivo de cuenta solo crea clientes de sus instituciones
-                        'Opciones_Para_Ejecutivo' => [Modelos\Modelo_Usuario::Rol_Cliente_Basico, Modelos\Modelo_Usuario::Rol_Cliente_Institucional]],
+                        'Por_Defecto' => Modelos\Modelo_Usuario::Rol_Usuario_Institucional, 'Opciones' => Modelos\Modelo_Usuario::Roles,
+                        // El usuario ejecutivo solo crea clientes de sus instituciones
+                        'Opciones_Para_Ejecutivo' => [Modelos\Modelo_Usuario::Rol_Usuario_Institucional, Modelos\Modelo_Usuario::Rol_Administrador_Delegado]],
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'En_Tabla' => true,
-                        'Obligatorio_Si' => 'rol,'.Modelos\Modelo_Usuario::Rol_Cliente_Basico.','.Modelos\Modelo_Usuario::Rol_Cliente_Institucional,
+                        'Obligatorio_Si' => 'rol,'.Modelos\Modelo_Usuario::Rol_Usuario_Institucional.','.Modelos\Modelo_Usuario::Rol_Administrador_Delegado,
                         'Ayuda' => 'Vacío solo para el personal de Blockfinity.'] + $Campo_Institucion,
                     ['Nombre' => 'area', 'Etiqueta' => 'Área', 'Tipo' => 'texto', 'En_Tabla' => true],
                     ['Nombre' => 'cargo', 'Etiqueta' => 'Cargo', 'Tipo' => 'texto'],
@@ -79,7 +102,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'unidades' => [
-                'Solo_Staff' => true, 'Icono' => 'capas', 'Titulo' => 'Unidades de negocio', 'Singular' => 'unidad', 'Modelo' => Modelos\Modelo_Unidad_Negocio::class,
+                'Solo_Superadmin' => true, 'Icono' => 'capas', 'Titulo' => 'Unidades de negocio', 'Singular' => 'unidad', 'Modelo' => Modelos\Modelo_Unidad_Negocio::class,
                 'Columnas_Busqueda' => ['codigo', 'nombre'], 'Orden' => ['orden', 'asc'], 'Grupo' => 'Cuentas',
                 'Campos' => [
                     ['Nombre' => 'codigo', 'Etiqueta' => 'Código', 'Tipo' => 'codigo', 'Obligatorio' => true, 'Unico' => true, 'En_Tabla' => true],
@@ -150,7 +173,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'research' => [
-                'Solo_Staff' => true, 'Icono' => 'grafico', 'Titulo' => 'Reportes de Research', 'Singular' => 'reporte', 'Modelo' => Modelos\Modelo_Reporte_Research::class,
+                'Solo_Superadmin' => true, 'Icono' => 'grafico', 'Titulo' => 'Reportes de Research', 'Singular' => 'reporte', 'Modelo' => Modelos\Modelo_Reporte_Research::class,
                 'Columnas_Busqueda' => ['titulo', 'autor'], 'Orden' => ['fecha_publicacion', 'desc'], 'Grupo' => 'Contenido',
                 'Campos' => [
                     ['Nombre' => 'titulo', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
@@ -172,7 +195,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'videos' => [
-                'Solo_Staff' => true, 'Icono' => 'reproducir', 'Titulo' => 'Videos y webinars', 'Singular' => 'video', 'Modelo' => Modelos\Modelo_Video::class,
+                'Solo_Superadmin' => true, 'Icono' => 'reproducir', 'Titulo' => 'Videos y webinars', 'Singular' => 'video', 'Modelo' => Modelos\Modelo_Video::class,
                 'Columnas_Busqueda' => ['titulo', 'expositor'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Contenido',
                 'Campos' => [
                     ['Nombre' => 'formato', 'Etiqueta' => 'Formato', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'grabado',
@@ -240,7 +263,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'forja' => [
-                'Solo_Staff' => true, 'Icono' => 'estrella', 'Titulo' => 'Forja', 'Singular' => 'objeto', 'Modelo' => Modelos\Modelo_Item_Avatar::class,
+                'Solo_Superadmin' => true, 'Icono' => 'estrella', 'Titulo' => 'Forja', 'Singular' => 'objeto', 'Modelo' => Modelos\Modelo_Item_Avatar::class,
                 'Columnas_Busqueda' => ['nombre'], 'Orden' => ['tipo', 'asc'], 'Grupo' => 'Avatares', 'Vista_Previa' => 'avatar',
                 'Campos' => [
                     ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
@@ -256,7 +279,7 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'configuracion' => [
-                'Solo_Staff' => true, 'Icono' => 'lista', 'Titulo' => 'Configuración', 'Singular' => 'ajuste', 'Modelo' => Modelos\Modelo_Configuracion::class,
+                'Solo_Superadmin' => true, 'Icono' => 'lista', 'Titulo' => 'Configuración', 'Singular' => 'ajuste', 'Modelo' => Modelos\Modelo_Configuracion::class,
                 'Columnas_Busqueda' => ['etiqueta'], 'Orden' => ['etiqueta', 'asc'], 'Grupo' => 'Administración',
                 'Permite_Crear' => false, 'Permite_Eliminar' => false,
                 'Campos' => [
@@ -273,7 +296,7 @@ class Servicio_Definicion_Cms
     {
         $Recursos = [];
         foreach (static::Obtener_Todos_Los_Recursos() as $Clave_Recurso => $Recurso) {
-            if ($Usuario->Es_Staff() || ! ($Recurso['Solo_Staff'] ?? false)) {
+            if ($Usuario->Es_Superadmin() || ! ($Recurso['Solo_Superadmin'] ?? false)) {
                 $Recursos[$Clave_Recurso] = static::Ajustar_Recurso_Al_Usuario($Recurso + ['Clave' => $Clave_Recurso], $Usuario);
             }
         }
@@ -285,12 +308,12 @@ class Servicio_Definicion_Cms
     {
         $Recursos = static::Obtener_Todos_Los_Recursos();
         abort_unless(isset($Recursos[$Clave_Recurso]), 404);
-        abort_if(($Recursos[$Clave_Recurso]['Solo_Staff'] ?? false) && ! $Usuario->Es_Staff(), 403);
+        abort_if(($Recursos[$Clave_Recurso]['Solo_Superadmin'] ?? false) && ! $Usuario->Es_Superadmin(), 403);
 
         return static::Ajustar_Recurso_Al_Usuario($Recursos[$Clave_Recurso] + ['Clave' => $Clave_Recurso], $Usuario);
     }
 
-    /** Consulta del recurso limitada a las instituciones a cargo del usuario (el staff ve todo) */
+    /** Consulta del recurso limitada a las instituciones a cargo del usuario (el superadmin ve todo) */
     public static function Consultar_Registros(array $Recurso, Modelo_Usuario $Usuario): Builder
     {
         $Consulta = $Recurso['Modelo']::query();
@@ -301,6 +324,7 @@ class Servicio_Definicion_Cms
 
         return match ($Recurso['Alcance'] ?? null) {
             'institucion' => $Consulta->whereIn('institucion_id', $Ids_Instituciones),
+            'propia' => $Consulta->whereIn('id', $Ids_Instituciones),
             'proyecto' => $Consulta->whereIn('proyecto_id', Modelo_Proyecto::whereIn('institucion_id', $Ids_Instituciones)->select('id')),
             default => $Consulta->whereRaw('1 = 0'),
         };
@@ -309,9 +333,10 @@ class Servicio_Definicion_Cms
     /** Para el ejecutivo: menos roles disponibles y la institución siempre obligatoria */
     private static function Ajustar_Recurso_Al_Usuario(array $Recurso, Modelo_Usuario $Usuario): array
     {
-        if ($Usuario->Es_Staff()) {
+        if ($Usuario->Es_Superadmin()) {
             return $Recurso;
         }
+        $Recurso['Campos'] = array_values(array_filter($Recurso['Campos'], fn ($Campo) => ! ($Campo['Solo_Superadmin'] ?? false)));
         foreach ($Recurso['Campos'] as &$Campo) {
             if (isset($Campo['Opciones_Para_Ejecutivo'])) {
                 $Campo['Opciones'] = array_intersect_key($Campo['Opciones'], array_flip($Campo['Opciones_Para_Ejecutivo']));

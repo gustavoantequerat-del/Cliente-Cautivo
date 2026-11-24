@@ -47,7 +47,7 @@ class Prueba_Avatar_Y_Research extends Caso_Prueba_Base
     #[Test]
     public function Comprar_Descuenta_Monedas_Una_Sola_Vez_Y_Exige_Saldo(): void
     {
-        $Usuario = $this->Crear_Cliente(null, Modelo_Usuario::Rol_Cliente_Basico);
+        $Usuario = $this->Crear_Cliente(null, Modelo_Usuario::Rol_Usuario_Institucional);
         $Gorra = $this->Crear_Item('gorra.gorra', 50);
 
         $this->actingAs($Usuario)->post("/avatar/{$Gorra->id}/comprar")->assertSessionHas('Mensaje_Error');
@@ -63,7 +63,7 @@ class Prueba_Avatar_Y_Research extends Caso_Prueba_Base
     #[Test]
     public function Un_Objeto_Por_Parte_Y_Maximo_Dos_Extras(): void
     {
-        $Usuario = $this->Crear_Cliente(null, Modelo_Usuario::Rol_Cliente_Basico);
+        $Usuario = $this->Crear_Cliente(null, Modelo_Usuario::Rol_Usuario_Institucional);
         $this->Dar_Monedas($Usuario, 1000);
         $Items = collect(['camisa.polo', 'camisa.saco', 'extra.taza', 'extra.libro', 'extra.laptop'])->map(fn ($Estilo) => $this->Crear_Item($Estilo, 10));
         foreach ($Items as $Item) {
@@ -89,7 +89,7 @@ class Prueba_Avatar_Y_Research extends Caso_Prueba_Base
         Storage::fake('local');
         Http::fake(['drive.usercontent.google.com/*' => Http::response('%PDF-1.4 contenido de prueba', 200)]);
         Modelo_Configuracion::where('clave', Modelo_Configuracion::Clave_Texto_Marca_Agua)->update(['valor' => 'Solo para {usuario}']);
-        $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['RESEARCH']), Modelo_Usuario::Rol_Cliente_Basico);
+        $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['RESEARCH']), Modelo_Usuario::Rol_Usuario_Institucional);
         $Reporte = Modelo_Reporte_Research::create(['titulo' => 'Pulse', 'tema' => 'Regulación', 'puntos' => 15,
             'enlace_externo' => 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view']);
 
@@ -119,21 +119,21 @@ class Prueba_Avatar_Y_Research extends Caso_Prueba_Base
     }
 
     #[Test]
-    public function Solo_El_Staff_Usa_La_Forja_Y_La_Configuracion(): void
+    public function Solo_El_Superadmin_Usa_La_Forja_Y_La_Configuracion(): void
     {
-        $Staff = $this->Crear_Staff();
-        $this->actingAs($Staff)->post('/admin/forja', ['nombre' => 'Capa roja', 'estilo' => 'accesorio.capa', 'color_principal' => '#C0392B',
+        $Superadmin = $this->Crear_Superadmin();
+        $this->actingAs($Superadmin)->post('/admin/forja', ['nombre' => 'Capa roja', 'estilo' => 'accesorio.capa', 'color_principal' => '#C0392B',
             'color_secundario' => 'rojo', 'precio' => 100, 'esta_publicado' => 1])->assertSessionHasErrors('color_secundario');
-        $this->actingAs($Staff)->post('/admin/forja', ['nombre' => 'Capa roja', 'estilo' => 'accesorio.capa', 'color_principal' => '#C0392B',
+        $this->actingAs($Superadmin)->post('/admin/forja', ['nombre' => 'Capa roja', 'estilo' => 'accesorio.capa', 'color_principal' => '#C0392B',
             'color_secundario' => '#F2C94C', 'precio' => 100, 'esta_publicado' => 1])->assertRedirect('/admin/forja');
         $this->assertDatabaseHas('items_avatar', ['nombre' => 'Capa roja', 'tipo' => 'accesorio']);
 
         $Ajuste = Modelo_Configuracion::firstOrFail();
-        $this->actingAs($Staff)->post("/admin/configuracion/{$Ajuste->id}", ['valor' => 'Uso interno · {institucion}'])->assertRedirect('/admin/configuracion');
+        $this->actingAs($Superadmin)->post("/admin/configuracion/{$Ajuste->id}", ['valor' => 'Uso interno · {institucion}'])->assertRedirect('/admin/configuracion');
         $this->assertSame('Uso interno · {institucion}', $Ajuste->fresh()->valor);
-        $this->actingAs($Staff)->get('/admin/configuracion/crear')->assertForbidden();
+        $this->actingAs($Superadmin)->get('/admin/configuracion/crear')->assertForbidden();
 
-        $Ejecutivo = $this->Crear_Ejecutivo_Cuenta($this->Crear_Institucion());
+        $Ejecutivo = $this->Crear_Usuario_Ejecutivo($this->Crear_Institucion());
         $this->actingAs($Ejecutivo)->get('/admin/forja')->assertForbidden();
     }
 }

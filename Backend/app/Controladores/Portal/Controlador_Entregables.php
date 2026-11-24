@@ -56,7 +56,7 @@ class Controlador_Entregables
             ->selectRaw('estado, count(*) as total')->groupBy('estado')->pluck('total', 'estado');
 
         // El administrador de la institución ve quién descargó o aprobó documentos
-        $Registro_Accesos = $Usuario->Es_Cliente_Institucional()
+        $Registro_Accesos = $Usuario->Es_Administrador_Delegado()
             ? Modelo_Registro_Auditoria::with('Usuario')->where('institucion_id', $Usuario->institucion_id)
                 ->whereIn('accion', ['entregable.descargar', 'entregable.aprobar', 'inicio_sesion'])
                 ->latest('created_at')->limit(8)->get()
@@ -151,12 +151,12 @@ class Controlador_Entregables
         ]);
     }
 
-    /** El cliente institucional accede a todo lo de su institución; el básico, solo a lo de sus proyectos */
+    /** El administrador delegado accede a todo lo de su institución; el usuario institucional, solo a lo de sus proyectos */
     private function Validar_Acceso_Entregable(Request $Peticion, Modelo_Entregable $Entregable): void
     {
         $Usuario = $Peticion->user();
         $Es_De_Su_Institucion = $Entregable->institucion_id == $Usuario->institucion_id && $Entregable->estado !== 'borrador';
-        $Puede_Verlo = $Usuario->Es_Cliente_Institucional() || ($Entregable->proyecto_id
+        $Puede_Verlo = $Usuario->Es_Administrador_Delegado() || ($Entregable->proyecto_id
             && Modelo_Proyecto::Accesibles_Para_Usuario($Usuario)->whereKey($Entregable->proyecto_id)->exists());
         abort_unless($Es_De_Su_Institucion && $Puede_Verlo, 404);
     }

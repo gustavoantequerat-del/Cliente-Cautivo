@@ -19,7 +19,7 @@ class Controlador_Panel_Administracion
     {
         $Usuario = $Peticion->user();
         $Ids_Instituciones = $Usuario->Obtener_Ids_Instituciones_A_Cargo();
-        // El staff cuenta todo; el ejecutivo de cuenta, solo sus instituciones
+        // El superadmin cuenta todo; el usuario ejecutivo, solo sus instituciones
         $De_Sus_Instituciones = fn (Builder $Consulta, string $Columna = 'institucion_id') => $Ids_Instituciones === null
             ? $Consulta : $Consulta->whereIn($Columna, $Ids_Instituciones);
 
@@ -33,10 +33,10 @@ class Controlador_Panel_Administracion
 
         return Inertia::render('Administracion/Pagina_Resumen', [
             'Indicadores' => [
-                ['Etiqueta' => $Usuario->Es_Staff() ? 'Instituciones activas' : 'Mis instituciones', 'Icono' => 'edificio', 'Url' => $Usuario->Es_Staff() ? '/admin/instituciones' : '/admin/usuarios',
+                ['Etiqueta' => $Usuario->Es_Superadmin() ? 'Instituciones activas' : 'Mis instituciones', 'Icono' => 'edificio', 'Url' => '/admin/instituciones',
                     'Valor' => $De_Sus_Instituciones(Modelo_Institucion::where('esta_activa', true), 'id')->count()],
                 ['Etiqueta' => 'Clientes con acceso', 'Icono' => 'usuarios', 'Url' => '/admin/usuarios',
-                    'Valor' => $De_Sus_Instituciones(Modelo_Usuario::where('esta_activo', true)->whereIn('rol', [Modelo_Usuario::Rol_Cliente_Basico, Modelo_Usuario::Rol_Cliente_Institucional]))->count()],
+                    'Valor' => $De_Sus_Instituciones(Modelo_Usuario::where('esta_activo', true)->whereIn('rol', [Modelo_Usuario::Rol_Usuario_Institucional, Modelo_Usuario::Rol_Administrador_Delegado]))->count()],
                 ['Etiqueta' => 'Solicitudes de horas', 'Icono' => 'reloj', 'Url' => '/admin/solicitudes-horas',
                     'Valor' => $De_Sus_Instituciones(Modelo_Solicitud_Horas::whereIn('estado', ['pendiente', 'en_atencion']))->count()],
                 ['Etiqueta' => 'Esperando aprobación', 'Icono' => 'boveda', 'Url' => '/admin/entregables',

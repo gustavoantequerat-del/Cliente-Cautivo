@@ -105,6 +105,7 @@ class Controlador_Recursos_Cms
                 'fecha' => $Valor ? Carbon::parse($Valor)->format('Y-m-d') : null,
                 'fecha_hora' => $Valor ? Carbon::parse($Valor)->format('Y-m-d\TH:i') : null,
                 'si_no' => (bool) $Valor,
+                'color' => $Valor ?: ($Campo['Por_Defecto'] ?? null),
                 default => $Valor,
             };
         }
@@ -137,6 +138,7 @@ class Controlador_Recursos_Cms
     {
         $Recurso = Servicio_Definicion_Cms::Obtener_Recurso($Clave_Recurso, $Peticion->user());
         abort_if(($Recurso['Permite_Eliminar'] ?? true) === false, 403);
+        abort_if(($Recurso['Eliminar_Solo_Superadmin'] ?? false) && ! $Peticion->user()->Es_Superadmin(), 403);
         $Registro = Servicio_Definicion_Cms::Consultar_Registros($Recurso, $Peticion->user())->findOrFail($Id_Registro);
         abort_if($Registro->is($Peticion->user()), 422, 'No puede eliminar su propio usuario.');
 
@@ -170,7 +172,7 @@ class Controlador_Recursos_Cms
     {
         return Arr::only($Recurso, ['Clave', 'Titulo', 'Singular', 'Icono', 'Vista_Previa']) + [
             'Permite_Crear' => $Recurso['Permite_Crear'] ?? true,
-            'Permite_Eliminar' => $Recurso['Permite_Eliminar'] ?? true,
+            'Permite_Eliminar' => ($Recurso['Permite_Eliminar'] ?? true) && ! (($Recurso['Eliminar_Solo_Superadmin'] ?? false) && ! auth()->user()->Es_Superadmin()),
         ];
     }
 
@@ -261,6 +263,10 @@ class Controlador_Recursos_Cms
             }
         }
 
+        // La institución que crea un usuario ejecutivo queda a su cargo (si no, dejaría de verla)
+        if ($Registro instanceof Modelo_Institucion && ! $Registro->exists && $Peticion->user()->Es_Usuario_Ejecutivo()) {
+            $Registro->ejecutivo_cuenta_id = $Peticion->user()->id;
+        }
         $Registro->save();
 
         if ($Unidades_Elegidas !== null && $Registro instanceof Modelo_Institucion) {
@@ -298,7 +304,7 @@ class Controlador_Recursos_Cms
             'si_no' => ['nullable', 'boolean'],
             'lista' => [$Requerido, Rule::in($Valores_Permitidos)],
             'relacion' => [$Requerido, 'integer', Rule::in($Valores_Permitidos)],
-            'archivo' => ['nullable', 'file', 'max:'.config('Configuracion_Portal.Tamano_Maximo_Subida_Kb'),
+            'archivo' => [($Campo['Obligatorio'] ?? false) && ! $Registro->{$Campo['Nombre']} ? 'required' : 'nullable', 'file', 'max:'.config('Configuracion_Portal.Tamano_Maximo_Subida_Kb'),
                 'mimes:'.($Campo['Extensiones'] ?? 'pdf,doc,docx,ppt,pptx,xls,xlsx,xml,zip,png,jpg')],
             'contrasena' => [$Registro->exists ? 'nullable' : 'required', Regla_Contrasena::min(10)->letters()->numbers()],
             'codigo_verificacion' => ['nullable', 'regex:/^[a-fA-F0-9]{64}$/'],
@@ -341,7 +347,7 @@ class Controlador_Recursos_Cms
                 if ($Ids_Instituciones !== null && $Campo['Modelo'] === Modelo_Institucion::class) {
                     $Consulta->whereIn('id', $Ids_Instituciones);
                 }
-                if ($Ids_Instituciones !== null && $Campo['Modelo'] === Modelo_Proyecto::class) {
+                if ($Ids_Instituciones !== null && in_array($Campo['Modelo'], [Modelo_Proyecto::class, Modelo_Usuario::class])) {
                     $Consulta->whereIn('institucion_id', $Ids_Instituciones);
                 }
                 $Opciones[$Campo['Nombre']] = $Consulta->get(['id', $Campo['Columna_Etiqueta']])

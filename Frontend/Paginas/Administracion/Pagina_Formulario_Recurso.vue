@@ -1,11 +1,13 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, onBeforeUnmount } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import Componente_Calculadora_Codigo from '../../Componentes/Componente_Calculadora_Codigo.vue';
 import Componente_Reproductor_Video from '../../Componentes/Componente_Reproductor_Video.vue';
 import Componente_Encabezado_Pagina from '../../Componentes/Componente_Encabezado_Pagina.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 import Componente_Avatar from '../../Componentes/Componente_Avatar.vue';
+import Componente_Marca_Blockfinity from '../../Componentes/Componente_Marca_Blockfinity.vue';
+import { Construir_Variables_Marca } from '../../Utilidades/Paleta_Marca.js';
 
 const Propiedades = defineProps({ Recurso: Object, Campos: Array, Valores: Object, Opciones: Object, Id_Registro: Number, Proveedores_Video: Object });
 
@@ -60,6 +62,17 @@ const Objeto_En_Diseno = computed(() => {
     const [Tipo, Estilo] = String(Formulario.estilo ?? '').split('.');
     return { Tipo, Estilo, Color_Principal: Formulario.color_principal, Color_Secundario: Formulario.color_secundario };
 });
+// Instituciones: así se verá su portal con los colores y el logo elegidos
+const Variables_Marca_En_Diseno = computed(() => Construir_Variables_Marca(Formulario.color_primario, Formulario.color_secundario));
+let Url_Logo_Temporal = null;
+const Url_Logo_En_Diseno = computed(() => {
+    if (Url_Logo_Temporal) URL.revokeObjectURL(Url_Logo_Temporal);
+    Url_Logo_Temporal = Formulario.ruta_logo instanceof File ? URL.createObjectURL(Formulario.ruta_logo) : null;
+    if (Url_Logo_Temporal) return Url_Logo_Temporal;
+    const Campo_Logo = Propiedades.Campos.find((Campo) => Campo.Nombre === 'ruta_logo');
+    return Formulario.ruta_logo_quitar ? null : Campo_Logo?.Archivo_Actual?.Url ?? null;
+});
+onBeforeUnmount(() => { if (Url_Logo_Temporal) URL.revokeObjectURL(Url_Logo_Temporal); });
 const Texto_Rango = (Campo) => (Campo.Minimo !== undefined && Campo.Maximo !== undefined ? `${Campo.Minimo} – ${Campo.Maximo}` : undefined);
 
 function Guardar_Registro() {
@@ -111,6 +124,26 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
         <span class="eyebrow">Vista previa</span>
         <div :class="$style.previewAvatar"><Componente_Avatar :Objetos="[Objeto_En_Diseno]" /></div>
         <span class="muted" :class="$style.previewHint">Así se verá sobre el avatar.</span>
+    </aside>
+    <aside v-else-if="Recurso.Vista_Previa === 'marca'" class="card" :class="$style.previewCard">
+        <span class="eyebrow">Así se verá su portal</span>
+        <div :class="$style.mockPortal" :style="Variables_Marca_En_Diseno">
+            <div :class="$style.mockSide">
+                <div :class="$style.mockBrand">
+                    <span v-if="Url_Logo_En_Diseno" :class="$style.mockLogo"><img :src="Url_Logo_En_Diseno" alt="Logo"></span>
+                    <Componente_Marca_Blockfinity Compacta />
+                </div>
+                <span :class="[$style.mockLink, $style.mockActive]" />
+                <span :class="$style.mockLink" />
+                <span :class="$style.mockLink" />
+            </div>
+            <div :class="$style.mockMain">
+                <div :class="$style.mockHero"><strong>Buenos días 👋</strong><span>{{ Formulario.nombre || 'Institución' }}</span></div>
+                <div :class="$style.mockRow"><span :class="$style.mockTile" /><span :class="$style.mockTile" /></div>
+                <span :class="$style.mockButton">Botón</span>
+            </div>
+        </div>
+        <span class="muted" :class="$style.previewHint">El logo de Blockfinity siempre aparece al lado.</span>
     </aside>
     <form class="card" :class="$style.form" novalidate @submit.prevent="Guardar_Registro">
         <div v-for="Campo in Campos" :key="Campo.Nombre" :class="['field', Campos_Ancho_Completo.includes(Campo.Tipo) && $style.wide]">
@@ -201,5 +234,18 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
 .previewCard { flex: 1 1 220px; position: sticky; top: 90px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .previewAvatar { width: 180px; height: 252px; border-radius: 18px; background: radial-gradient(circle at 50% 30%, #FFFFFF 0%, #E3E9F2 75%); }
 .previewHint { font-size: 12px; }
+.mockPortal { width: 100%; max-width: 300px; height: 190px; display: flex; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #F2F4F8; }
+.mockSide { width: 42%; padding: 10px 8px; display: flex; flex-direction: column; gap: 8px; background: linear-gradient(180deg, var(--navy-950) 0%, var(--navy-900) 100%); }
+.mockBrand { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; transform: scale(0.85); transform-origin: left top; }
+.mockLogo { display: inline-flex; padding: 3px 6px; border-radius: 6px; background: #fff; }
+.mockLogo img { display: block; max-height: 18px; max-width: 70px; object-fit: contain; }
+.mockLink { height: 10px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); }
+.mockActive { background: var(--navy-700); box-shadow: -3px 0 0 var(--sky-400); }
+.mockMain { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.mockHero { display: flex; flex-direction: column; padding: 8px; border-radius: 8px; color: #fff; font-size: 10px; background: var(--gradient-hero); }
+.mockHero span { font-size: 8px; opacity: 0.8; }
+.mockRow { display: flex; gap: 6px; }
+.mockTile { flex: 1; height: 34px; border-radius: 6px; background: #fff; border: 1px solid var(--blue-100); box-shadow: inset 0 -4px 0 var(--blue-100); }
+.mockButton { align-self: flex-start; padding: 4px 10px; border-radius: 6px; font-size: 9px; font-weight: 700; color: #fff; background: var(--gradient-primary); }
 .preview { max-width: 520px; display: flex; flex-direction: column; gap: 6px; }
 </style>

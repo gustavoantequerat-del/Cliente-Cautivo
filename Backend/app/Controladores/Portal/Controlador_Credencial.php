@@ -27,8 +27,8 @@ class Controlador_Credencial
             'Nivel_Alianza' => $Institucion->Calcular_Nivel_Alianza(),
             'Videos_Completados' => Modelo_Progreso_Video::where('usuario_id', $Usuario->id)->whereNotNull('fecha_completado')->count(),
             'Saldo_Monedas' => $Usuario->Calcular_Saldo_Monedas(),
-            // Solo el cliente institucional ve las credenciales de su organización
-            'Miembros_Institucion' => $Usuario->Es_Cliente_Institucional()
+            // Solo el administrador delegado ve las credenciales de su organización
+            'Miembros_Institucion' => $Usuario->Es_Administrador_Delegado()
                 ? Modelo_Usuario::where('institucion_id', $Institucion->id)->orderBy('nombre')->get()->map(fn (Modelo_Usuario $Miembro) => [
                     'Nombre' => $Miembro->nombre,
                     'Iniciales' => $Miembro->Obtener_Iniciales(),

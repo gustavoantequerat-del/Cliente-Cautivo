@@ -72,9 +72,9 @@ class Controlador_Proyectos
                 ]),
             ],
             'Entregables' => $Entregables->map(fn (Modelo_Entregable $Entregable) => Controlador_Entregables::Formatear_Entregable($Entregable)),
-            // Solo el cliente institucional ve y gestiona quiénes del equipo participan
-            'Equipo' => $Usuario->Es_Cliente_Institucional()
-                ? Modelo_Usuario::where('institucion_id', $Usuario->institucion_id)->where('rol', Modelo_Usuario::Rol_Cliente_Basico)
+            // Solo el administrador delegado ve y gestiona quiénes del equipo participan
+            'Equipo' => $Usuario->Es_Administrador_Delegado()
+                ? Modelo_Usuario::where('institucion_id', $Usuario->institucion_id)->where('rol', Modelo_Usuario::Rol_Usuario_Institucional)
                     ->where('esta_activo', true)->orderBy('nombre')->get()
                     ->map(fn (Modelo_Usuario $Miembro) => [
                         'Id' => $Miembro->id,
@@ -87,14 +87,14 @@ class Controlador_Proyectos
         ]);
     }
 
-    /** El cliente institucional inscribe o quita a un cliente básico de su institución */
+    /** El administrador delegado inscribe o quita a un usuario institucional de su institución */
     public function Actualizar_Participante(Request $Peticion, Modelo_Proyecto $Proyecto): RedirectResponse
     {
         $Usuario = $Peticion->user();
         $this->Validar_Acceso_Proyecto($Usuario, $Proyecto);
         $Datos = $Peticion->validate([
             'usuario_id' => ['required', 'integer', Rule::exists('usuarios', 'id')
-                ->where('institucion_id', $Usuario->institucion_id)->where('rol', Modelo_Usuario::Rol_Cliente_Basico)],
+                ->where('institucion_id', $Usuario->institucion_id)->where('rol', Modelo_Usuario::Rol_Usuario_Institucional)],
             'inscrito' => ['required', 'boolean'],
         ]);
 

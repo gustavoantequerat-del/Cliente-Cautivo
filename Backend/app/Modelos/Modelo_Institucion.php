@@ -12,7 +12,7 @@ class Modelo_Institucion extends Model
 
     protected $fillable = [
         'nombre', 'identificador', 'razon_social', 'nit', 'correo_facturacion', 'direccion_facturacion',
-        'ejecutivo_cuenta_id', 'esta_activa',
+        'ejecutivo_cuenta_id', 'esta_activa', 'color_primario', 'color_secundario', 'ruta_logo',
     ];
 
     protected function casts(): array

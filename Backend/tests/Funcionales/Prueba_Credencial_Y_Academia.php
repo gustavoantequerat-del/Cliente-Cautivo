@@ -54,11 +54,11 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
     #[Test]
     public function El_Cms_Rechaza_Enlaces_Desconocidos_Y_Guarda_Los_Validos(): void
     {
-        $Staff = $this->Crear_Staff();
-        $this->actingAs($Staff)->post('/admin/videos', ['formato' => 'grabado', 'titulo' => 'X', 'enlace_original' => 'https://example.com/v.mp4'])
+        $Superadmin = $this->Crear_Superadmin();
+        $this->actingAs($Superadmin)->post('/admin/videos', ['formato' => 'grabado', 'titulo' => 'X', 'enlace_original' => 'https://example.com/v.mp4'])
             ->assertSessionHasErrors('enlace_original');
 
-        $this->actingAs($Staff)->post('/admin/videos', ['formato' => 'grabado', 'titulo' => 'Y', 'enlace_original' => 'https://youtu.be/dQw4w9WgXcQ', 'esta_publicado' => 1])
+        $this->actingAs($Superadmin)->post('/admin/videos', ['formato' => 'grabado', 'titulo' => 'Y', 'enlace_original' => 'https://youtu.be/dQw4w9WgXcQ', 'esta_publicado' => 1])
             ->assertRedirect('/admin/videos');
         $this->assertDatabaseHas('videos', ['titulo' => 'Y', 'proveedor' => 'youtube', 'id_externo' => 'dQw4w9WgXcQ']);
     }
@@ -66,29 +66,29 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
     #[Test]
     public function El_Cms_Solo_Acepta_Datos_Con_El_Formato_Correcto(): void
     {
-        $Staff = $this->Crear_Staff();
-        $this->actingAs($Staff)->post('/admin/usuarios', [
+        $Superadmin = $this->Crear_Superadmin();
+        $this->actingAs($Superadmin)->post('/admin/usuarios', [
             'nombre' => 'Ana 123', 'email' => 'ana@prueba.test', 'password' => 'Clave12345segura',
-            'rol' => 'cliente_basico', 'telefono' => '70O-abc', 'esta_activo' => 1,
+            'rol' => 'usuario_institucional', 'telefono' => '70O-abc', 'esta_activo' => 1,
         ])->assertSessionHasErrors(['nombre', 'telefono', 'institucion_id' => 'Complete el campo institución.']);
 
-        $this->actingAs($Staff)->post('/admin/instituciones', [
+        $this->actingAs($Superadmin)->post('/admin/instituciones', [
             'nombre' => 'Banco X', 'identificador' => 'Banco X!', 'nit' => '12A45',
         ])->assertSessionHasErrors(['identificador', 'nit']);
 
-        $this->actingAs($Staff)->post('/admin/usuarios', [
+        $this->actingAs($Superadmin)->post('/admin/usuarios', [
             'nombre' => 'Ana María Pérez', 'email' => 'ana@prueba.test', 'password' => 'Clave12345segura',
-            'rol' => 'cliente_basico', 'institucion_id' => $this->Crear_Institucion()->id, 'telefono' => '+59170000000', 'esta_activo' => 1,
+            'rol' => 'usuario_institucional', 'institucion_id' => $this->Crear_Institucion()->id, 'telefono' => '+59170000000', 'esta_activo' => 1,
         ])->assertSessionHasNoErrors()->assertRedirect('/admin/usuarios');
     }
 
     #[Test]
     public function El_Cms_Crea_Institucion_Con_Unidades_Contratadas(): void
     {
-        $Staff = $this->Crear_Staff();
+        $Superadmin = $this->Crear_Superadmin();
         $Unidad = Modelo_Unidad_Negocio::create(['codigo' => 'BCS', 'nombre' => 'Compliance']);
-        $this->actingAs($Staff)->post('/admin/instituciones', [
-            'nombre' => 'Cooperativa X', 'identificador' => 'coop-x', 'esta_activa' => 1,
+        $this->actingAs($Superadmin)->post('/admin/instituciones', [
+            'nombre' => 'Cooperativa X', 'identificador' => 'coop-x', 'esta_activa' => 1, 'color_primario' => '#1F3F73', 'color_secundario' => '#5AA9E6',
             'unidades_contratadas' => [$Unidad->id => ['activa' => 1, 'nota' => '10 licencias']],
         ])->assertRedirect('/admin/instituciones');
 

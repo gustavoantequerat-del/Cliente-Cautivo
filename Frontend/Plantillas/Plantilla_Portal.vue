@@ -5,6 +5,7 @@ import Componente_Icono from '../Componentes/Componente_Icono.vue';
 import Componente_Mensaje_Flash from '../Componentes/Componente_Mensaje_Flash.vue';
 import Componente_Marca_Blockfinity from '../Componentes/Componente_Marca_Blockfinity.vue';
 import Componente_Avatar from '../Componentes/Componente_Avatar.vue';
+import { Construir_Variables_Marca } from '../Utilidades/Paleta_Marca.js';
 
 const Pagina = usePage();
 const Usuario_Actual = computed(() => Pagina.props.Usuario_Actual);
@@ -16,15 +17,19 @@ const Menu_Movil_Abierto = ref(false);
 watch(() => Pagina.url, () => { Menu_Movil_Abierto.value = false; });
 
 const Tiene_Research = computed(() => (Institucion_Actual.value?.Codigos_Unidades ?? []).includes('RESEARCH'));
-// El cliente básico ve lo esencial; el institucional, además, la gestión de su institución
+// Colores de la institución sobre todo el portal (si no tiene, queda la marca Blockfinity)
+const Variables_Marca = computed(() => Construir_Variables_Marca(Institucion_Actual.value?.Color_Primario, Institucion_Actual.value?.Color_Secundario));
+
+// El usuario institucional ve lo esencial; el administrador delegado, además, la gestión de su institución
 const Elementos_Menu = computed(() => [
     { Url: '/', Etiqueta: 'Inicio', Icono: 'inicio', Coincidencia_Exacta: true },
     { Url: '/proyectos', Etiqueta: 'Proyectos', Icono: 'proyectos' },
     { Url: '/academia', Etiqueta: 'Píldoras y webinars', Icono: 'reproducir' },
     ...(Tiene_Research.value ? [{ Url: '/research', Etiqueta: 'Research', Icono: 'grafico' }] : []),
+    { Url: '/certificados', Etiqueta: 'Mis certificados', Icono: 'certificado' },
     { Url: '/avatar', Etiqueta: 'Mi avatar', Icono: 'estrella' },
     { Url: '/credencial', Etiqueta: 'Mi credencial', Icono: 'credencial' },
-    ...(Usuario_Actual.value?.Es_Cliente_Institucional ? [
+    ...(Usuario_Actual.value?.Es_Administrador_Delegado ? [
         { Titulo: 'Gestión institucional' },
         { Url: '/entregables', Etiqueta: 'Entregables', Icono: 'boveda' },
         { Url: '/facturacion', Etiqueta: 'Facturación', Icono: 'facturacion' },
@@ -37,12 +42,20 @@ const Cerrar_Sesion = () => router.post('/logout');
 </script>
 
 <template>
-    <div :class="$style.shell">
+    <div :class="$style.shell" :style="Variables_Marca">
         <a href="#contenido" :class="$style.skip">Saltar al contenido</a>
 
         <aside :class="[$style.sidebar, Menu_Movil_Abierto && $style.open]" aria-label="Navegación del portal">
             <div :class="$style.sideTop">
-                <Link href="/" :class="$style.brand" aria-label="Blockfinity Advisors · Inicio"><Componente_Marca_Blockfinity /></Link>
+                <!-- Marca compartida: el logo de la institución y, al lado, el de Blockfinity -->
+                <Link href="/" :class="$style.brand" :aria-label="`${Institucion_Actual?.Nombre ?? 'Portal'} · Inicio`">
+                    <template v-if="Institucion_Actual?.Url_Logo">
+                        <span :class="$style.logoBox"><img :src="Institucion_Actual.Url_Logo" :alt="Institucion_Actual.Nombre" :class="$style.logo"></span>
+                        <span :class="$style.brandDivider" aria-hidden="true" />
+                        <Componente_Marca_Blockfinity Compacta />
+                    </template>
+                    <Componente_Marca_Blockfinity v-else />
+                </Link>
                 <button type="button" :class="$style.closeBtn" aria-label="Cerrar menú" @click="Menu_Movil_Abierto = false">
                     <Componente_Icono Nombre="cerrar" />
                 </button>
@@ -81,6 +94,7 @@ const Cerrar_Sesion = () => router.post('/logout');
                 <button type="button" :class="$style.menuBtn" aria-label="Abrir menú" @click="Menu_Movil_Abierto = true">
                     <Componente_Icono Nombre="menu" />
                 </button>
+                <span v-if="Institucion_Actual?.Url_Logo" :class="[$style.logoBox, $style.logoTop]"><img :src="Institucion_Actual.Url_Logo" alt="" :class="$style.logo"></span>
                 <span :class="$style.spacer" />
                 <Link v-if="Usuario_Actual?.Numero_Credencial" href="/credencial" :class="$style.credPill">
                     <span :class="$style.dot" />Credencial #{{ Usuario_Actual.Numero_Credencial }}
@@ -111,11 +125,15 @@ const Cerrar_Sesion = () => router.post('/logout');
 .skip:focus { left: 8px; }
 
 .sidebar {
-  width: 272px; flex: none; background: linear-gradient(180deg, var(--navy-950) 0%, #0C1B33 100%); padding: 24px 16px; display: flex; flex-direction: column; gap: 20px;
+  width: 272px; flex: none; background: linear-gradient(180deg, var(--navy-950) 0%, var(--navy-900) 100%); padding: 24px 16px; display: flex; flex-direction: column; gap: 20px;
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
 }
 .sideTop { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; }
-.brand { display: block; text-decoration: none; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; }
+.logoBox { display: inline-flex; align-items: center; justify-content: center; height: 44px; max-width: 120px; padding: 6px 10px; border-radius: 10px; background: #fff; flex: none; }
+.logo { display: block; max-height: 32px; max-width: 100px; object-fit: contain; }
+.brandDivider { width: 1px; height: 28px; background: rgba(255, 255, 255, 0.25); flex: none; }
+.logoTop { display: none; height: 38px; border: 1px solid var(--line); }
 .closeBtn { display: none; background: none; border: 0; color: #fff; width: 44px; height: 44px; cursor: pointer; }
 .account { margin: 0 8px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--navy-line); display: flex; flex-direction: column; gap: 2px; }
 .accountLabel { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: var(--side-label); }
@@ -181,6 +199,7 @@ const Cerrar_Sesion = () => router.post('/logout');
   .closeBtn { display: inline-flex; align-items: center; justify-content: center; }
   .backdrop { display: block; position: fixed; inset: 0; background: rgba(10, 22, 40, 0.45); z-index: 30; }
   .menuBtn { display: inline-flex; }
+  .logoTop { display: inline-flex; }
   .topbar { padding: 10px 16px; }
   .content { padding: 20px 16px 40px; }
   .page { gap: 24px; }

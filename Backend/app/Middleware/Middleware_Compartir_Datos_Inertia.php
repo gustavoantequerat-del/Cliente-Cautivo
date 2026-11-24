@@ -24,14 +24,18 @@ class Middleware_Compartir_Datos_Inertia extends Middleware
                 'Iniciales' => $Usuario->Obtener_Iniciales(),
                 'Area' => $Usuario->area,
                 'Nombre_Rol' => Modelo_Usuario::Roles[$Usuario->rol] ?? $Usuario->rol,
-                'Es_Staff' => $Usuario->Es_Staff(),
-                'Es_Cliente_Institucional' => $Usuario->Es_Cliente_Institucional(),
+                'Es_Superadmin' => $Usuario->Es_Superadmin(),
+                'Es_Administrador_Delegado' => $Usuario->Es_Administrador_Delegado(),
                 'Numero_Credencial' => $Usuario->numero_credencial,
                 // Los clientes muestran su avatar en la barra superior
                 'Objetos_Avatar' => $Usuario->Es_Personal_Blockfinity() ? [] : $Usuario->Obtener_Objetos_Equipados(),
             ] : null,
             'Institucion_Actual' => $Institucion ? [
                 'Nombre' => $Institucion->nombre,
+                // Marca propia de la institución (el portal la aplica junto a la de Blockfinity)
+                'Color_Primario' => $Institucion->color_primario,
+                'Color_Secundario' => $Institucion->color_secundario,
+                'Url_Logo' => $Institucion->ruta_logo ? '/marca/logo?v='.$Institucion->updated_at?->timestamp : null,
                 'Codigos_Unidades' => $Institucion->Unidades_Contratadas->pluck('codigo')->values(),
             ] : null,
             'Ejecutivo_Cuenta' => $Ejecutivo ? [

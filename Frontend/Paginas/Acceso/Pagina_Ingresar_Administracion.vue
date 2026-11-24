@@ -1,5 +1,5 @@
 <script setup>
-/* Acceso exclusivo del staff de Blockfinity: separado del login de clientes por seguridad */
+/* Acceso exclusivo del personal de Blockfinity: separado del login de clientes por seguridad */
 import { Head, useForm } from '@inertiajs/vue3';
 import Componente_Marca_Blockfinity from '../../Componentes/Componente_Marca_Blockfinity.vue';
 import Componente_Mensaje_Flash from '../../Componentes/Componente_Mensaje_Flash.vue';
@@ -23,11 +23,11 @@ const Iniciar_Sesion = () => Formulario.post('/admin/login', { onFinish: () => F
             <div :class="$style.shield"><Componente_Icono Nombre="escudo" :Tamano="30" /></div>
             <div :class="$style.heading">
                 <h1 :class="$style.h">Consola de administración</h1>
-                <p class="muted">Acceso solo para el staff de Blockfinity.</p>
+                <p class="muted">Acceso solo para el personal de Blockfinity.</p>
             </div>
             <form class="stack" novalidate @submit.prevent="Iniciar_Sesion">
                 <div class="field">
-                    <label for="email">Correo de staff</label>
+                    <label for="email">Correo de Blockfinity</label>
                     <input id="email" v-model.trim="Formulario.email" class="input" type="email" inputmode="email" autocomplete="username"
                            maxlength="255" required autofocus :aria-invalid="Formulario.errors.email ? 'true' : undefined">
                     <span v-if="Formulario.errors.email" class="error">{{ Formulario.errors.email }}</span>

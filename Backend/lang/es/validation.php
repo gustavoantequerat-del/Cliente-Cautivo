@@ -48,6 +48,6 @@ return [
         'horas_estimadas' => 'horas estimadas', 'horas_cobradas' => 'horas a descontar', 'descripcion' => 'descripción',
         'especialidad' => 'especialidad', 'modalidad' => 'tipo de solicitud', 'titulo' => 'título', 'enlace_original' => 'enlace del video',
         'enlace_externo' => 'enlace externo', 'monto' => 'monto', 'numero' => 'número', 'concepto' => 'concepto', 'estado' => 'estado',
-        'usuario_id' => 'persona', 'proyecto_id' => 'proyecto', 'unidad_negocio_id' => 'unidad',
+        'usuario_id' => 'persona', 'color_primario' => 'color principal', 'color_secundario' => 'color de acento', 'ruta_logo' => 'logo', 'ruta_archivo' => 'archivo', 'puntaje' => 'puntaje', 'proyecto_id' => 'proyecto', 'unidad_negocio_id' => 'unidad',
     ],
 ];

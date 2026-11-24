@@ -49,6 +49,7 @@ const Trazos_Iconos = {
     dinero: 'M3 7h18v10H3zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 10v.01M18 14v.01',
     rayo: 'M13 2L4 14h7l-1 8 9-12h-7z',
     cargando: 'M12 3a9 9 0 1 0 9 9',
+    certificado: 'M12 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM8.5 14L7 22l5-3 5 3-1.5-8',
 };
 
 const Trazo = computed(() => Trazos_Iconos[Propiedades.Nombre] ?? Trazos_Iconos.archivo);
