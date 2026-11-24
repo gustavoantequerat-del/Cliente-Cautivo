@@ -7,10 +7,9 @@ use App\Modelos\Modelo_Movimiento_Monedas;
 use App\Modelos\Modelo_Registro_Auditoria;
 use App\Modelos\Modelo_Reporte_Research;
 use App\Modelos\Modelo_Usuario;
-use App\Servicios\Servicio_Google_Drive;
+use App\Servicios\Servicio_Documentos_Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as Respuesta_Http;
@@ -51,7 +50,7 @@ class Controlador_Research
             'Reporte' => $this->Formatear_Reporte($Reporte, $this->Obtener_Ids_Leidos($Usuario)) + [
                 'Url_Documento' => "/research/{$Reporte->id}/documento",
             ],
-            'Texto_Marca_Agua' => $this->Armar_Texto_Marca_Agua($Usuario),
+            'Texto_Marca_Agua' => Modelo_Configuracion::Armar_Texto_Marca_Agua($Usuario),
         ]);
     }
 
@@ -59,24 +58,12 @@ class Controlador_Research
      * Entrega el PDF al visor del portal (inline, sin caché del navegador). Si el reporte es un enlace
      * de Drive, el Backend lo descarga por su ID: el navegador no puede pedirlo directo por CORS.
      */
+    /** Entrega el PDF al visor (el navegador no puede pedirlo directo a Drive por CORS) */
     public function Obtener_Documento(Request $Peticion, Modelo_Reporte_Research $Reporte): Respuesta_Http
     {
         $this->Validar_Acceso_Reporte($Peticion->user(), $Reporte);
 
-        $Contenido_Pdf = null;
-        if ($Reporte->ruta_archivo && Storage::disk('local')->exists($Reporte->ruta_archivo)) {
-            $Contenido_Pdf = Storage::disk('local')->get($Reporte->ruta_archivo);
-        } elseif ($Id_Drive = Servicio_Google_Drive::Extraer_Id_Archivo($Reporte->enlace_externo)) {
-            $Contenido_Pdf = Servicio_Google_Drive::Obtener_Pdf($Id_Drive);
-        }
-        abort_unless($Contenido_Pdf, 502, 'No se pudo obtener el PDF. Revise que en Drive esté compartido como "Cualquier persona con el enlace".');
-
-        return response($Contenido_Pdf, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline',
-            'Cache-Control' => 'private, no-store, max-age=0',
-            'X-Robots-Tag' => 'noindex',
-        ]);
+        return Servicio_Documentos_Pdf::Responder_Pdf($Reporte->ruta_archivo, $Reporte->enlace_externo);
     }
 
     /** El visor avisa cuando el usuario llegó a la última página: gana monedas una sola vez */
@@ -95,18 +82,6 @@ class Controlador_Research
     {
         $Es_Visible = Modelo_Reporte_Research::Visibles_Para_Usuario($Usuario)->where('esta_publicado', true)->whereKey($Reporte->id)->exists();
         abort_unless($Es_Visible, 404);
-    }
-
-    /** Texto configurado en el CMS; acepta {usuario}, {institucion} y {fecha} para saber de quién es cada copia */
-    private function Armar_Texto_Marca_Agua(Modelo_Usuario $Usuario): string
-    {
-        $Plantilla = Modelo_Configuracion::Obtener_Valor(Modelo_Configuracion::Clave_Texto_Marca_Agua, 'Confidencial · {institucion}');
-
-        return strtr($Plantilla, [
-            '{usuario}' => $Usuario->nombre,
-            '{institucion}' => $Usuario->Institucion?->nombre ?? '',
-            '{fecha}' => now()->format('d/m/Y'),
-        ]);
     }
 
     private function Obtener_Ids_Leidos(Modelo_Usuario $Usuario): array

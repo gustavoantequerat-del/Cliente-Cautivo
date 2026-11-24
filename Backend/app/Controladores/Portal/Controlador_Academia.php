@@ -2,16 +2,19 @@
 
 namespace App\Controladores\Portal;
 
+use App\Modelos\Modelo_Configuracion;
 use App\Modelos\Modelo_Movimiento_Monedas;
 use App\Modelos\Modelo_Progreso_Video;
 use App\Modelos\Modelo_Registro_Auditoria;
 use App\Modelos\Modelo_Video;
+use App\Servicios\Servicio_Documentos_Pdf;
 use App\Servicios\Servicio_Enlaces_Video;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as Respuesta_Archivo;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as Respuesta_Http;
 
 class Controlador_Academia
 {
@@ -61,9 +64,20 @@ class Controlador_Academia
             'Video' => $this->Formatear_Video($Video, $Progreso) + [
                 'Descripcion' => $Video->descripcion,
                 'Url_Embebida' => $Video->Construir_Url_Embebida(),
+                'Url_Documento' => $Video->Es_Pdf() && ($Video->ruta_archivo || $Video->enlace_externo) ? "/academia/{$Video->id}/documento" : null,
                 'Enlace_Sala' => $Video->formato === 'en_vivo' ? $Video->enlace_sala : null,
             ],
+            'Texto_Marca_Agua' => $Video->Es_Pdf() ? Modelo_Configuracion::Armar_Texto_Marca_Agua($Peticion->user()) : null,
         ]);
+    }
+
+    /** PDF de un webinar o píldora para el visor protegido (sin descarga) */
+    public function Obtener_Documento(Request $Peticion, Modelo_Video $Video): Respuesta_Http
+    {
+        $this->Validar_Acceso_Video($Peticion, $Video);
+        abort_unless($Video->Es_Pdf(), 404);
+
+        return Servicio_Documentos_Pdf::Responder_Pdf($Video->ruta_archivo, $Video->enlace_externo);
     }
 
     /** "Marcar como visto": lo declara el usuario (Drive no permite medir la reproducción) */
@@ -133,6 +147,7 @@ class Controlador_Academia
         return [
             'Id' => $Video->id,
             'Formato' => $Video->formato,
+            'Tipo_Contenido' => $Video->tipo_contenido,
             'Nombre_Formato' => Modelo_Video::Formatos[$Video->formato] ?? $Video->formato,
             'Titulo' => $Video->titulo,
             'Tema' => $Video->tema,
