@@ -55,10 +55,10 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
     public function El_Cms_Rechaza_Enlaces_Desconocidos_Y_Guarda_Los_Validos(): void
     {
         $Superadmin = $this->Crear_Superadmin();
-        $this->actingAs($Superadmin)->post('/admin/videos', ['formato' => 'grabado', 'titulo' => 'X', 'enlace_original' => 'https://example.com/v.mp4'])
+        $this->actingAs($Superadmin)->post('/admin/videos', ['formato' => 'grabado', 'tipo_contenido' => 'video', 'titulo' => 'X', 'enlace_original' => 'https://example.com/v.mp4'])
             ->assertSessionHasErrors('enlace_original');
 
-        $this->actingAs($Superadmin)->post('/admin/videos', ['formato' => 'grabado', 'titulo' => 'Y', 'enlace_original' => 'https://youtu.be/dQw4w9WgXcQ', 'esta_publicado' => 1])
+        $this->actingAs($Superadmin)->post('/admin/videos', ['formato' => 'grabado', 'tipo_contenido' => 'video', 'titulo' => 'Y', 'enlace_original' => 'https://youtu.be/dQw4w9WgXcQ', 'esta_publicado' => 1])
             ->assertRedirect('/admin/videos');
         $this->assertDatabaseHas('videos', ['titulo' => 'Y', 'proveedor' => 'youtube', 'id_externo' => 'dQw4w9WgXcQ']);
     }

@@ -8,7 +8,9 @@ use App\Modelos\Modelo_Movimiento_Monedas;
 use App\Modelos\Modelo_Reporte_Research;
 use App\Modelos\Modelo_Unidad_Negocio;
 use App\Modelos\Modelo_Usuario;
+use App\Modelos\Modelo_Video;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Pagina_Inertia;
@@ -103,6 +105,31 @@ class Prueba_Avatar_Y_Research extends Caso_Prueba_Base
         $this->actingAs($Usuario)->post("/research/{$Reporte->id}/leido")->assertSessionHas('Mensaje_Exito');
         $this->actingAs($Usuario)->post("/research/{$Reporte->id}/leido");
         $this->assertSame(15, $Usuario->Calcular_Saldo_Monedas());
+    }
+
+    #[Test]
+    public function Una_Pildora_En_Pdf_Se_Lee_En_El_Visor_Y_Da_Monedas(): void
+    {
+        Storage::fake('local');
+        $Superadmin = $this->Crear_Superadmin();
+        $this->actingAs($Superadmin)->post('/admin/videos', ['formato' => 'pildora', 'titulo' => 'Guía Travel Rule', 'tipo_contenido' => 'pdf',
+            'puntos' => 12, 'esta_publicado' => 1, 'ruta_archivo' => UploadedFile::fake()->createWithContent('guia.pdf', '%PDF-1.4 guía')])
+            ->assertRedirect('/admin/videos');
+        $Pildora = Modelo_Video::where('titulo', 'Guía Travel Rule')->firstOrFail();
+        $Usuario = $this->Crear_Cliente(null, Modelo_Usuario::Rol_Usuario_Institucional);
+
+        $this->actingAs($Usuario)->get("/academia/{$Pildora->id}")->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina
+            ->where('Video.Tipo_Contenido', 'pdf')->where('Video.Url_Documento', "/academia/{$Pildora->id}/documento")
+            ->where('Texto_Marca_Agua', fn ($Texto) => $Texto !== null));
+        $Documento = $this->actingAs($Usuario)->get("/academia/{$Pildora->id}/documento");
+        $Documento->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertHeader('Content-Disposition', 'inline');
+
+        $this->actingAs($Usuario)->post("/academia/{$Pildora->id}/visto");
+        $this->assertSame(12, $Usuario->Calcular_Saldo_Monedas());
+
+        // Un video no tiene documento
+        $Video = Modelo_Video::create(['titulo' => 'Video', 'formato' => 'grabado', 'esta_publicado' => true]);
+        $this->actingAs($Usuario)->get("/academia/{$Video->id}/documento")->assertNotFound();
     }
 
     #[Test]

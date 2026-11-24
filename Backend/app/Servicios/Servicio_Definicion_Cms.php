@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
  * sin escribir una pantalla por tabla. Para agregar un campo: añadirlo aquí.
  *
  * Cada recurso lleva Icono (nombre de Componente_Icono), Titulo, Singular, Modelo, Columnas_Busqueda, Orden y Grupo.
+ * Un campo con Visible_Si => [campo, valor] solo se muestra en el formulario cuando ese campo tiene ese valor.
  * Opcionales: Permite_Crear / Permite_Eliminar (false para ajustes fijos), Eliminar_Solo_Superadmin,
  * Vista_Previa ('avatar' en la Forja, 'marca' en instituciones). Un campo con Solo_Superadmin no se le muestra al usuario ejecutivo.
  * Además: Solo_Superadmin (contenido global que el usuario ejecutivo no ve) o Alcance (cómo se filtra por
@@ -195,19 +196,25 @@ class Servicio_Definicion_Cms
                 ],
             ],
             'videos' => [
-                'Solo_Superadmin' => true, 'Icono' => 'reproducir', 'Titulo' => 'Videos y webinars', 'Singular' => 'video', 'Modelo' => Modelos\Modelo_Video::class,
+                'Solo_Superadmin' => true, 'Icono' => 'reproducir', 'Titulo' => 'Webinars y píldoras', 'Singular' => 'video', 'Modelo' => Modelos\Modelo_Video::class,
                 'Columnas_Busqueda' => ['titulo', 'expositor'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Contenido',
                 'Campos' => [
                     ['Nombre' => 'formato', 'Etiqueta' => 'Formato', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'grabado',
                         'Opciones' => ['en_vivo' => 'Webinar en vivo', 'grabado' => 'Grabado', 'pildora' => 'Píldora']],
                     ['Nombre' => 'titulo', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'descripcion', 'Etiqueta' => 'Descripción', 'Tipo' => 'texto_largo'],
-                    ['Nombre' => 'enlace_original', 'Etiqueta' => 'Enlace del video (Drive, YouTube o Vimeo)', 'Tipo' => 'enlace_video',
+                    ['Nombre' => 'tipo_contenido', 'Etiqueta' => 'Contenido', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'video',
+                        'Opciones' => ['video' => 'Video', 'pdf' => 'PDF'], 'Ayuda' => 'El PDF se lee en el portal con marca de agua y sin descarga.'],
+                    ['Nombre' => 'ruta_archivo', 'Etiqueta' => 'Archivo PDF (máx. 10 MB)', 'Tipo' => 'archivo', 'Carpeta' => 'academia', 'Extensiones' => 'pdf',
+                        'Guardar_Nombre_En' => 'nombre_archivo', 'Visible_Si' => ['tipo_contenido', 'pdf']],
+                    ['Nombre' => 'enlace_externo', 'Etiqueta' => 'O enlace de Google Drive del PDF', 'Tipo' => 'enlace_drive', 'Visible_Si' => ['tipo_contenido', 'pdf'],
+                        'Ayuda' => 'Compártalo como "Cualquier persona con el enlace".'],
+                    ['Nombre' => 'enlace_original', 'Etiqueta' => 'Enlace del video (Drive, YouTube o Vimeo)', 'Tipo' => 'enlace_video', 'Visible_Si' => ['tipo_contenido', 'video'],
                         'Ayuda' => 'Pegue el enlace de compartir. En Drive: "Cualquier persona con el enlace". Para webinars en vivo puede quedar vacío hasta tener la grabación.'],
                     ['Nombre' => 'tema', 'Etiqueta' => 'Tema', 'Tipo' => 'lista', 'En_Tabla' => true,
                         'Opciones' => $Lista_Desde_Valores(Modelos\Modelo_Video::Temas)],
                     ['Nombre' => 'expositor', 'Etiqueta' => 'Expositor/es', 'Tipo' => 'texto'],
-                    ['Nombre' => 'duracion_minutos', 'Etiqueta' => 'Duración (min)', 'Tipo' => 'entero', 'Minimo' => 1, 'Maximo' => 1440],
+                    ['Nombre' => 'duracion_minutos', 'Etiqueta' => 'Duración o tiempo de lectura (min)', 'Tipo' => 'entero', 'Minimo' => 1, 'Maximo' => 1440],
                     ['Nombre' => 'fecha_programada', 'Etiqueta' => 'Fecha y hora (en vivo)', 'Tipo' => 'fecha_hora', 'En_Tabla' => true],
                     ['Nombre' => 'enlace_sala', 'Etiqueta' => 'Enlace de la sala (Meet/Zoom/Teams)', 'Tipo' => 'enlace'],
                     ['Nombre' => 'enlace_miniatura', 'Etiqueta' => 'Miniatura (URL de imagen, opcional)', 'Tipo' => 'enlace'],

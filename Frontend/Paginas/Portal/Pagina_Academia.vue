@@ -56,9 +56,9 @@ const Inscribirse_Webinar = (Id_Video) => router.post(`/academia/${Id_Video}/ins
     <div class="grid-3 escalonado">
         <Link v-for="Video in Videos.data" :key="Video.Id" :href="`/academia/${Video.Id}`" :class="$style.video" class="elevable">
             <div :class="[$style.thumb, $style[Video.Formato]]" :style="Video.Miniatura ? { backgroundImage: `url(${Video.Miniatura})` } : {}">
-                <span :class="$style.kind">{{ Video.Nombre_Formato }}</span>
+                <span :class="$style.kind">{{ Video.Nombre_Formato }}<template v-if="Video.Tipo_Contenido === 'pdf'"> · PDF</template></span>
                 <span v-if="Video.Duracion_Minutos" :class="$style.dur">{{ Video.Duracion_Minutos }} min</span>
-                <span :class="$style.play"><Componente_Icono Nombre="reproducir" :Tamano="40" :Grosor="1.4" /></span>
+                <span :class="$style.play"><Componente_Icono :Nombre="Video.Tipo_Contenido === 'pdf' ? 'archivo' : 'reproducir'" :Tamano="Video.Tipo_Contenido === 'pdf' ? 32 : 40" :Grosor="1.4" /></span>
             </div>
             <div :class="$style.body">
                 <span class="eyebrow">{{ Video.Tema }}</span>

@@ -131,6 +131,12 @@ Los reportes se leen dentro del portal, **sin opción de descarga**:
 
 ---
 
+## Webinars y píldoras en PDF
+
+Al crear un webinar o píldora en el CMS se elige el **contenido: Video o PDF**. Si es PDF se sube el archivo o se pega el enlace de Drive, y el portal lo muestra en el mismo visor protegido de Research (marca de agua, sin descarga). Al llegar a la última página se marca como completado y se ganan las monedas.
+
+---
+
 ## Certificados
 
 El superadmin o el usuario ejecutivo los suben en **CMS → Certificados**: persona, título, descripción, puntaje y el PDF.
@@ -152,7 +158,7 @@ El login es el mismo para todos, porque antes de ingresar no se sabe a qué inst
 - **Nivel de alianza** (de la institución): depende de cuántos servicios (unidades de negocio) tiene contratados. 1 servicio = Explorador, 2 o más = Aliado, todos = Socio Estratégico. Se ajusta en `config/Configuracion_Portal.php`.
 - **Monedas** (de cada persona): se ganan una sola vez por cada webinar o píldora completados y por cada reporte leído hasta el final. La cantidad se define en cada video o reporte en el CMS.
 - **Avatar**: en **Mi avatar**, cada persona gasta sus monedas en objetos y los combina. Hay 7 partes: camisa, pantalones, zapatos, gorra, extra (en la mano, máximo 2), accesorio (mochila, capa…) y pose.
-- **Forja** (CMS, solo staff): crea los objetos eligiendo la parte y el estilo, dos colores, un precio y un detalle, con vista previa en vivo. Los dibujos están en `Frontend/Utilidades/Dibujo_Avatar.js`: para un estilo nuevo, se agrega allí su dibujo y en `Modelo_Item_Avatar::Estilos` su nombre.
+- **Forja** (CMS, solo superadmin): crea los objetos eligiendo la parte y el estilo, dos colores, un precio y un detalle, con vista previa en vivo. Los dibujos están en `Frontend/Utilidades/Dibujo_Avatar.js`: para un estilo nuevo, se agrega allí su dibujo y en `Modelo_Item_Avatar::Estilos` su nombre.
 
 ---
 

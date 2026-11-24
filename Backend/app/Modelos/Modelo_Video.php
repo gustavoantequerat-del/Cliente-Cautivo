@@ -19,6 +19,7 @@ class Modelo_Video extends Model
     protected $fillable = [
         'institucion_id', 'formato', 'titulo', 'descripcion', 'tema', 'expositor', 'duracion_minutos',
         'enlace_original', 'enlace_miniatura', 'fecha_programada', 'enlace_sala', 'puntos', 'esta_publicado',
+        'tipo_contenido', 'ruta_archivo', 'nombre_archivo', 'enlace_externo',
     ];
 
     protected function casts(): array
@@ -37,6 +38,12 @@ class Modelo_Video extends Model
                 $Video->hash_externo = $Datos_Enlace['Hash'] ?? null;
             }
         });
+    }
+
+    /** Un webinar o píldora puede ser un PDF (se lee en el visor protegido) en lugar de un video */
+    public function Es_Pdf(): bool
+    {
+        return $this->tipo_contenido === 'pdf';
     }
 
     public function Construir_Url_Embebida(): ?string
