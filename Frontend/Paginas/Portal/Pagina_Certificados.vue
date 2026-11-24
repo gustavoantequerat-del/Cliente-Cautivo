@@ -8,8 +8,8 @@ defineProps({ Mis_Certificados: Array, Certificados_Del_Equipo: Array });
 </script>
 
 <template>
-    <Head title="Mis certificados" />
-    <Componente_Encabezado_Pagina Icono="certificado" Titulo="Mis certificados" Introduccion="Sus logros con Blockfinity. Cada uno suma monedas para su avatar." />
+    <Head title="Mis acreditaciones" />
+    <Componente_Encabezado_Pagina Icono="certificado" Titulo="Mis acreditaciones" Introduccion="Sus certificados con Blockfinity. Cada uno suma monedas para su avatar." />
 
     <Componente_Estado_Vacio v-if="!Mis_Certificados.length" Icono="certificado" Texto="Aún no tiene certificados" />
     <div v-else class="grid-3 escalonado">
@@ -28,7 +28,7 @@ defineProps({ Mis_Certificados: Array, Certificados_Del_Equipo: Array });
     </div>
 
     <section v-if="Certificados_Del_Equipo" class="stack">
-        <h2>Certificados de su equipo</h2>
+        <h2>Acreditaciones de su equipo</h2>
         <p v-if="!Certificados_Del_Equipo.length" class="vacio">Aún nadie de su equipo recibió certificados.</p>
         <ul v-else class="lista escalonado">
             <li v-for="Certificado in Certificados_Del_Equipo" :key="Certificado.Id">

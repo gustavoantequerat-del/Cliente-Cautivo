@@ -26,7 +26,7 @@ const Elementos_Menu = computed(() => [
     { Url: '/proyectos', Etiqueta: 'Proyectos', Icono: 'proyectos' },
     { Url: '/academia', Etiqueta: 'Píldoras y webinars', Icono: 'reproducir' },
     ...(Tiene_Research.value ? [{ Url: '/research', Etiqueta: 'Research', Icono: 'grafico' }] : []),
-    { Url: '/certificados', Etiqueta: 'Mis certificados', Icono: 'certificado' },
+    { Url: '/certificados', Etiqueta: 'Mis acreditaciones', Icono: 'certificado' },
     { Url: '/avatar', Etiqueta: 'Mi avatar', Icono: 'estrella' },
     { Url: '/credencial', Etiqueta: 'Mi credencial', Icono: 'credencial' },
     ...(Usuario_Actual.value?.Es_Administrador_Delegado ? [

@@ -134,7 +134,7 @@ Los reportes se leen dentro del portal, **sin opción de descarga**:
 ## Certificados
 
 El superadmin o el usuario ejecutivo los suben en **CMS → Certificados**: persona, título, descripción, puntaje y el PDF.
-La persona lo ve en **Mis certificados** (puede abrirlo y guardarlo, porque es suyo) y gana el puntaje en monedas para su avatar, una sola vez.
+La persona lo ve en **Mis acreditaciones** (puede abrirlo y guardarlo, porque es suyo) y gana el puntaje en monedas para su avatar, una sola vez.
 Su administrador delegado ve los certificados de todo su equipo.
 
 ---
