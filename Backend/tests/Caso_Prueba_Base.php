@@ -28,19 +28,19 @@ abstract class Caso_Prueba_Base extends TestCase
         return $Institucion;
     }
 
-    protected function Crear_Cliente(?Modelo_Institucion $Institucion = null, string $Rol = Modelo_Usuario::Rol_Cliente_Institucional): Modelo_Usuario
+    protected function Crear_Cliente(?Modelo_Institucion $Institucion = null, string $Rol = Modelo_Usuario::Rol_Administrador_Delegado): Modelo_Usuario
     {
         return $this->Crear_Usuario(['institucion_id' => ($Institucion ?? $this->Crear_Institucion())->id, 'rol' => $Rol]);
     }
 
-    protected function Crear_Staff(): Modelo_Usuario
+    protected function Crear_Superadmin(): Modelo_Usuario
     {
-        return $this->Crear_Usuario(['rol' => Modelo_Usuario::Rol_Staff]);
+        return $this->Crear_Usuario(['rol' => Modelo_Usuario::Rol_Superadmin]);
     }
 
-    protected function Crear_Ejecutivo_Cuenta(Modelo_Institucion ...$Instituciones_A_Cargo): Modelo_Usuario
+    protected function Crear_Usuario_Ejecutivo(Modelo_Institucion ...$Instituciones_A_Cargo): Modelo_Usuario
     {
-        $Ejecutivo = $this->Crear_Usuario(['rol' => Modelo_Usuario::Rol_Ejecutivo_Cuenta]);
+        $Ejecutivo = $this->Crear_Usuario(['rol' => Modelo_Usuario::Rol_Usuario_Ejecutivo]);
         foreach ($Instituciones_A_Cargo as $Institucion) {
             $Institucion->update(['ejecutivo_cuenta_id' => $Ejecutivo->id]);
         }

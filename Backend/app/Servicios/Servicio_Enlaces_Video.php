@@ -3,7 +3,7 @@
 namespace App\Servicios;
 
 /**
- * Convierte el enlace que pega el staff (Drive, YouTube, Vimeo) en proveedor + ID,
+ * Convierte el enlace que pega el personal de Blockfinity (Drive, YouTube, Vimeo) en proveedor + ID,
  * y construye la URL para incrustarlo. Nunca se guarda ni se imprime HTML de iframe ajeno.
  */
 class Servicio_Enlaces_Video

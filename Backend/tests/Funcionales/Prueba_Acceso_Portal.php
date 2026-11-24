@@ -57,26 +57,26 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
     }
 
     #[Test]
-    public function Cliente_No_Abre_El_Cms_Y_Staff_Si(): void
+    public function Cliente_No_Abre_El_Cms_Y_Superadmin_Si(): void
     {
         $this->actingAs($this->Crear_Cliente())->get('/admin')->assertForbidden();
-        $Staff = $this->Crear_Staff();
-        $this->actingAs($Staff)->get('/admin')->assertOk();
-        $this->actingAs($Staff)->get('/')->assertRedirect('/admin');
+        $Superadmin = $this->Crear_Superadmin();
+        $this->actingAs($Superadmin)->get('/admin')->assertOk();
+        $this->actingAs($Superadmin)->get('/')->assertRedirect('/admin');
     }
 
     #[Test]
-    public function El_Staff_Solo_Ingresa_Por_El_Login_Del_Admin(): void
+    public function El_Personal_Blockfinity_Solo_Ingresa_Por_El_Login_Del_Admin(): void
     {
         $this->get('/admin')->assertRedirect('/admin/login');
         $this->get('/admin/login')->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->component('Acceso/Pagina_Ingresar_Administracion'));
 
-        $Staff = $this->Crear_Staff();
-        $this->post('/login', ['email' => $Staff->email, 'password' => self::Contrasena_Prueba])->assertSessionHasErrors('email');
+        $Superadmin = $this->Crear_Superadmin();
+        $this->post('/login', ['email' => $Superadmin->email, 'password' => self::Contrasena_Prueba])->assertSessionHasErrors('email');
         $this->assertGuest();
 
-        $this->post('/admin/login', ['email' => $Staff->email, 'password' => self::Contrasena_Prueba])->assertRedirect('/admin');
-        $this->assertAuthenticatedAs($Staff);
+        $this->post('/admin/login', ['email' => $Superadmin->email, 'password' => self::Contrasena_Prueba])->assertRedirect('/admin');
+        $this->assertAuthenticatedAs($Superadmin);
         $this->post('/logout')->assertRedirect('/admin/login');
     }
 
@@ -92,7 +92,7 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
     #[Test]
     public function Todas_Las_Paginas_Del_Portal_Cargan(): void
     {
-        $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['BCS', 'RESEARCH']), Modelo_Usuario::Rol_Cliente_Institucional);
+        $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['BCS', 'RESEARCH']), Modelo_Usuario::Rol_Administrador_Delegado);
         foreach (['/', '/proyectos', '/entregables', '/research', '/academia', '/facturacion', '/bolsa-de-horas', '/credencial', '/perfil'] as $Url) {
             $this->actingAs($Usuario)->get($Url)->assertOk();
         }
@@ -101,9 +101,9 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
     #[Test]
     public function Todas_Las_Paginas_Del_Cms_Cargan(): void
     {
-        $Staff = $this->Crear_Staff();
-        foreach (['/admin/solicitudes-horas', '/admin/auditoria', '/admin/instituciones', '/admin/usuarios/crear', "/admin/usuarios/{$Staff->id}/editar"] as $Url) {
-            $this->actingAs($Staff)->get($Url)->assertOk();
+        $Superadmin = $this->Crear_Superadmin();
+        foreach (['/admin/solicitudes-horas', '/admin/auditoria', '/admin/instituciones', '/admin/usuarios/crear', "/admin/usuarios/{$Superadmin->id}/editar"] as $Url) {
+            $this->actingAs($Superadmin)->get($Url)->assertOk();
         }
     }
 }

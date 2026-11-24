@@ -28,29 +28,29 @@ class Controlador_Inicio_Sesion
 
     public function Iniciar_Sesion(Request $Peticion): RedirectResponse
     {
-        $this->Autenticar_Usuario($Peticion, Debe_Ser_Staff: false);
+        $this->Autenticar_Usuario($Peticion, Debe_Ser_Personal_Blockfinity: false);
 
         return redirect()->intended('/');
     }
 
     public function Iniciar_Sesion_Administracion(Request $Peticion): RedirectResponse
     {
-        $this->Autenticar_Usuario($Peticion, Debe_Ser_Staff: true);
+        $this->Autenticar_Usuario($Peticion, Debe_Ser_Personal_Blockfinity: true);
 
         return redirect()->intended('/admin');
     }
 
     public function Cerrar_Sesion(Request $Peticion): RedirectResponse
     {
-        $Era_Staff = $Peticion->user()->Es_Personal_Blockfinity();
+        $Era_Personal_Blockfinity = $Peticion->user()->Es_Personal_Blockfinity();
         Auth::logout();
         $Peticion->session()->invalidate();
         $Peticion->session()->regenerateToken();
 
-        return redirect($Era_Staff ? '/admin/login' : '/login');
+        return redirect($Era_Personal_Blockfinity ? '/admin/login' : '/login');
     }
 
-    private function Autenticar_Usuario(Request $Peticion, bool $Debe_Ser_Staff): void
+    private function Autenticar_Usuario(Request $Peticion, bool $Debe_Ser_Personal_Blockfinity): void
     {
         $Credenciales = $Peticion->validate([
             'email' => ['required', 'email'],
@@ -58,7 +58,7 @@ class Controlador_Inicio_Sesion
         ]);
 
         $Es_Valido = Auth::attempt($Credenciales + ['esta_activo' => true], $Peticion->boolean('recordarme'));
-        if ($Es_Valido && $Peticion->user()->Es_Personal_Blockfinity() !== $Debe_Ser_Staff) {
+        if ($Es_Valido && $Peticion->user()->Es_Personal_Blockfinity() !== $Debe_Ser_Personal_Blockfinity) {
             Modelo_Registro_Auditoria::Registrar_Evento('inicio_sesion.puerta_equivocada', null, 'Intentó ingresar por el acceso que no le corresponde');
             Auth::logout();
             $Es_Valido = false;

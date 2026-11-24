@@ -16,7 +16,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Todos ven sus proyectos, la formación y su nivel. El cliente institucional además ve
+ * Todos ven sus proyectos, la formación y su nivel. El administrador delegado además ve
  * el panel de gestión: aprobaciones, facturas, horas, equipo y unidades contratadas.
  */
 class Controlador_Inicio
@@ -60,7 +60,7 @@ class Controlador_Inicio
                 'Horas' => round(Modelo_Video::whereIn('id', $Videos_Completados)->sum('duracion_minutos') / 60, 1),
             ],
             'Nivel_Alianza' => $Institucion->Calcular_Nivel_Alianza(),
-            'Panel_Institucional' => $Usuario->Es_Cliente_Institucional() ? $this->Armar_Panel_Institucional($Usuario, $Institucion) : null,
+            'Panel_Institucional' => $Usuario->Es_Administrador_Delegado() ? $this->Armar_Panel_Institucional($Usuario, $Institucion) : null,
         ]);
     }
 
@@ -80,7 +80,7 @@ class Controlador_Inicio
                 ] : null,
             ],
             'Saldo_Horas' => $Institucion->Calcular_Saldo_Horas(),
-            'Cantidad_Equipo' => Modelo_Usuario::where('institucion_id', $Institucion->id)->where('rol', Modelo_Usuario::Rol_Cliente_Basico)->where('esta_activo', true)->count(),
+            'Cantidad_Equipo' => Modelo_Usuario::where('institucion_id', $Institucion->id)->where('rol', Modelo_Usuario::Rol_Usuario_Institucional)->where('esta_activo', true)->count(),
             'Unidades_Negocio' => Modelo_Unidad_Negocio::orderBy('orden')->get()->map(fn (Modelo_Unidad_Negocio $Unidad) => [
                 'Codigo' => $Unidad->codigo,
                 'Nombre' => $Unidad->nombre,

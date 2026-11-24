@@ -4,7 +4,7 @@ namespace App\Modelos;
 
 use Illuminate\Database\Eloquent\Model;
 
-/** Ajustes generales que el staff edita desde el CMS */
+/** Ajustes generales que el superadmin edita desde el CMS */
 class Modelo_Configuracion extends Model
 {
     public const Clave_Texto_Marca_Agua = 'texto_marca_agua';

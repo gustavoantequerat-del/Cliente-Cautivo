@@ -19,7 +19,7 @@ class Sembrador_Administrador extends Seeder
         $Contrasena_Temporal = Str::password(16, symbols: false);
 
         Modelo_Usuario::updateOrCreate(['email' => $Email_Administrador], [
-            'nombre' => 'Administrador', 'rol' => Modelo_Usuario::Rol_Staff, 'password' => $Contrasena_Temporal, 'esta_activo' => true,
+            'nombre' => 'Administrador', 'rol' => Modelo_Usuario::Rol_Superadmin, 'password' => $Contrasena_Temporal, 'esta_activo' => true,
         ]);
 
         $this->command?->info("Admin: {$Email_Administrador} / {$Contrasena_Temporal}");

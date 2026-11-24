@@ -15,18 +15,18 @@ class Modelo_Usuario extends Usuario_Autenticable
     use Notifiable;
 
     // Personal de Blockfinity (entra por /admin/login)
-    public const Rol_Staff = 'staff';                          // Todo el CMS
-    public const Rol_Ejecutivo_Cuenta = 'ejecutivo_cuenta';    // Solo las instituciones que tiene a su cargo
+    public const Rol_Superadmin = 'superadmin';                          // Todo el CMS
+    public const Rol_Usuario_Ejecutivo = 'usuario_ejecutivo';    // Solo las instituciones que tiene a su cargo
 
     // Personal de la institución cliente (entra por /login)
-    public const Rol_Cliente_Institucional = 'cliente_institucional'; // Facturación, horas, aprobaciones y su equipo
-    public const Rol_Cliente_Basico = 'cliente_basico';               // Formación y los proyectos donde lo inscribieron
+    public const Rol_Administrador_Delegado = 'administrador_delegado'; // Facturación, horas, aprobaciones y su equipo
+    public const Rol_Usuario_Institucional = 'usuario_institucional';               // Formación y los proyectos donde lo inscribieron
 
     public const Roles = [
-        self::Rol_Cliente_Basico => 'Cliente básico',
-        self::Rol_Cliente_Institucional => 'Cliente institucional',
-        self::Rol_Ejecutivo_Cuenta => 'Ejecutivo/a de cuenta',
-        self::Rol_Staff => 'Staff Blockfinity (todo el CMS)',
+        self::Rol_Usuario_Institucional => 'Usuario institucional',
+        self::Rol_Administrador_Delegado => 'Administrador delegado institucional',
+        self::Rol_Usuario_Ejecutivo => 'Usuario ejecutivo',
+        self::Rol_Superadmin => 'Superadmin',
     ];
 
     protected $table = 'usuarios';
@@ -70,31 +70,31 @@ class Modelo_Usuario extends Usuario_Autenticable
         return $this->belongsTo(Modelo_Institucion::class, 'institucion_id');
     }
 
-    public function Es_Staff(): bool
+    public function Es_Superadmin(): bool
     {
-        return $this->rol === self::Rol_Staff;
+        return $this->rol === self::Rol_Superadmin;
     }
 
-    public function Es_Ejecutivo_Cuenta(): bool
+    public function Es_Usuario_Ejecutivo(): bool
     {
-        return $this->rol === self::Rol_Ejecutivo_Cuenta;
+        return $this->rol === self::Rol_Usuario_Ejecutivo;
     }
 
-    /** Staff o ejecutivo/a: usa el CMS y no el portal */
+    /** Superadmin o usuario ejecutivo: usa el CMS y no el portal */
     public function Es_Personal_Blockfinity(): bool
     {
-        return $this->Es_Staff() || $this->Es_Ejecutivo_Cuenta();
+        return $this->Es_Superadmin() || $this->Es_Usuario_Ejecutivo();
     }
 
-    public function Es_Cliente_Institucional(): bool
+    public function Es_Administrador_Delegado(): bool
     {
-        return $this->rol === self::Rol_Cliente_Institucional;
+        return $this->rol === self::Rol_Administrador_Delegado;
     }
 
-    /** Instituciones que puede gestionar en el CMS (null = todas, para el staff) */
+    /** Instituciones que puede gestionar en el CMS (null = todas, para el superadmin) */
     public function Obtener_Ids_Instituciones_A_Cargo(): ?array
     {
-        if ($this->Es_Staff()) {
+        if ($this->Es_Superadmin()) {
             return null;
         }
 

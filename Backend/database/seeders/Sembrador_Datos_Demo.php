@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modelos\Modelo_Certificado;
 use App\Modelos\Modelo_Contrato;
 use App\Modelos\Modelo_Entregable;
 use App\Modelos\Modelo_Factura;
@@ -14,6 +15,7 @@ use App\Modelos\Modelo_Unidad_Negocio;
 use App\Modelos\Modelo_Usuario;
 use App\Modelos\Modelo_Video;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Datos de demostración (cuenta ilustrativa "Banco Demo S.A."). Solo para local:
@@ -28,18 +30,18 @@ class Sembrador_Datos_Demo extends Seeder
 
         $Administrador = Modelo_Usuario::create([
             'nombre' => 'Administrador Blockfinity', 'email' => 'admin@blockfinity.test',
-            'password' => 'Blockfinity2026', 'rol' => Modelo_Usuario::Rol_Staff, 'cargo' => 'Staff',
+            'password' => 'Blockfinity2026', 'rol' => Modelo_Usuario::Rol_Superadmin, 'cargo' => 'Superadmin',
         ]);
         $Ejecutiva = Modelo_Usuario::create([
             'nombre' => 'Alejandra Antezana', 'email' => 'ejecutiva@blockfinity.test',
-            'password' => 'Blockfinity2026', 'rol' => Modelo_Usuario::Rol_Ejecutivo_Cuenta, 'cargo' => 'Ejecutiva de cuenta',
+            'password' => 'Blockfinity2026', 'rol' => Modelo_Usuario::Rol_Usuario_Ejecutivo, 'cargo' => 'Ejecutiva de cuenta',
             'telefono' => '+59170000000', 'enlace_agenda' => 'https://calendly.com/',
         ]);
 
         $Banco = Modelo_Institucion::create([
             'nombre' => 'Banco Demo S.A.', 'identificador' => 'banco-demo', 'razon_social' => 'Banco Demo Sociedad Anónima',
             'nit' => '1020304050', 'correo_facturacion' => 'facturacion@bancodemo.test',
-            'direccion_facturacion' => 'Av. Arce 1234, La Paz',
+            'direccion_facturacion' => 'Av. Arce 1234, La Paz', 'color_primario' => '#0E6B4F', 'color_secundario' => '#F2C94C',
             'ejecutivo_cuenta_id' => $Ejecutiva->id,
         ]);
         $Ids_Unidades = Modelo_Unidad_Negocio::pluck('id', 'codigo');
@@ -51,12 +53,12 @@ class Sembrador_Datos_Demo extends Seeder
 
         $Maria = Modelo_Usuario::create([
             'nombre' => 'María Rojas', 'email' => 'maria.rojas@bancodemo.test', 'password' => 'Cliente2026demo',
-            'rol' => Modelo_Usuario::Rol_Cliente_Institucional, 'institucion_id' => $Banco->id,
+            'rol' => Modelo_Usuario::Rol_Administrador_Delegado, 'institucion_id' => $Banco->id,
             'area' => 'Gerencia de Riesgos', 'cargo' => 'Gerente de Riesgos',
         ]);
         $Jorge = Modelo_Usuario::create([
             'nombre' => 'Jorge Quiroga', 'email' => 'jorge.quiroga@bancodemo.test', 'password' => 'Cliente2026demo',
-            'rol' => Modelo_Usuario::Rol_Cliente_Basico, 'institucion_id' => $Banco->id, 'area' => 'Cumplimiento',
+            'rol' => Modelo_Usuario::Rol_Usuario_Institucional, 'institucion_id' => $Banco->id, 'area' => 'Cumplimiento',
         ]);
 
         // --- Proyecto activo BCS -------------------------------------------
@@ -67,11 +69,11 @@ class Sembrador_Datos_Demo extends Seeder
             'avance' => 68, 'proximo_hito' => 'Comité de seguimiento · 30 oct',
             'fecha_inicio' => '2026-03-01', 'fecha_fin' => '2026-12-15',
         ]);
-        // Jorge (cliente básico) participa en este proyecto; Lucía todavía no
+        // Jorge (usuario institucional) participa en este proyecto; Lucía todavía no
         $Proyecto_Crystal->Participantes()->attach($Jorge->id);
         Modelo_Usuario::create([
             'nombre' => 'Lucía Fernández', 'email' => 'lucia.fernandez@bancodemo.test', 'password' => 'Cliente2026demo',
-            'rol' => Modelo_Usuario::Rol_Cliente_Basico, 'institucion_id' => $Banco->id, 'area' => 'Operaciones',
+            'rol' => Modelo_Usuario::Rol_Usuario_Institucional, 'institucion_id' => $Banco->id, 'area' => 'Operaciones',
         ]);
         foreach ([['Diagnóstico', 'completada'], ['Configuración', 'completada'], ['Capacitación y piloto', 'en_curso'], ['Operación asistida', 'pendiente']] as $Posicion => [$Nombre, $Estado]) {
             $Proyecto_Crystal->Fases()->create(['posicion' => $Posicion + 1, 'nombre' => $Nombre, 'estado' => $Estado]);
@@ -198,9 +200,44 @@ class Sembrador_Datos_Demo extends Seeder
             ]);
         }
 
+        // --- Certificado de ejemplo (el PDF se genera aquí mismo) -------------------
+        $Ruta_Certificado = 'certificados/demo-nexum-jorge.pdf';
+        Storage::disk('local')->put($Ruta_Certificado, $this->Generar_Pdf_Simple('Certificado NEXUM Nivel 1 - Jorge Quiroga'));
+        Modelo_Certificado::create([
+            'usuario_id' => $Jorge->id, 'titulo' => 'NEXUM · Nivel 1: Fundamentos de activos virtuales',
+            'descripcion' => 'Aprobó el programa de formación NEXUM para Servicios Financieros.', 'puntaje' => 50,
+            'ruta_archivo' => $Ruta_Certificado, 'nombre_archivo' => 'certificado-nexum.pdf',
+        ]);
+
         // --- Monedas de demostración para probar la tienda del avatar ----------
         foreach ([$Maria, $Jorge] as $Usuario_Demo) {
             Modelo_Movimiento_Monedas::Otorgar_Una_Vez($Usuario_Demo, 150, 'bono', 1, 'Monedas de bienvenida (demo)');
         }
+    }
+
+    /** PDF mínimo de una página con un texto (solo para la demo) */
+    private function Generar_Pdf_Simple(string $Texto): string
+    {
+        $Contenido = 'BT /F1 22 Tf 60 420 Td ('.$Texto.') Tj ET';
+        $Objetos = [
+            '<< /Type /Catalog /Pages 2 0 R >>',
+            '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+            '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
+            '<< /Length '.strlen($Contenido)." >>\nstream\n{$Contenido}\nendstream",
+            '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+        ];
+        $Pdf = "%PDF-1.4\n";
+        $Posiciones = [];
+        foreach ($Objetos as $Indice => $Objeto) {
+            $Posiciones[] = strlen($Pdf);
+            $Pdf .= ($Indice + 1)." 0 obj\n{$Objeto}\nendobj\n";
+        }
+        $Inicio_Tabla = strlen($Pdf);
+        $Pdf .= "xref\n0 ".(count($Objetos) + 1)."\n0000000000 65535 f \n";
+        foreach ($Posiciones as $Posicion) {
+            $Pdf .= sprintf("%010d 00000 n \n", $Posicion);
+        }
+
+        return $Pdf.'trailer << /Size '.(count($Objetos) + 1)." /Root 1 0 R >>\nstartxref\n{$Inicio_Tabla}\n%%EOF";
     }
 }

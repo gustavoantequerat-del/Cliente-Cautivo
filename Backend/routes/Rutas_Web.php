@@ -9,18 +9,20 @@ use App\Controladores\Administracion\Controlador_Solicitudes_Horas;
 use App\Controladores\Portal\Controlador_Academia;
 use App\Controladores\Portal\Controlador_Avatar;
 use App\Controladores\Portal\Controlador_Bolsa_Horas;
+use App\Controladores\Portal\Controlador_Certificados;
 use App\Controladores\Portal\Controlador_Credencial;
 use App\Controladores\Portal\Controlador_Entregables;
 use App\Controladores\Portal\Controlador_Facturacion;
 use App\Controladores\Portal\Controlador_Inicio;
+use App\Controladores\Portal\Controlador_Marca;
 use App\Controladores\Portal\Controlador_Perfil;
 use App\Controladores\Portal\Controlador_Proyectos;
 use App\Controladores\Portal\Controlador_Research;
 use App\Controladores\Publico\Controlador_Verificar_Credencial;
 use App\Middleware\Middleware_Exigir_Cliente;
-use App\Middleware\Middleware_Exigir_Cliente_Institucional;
+use App\Middleware\Middleware_Exigir_Administrador_Delegado;
 use App\Middleware\Middleware_Exigir_Personal_Blockfinity;
-use App\Middleware\Middleware_Exigir_Staff;
+use App\Middleware\Middleware_Exigir_Superadmin;
 use App\Middleware\Middleware_Exigir_Unidad_Contratada;
 use Illuminate\Support\Facades\Route;
 
@@ -37,7 +39,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/restablecer', [Controlador_Recuperar_Contrasena::class, 'Guardar_Nueva_Contrasena']);
 });
 
-// Acceso del staff: va separado del de clientes (más intentos bloqueados y sin compartir pantalla)
+// Acceso del personal de Blockfinity: va separado del de clientes (más intentos bloqueados y sin compartir pantalla)
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [Controlador_Inicio_Sesion::class, 'Mostrar_Formulario_Ingreso_Administracion']);
     Route::post('/admin/login', [Controlador_Inicio_Sesion::class, 'Iniciar_Sesion_Administracion'])->middleware('throttle:5,1');
@@ -68,6 +70,10 @@ Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function ()
 
     Route::get('/credencial', [Controlador_Credencial::class, 'Mostrar_Credencial']);
 
+    Route::get('/certificados', [Controlador_Certificados::class, 'Listar_Certificados']);
+    Route::get('/certificados/{Certificado}/archivo', [Controlador_Certificados::class, 'Ver_Archivo']);
+    Route::get('/marca/logo', [Controlador_Marca::class, 'Mostrar_Logo']);
+
     Route::get('/avatar', [Controlador_Avatar::class, 'Mostrar_Avatar']);
     Route::post('/avatar/{Item}/comprar', [Controlador_Avatar::class, 'Comprar_Item'])->middleware('throttle:20,1');
     Route::post('/avatar/{Item}/equipar', [Controlador_Avatar::class, 'Equipar_Item']);
@@ -75,8 +81,8 @@ Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function ()
     Route::get('/perfil', [Controlador_Perfil::class, 'Mostrar_Perfil']);
     Route::put('/perfil/contrasena', [Controlador_Perfil::class, 'Cambiar_Contrasena']);
 
-    // Solo el cliente institucional: gestiona su institución y su equipo
-    Route::middleware(Middleware_Exigir_Cliente_Institucional::class)->group(function () {
+    // Solo el administrador delegado: gestiona su institución y su equipo
+    Route::middleware(Middleware_Exigir_Administrador_Delegado::class)->group(function () {
         Route::post('/proyectos/{Proyecto}/participantes', [Controlador_Proyectos::class, 'Actualizar_Participante']);
 
         Route::get('/entregables', [Controlador_Entregables::class, 'Listar_Entregables']);
@@ -92,15 +98,15 @@ Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function ()
     });
 });
 
-// --- CMS (staff y ejecutivos de cuenta) -----------------------------------
-// El ejecutivo de cuenta solo ve las instituciones a su cargo (ver Controlador_Recursos_Cms)
+// --- CMS (superadmin y usuarios ejecutivos) -----------------------------------
+// El usuario ejecutivo solo ve las instituciones a su cargo (ver Controlador_Recursos_Cms)
 Route::middleware(['auth', Middleware_Exigir_Personal_Blockfinity::class])->prefix('admin')->group(function () {
     Route::get('/', [Controlador_Panel_Administracion::class, 'Mostrar_Resumen']);
 
     Route::get('/solicitudes-horas', [Controlador_Solicitudes_Horas::class, 'Listar_Solicitudes']);
     Route::put('/solicitudes-horas/{Solicitud}', [Controlador_Solicitudes_Horas::class, 'Actualizar_Solicitud']);
 
-    Route::get('/auditoria', [Controlador_Auditoria::class, 'Listar_Registros_Auditoria'])->middleware(Middleware_Exigir_Staff::class);
+    Route::get('/auditoria', [Controlador_Auditoria::class, 'Listar_Registros_Auditoria'])->middleware(Middleware_Exigir_Superadmin::class);
 
     Route::get('/archivo/{Clave_Recurso}/{Id_Registro}/{Nombre_Campo}', [Controlador_Recursos_Cms::class, 'Descargar_Archivo_Registro']);
     Route::get('/{Clave_Recurso}', [Controlador_Recursos_Cms::class, 'Listar_Registros']);

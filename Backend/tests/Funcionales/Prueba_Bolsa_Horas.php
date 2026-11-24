@@ -33,10 +33,10 @@ class Prueba_Bolsa_Horas extends Caso_Prueba_Base
         $this->actingAs($Usuario)->post('/bolsa-de-horas', $this->Datos_Solicitud)->assertSessionHas('Mensaje_Exito');
         $Solicitud = Modelo_Solicitud_Horas::firstOrFail();
 
-        $Staff = $this->Crear_Staff();
+        $Superadmin = $this->Crear_Superadmin();
         $Datos_Atendida = ['estado' => 'atendida', 'horas_cobradas' => 1.5, 'respuesta' => 'Atendido'];
-        $this->actingAs($Staff)->put("/admin/solicitudes-horas/{$Solicitud->id}", $Datos_Atendida)->assertSessionHas('Mensaje_Exito');
-        $this->actingAs($Staff)->put("/admin/solicitudes-horas/{$Solicitud->id}", $Datos_Atendida);
+        $this->actingAs($Superadmin)->put("/admin/solicitudes-horas/{$Solicitud->id}", $Datos_Atendida)->assertSessionHas('Mensaje_Exito');
+        $this->actingAs($Superadmin)->put("/admin/solicitudes-horas/{$Solicitud->id}", $Datos_Atendida);
 
         $this->assertSame(8.5, $Usuario->Institucion->fresh()->Calcular_Saldo_Horas());
     }

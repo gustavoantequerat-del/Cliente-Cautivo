@@ -61,11 +61,11 @@ Usuarios de la demo (**solo para local; no use el seeder demo en producción**):
 
 | Rol | Correo | Contraseña | Entra por |
 |---|---|---|---|
-| Staff (todo el CMS) | admin@blockfinity.test | Blockfinity2026 | `/admin/login` |
-| Ejecutiva de cuenta (solo Banco Demo) | ejecutiva@blockfinity.test | Blockfinity2026 | `/admin/login` |
-| Cliente institucional | maria.rojas@bancodemo.test | Cliente2026demo | `/login` |
-| Cliente básico (inscrito en el proyecto Crystal) | jorge.quiroga@bancodemo.test | Cliente2026demo | `/login` |
-| Cliente básico (sin proyectos) | lucia.fernandez@bancodemo.test | Cliente2026demo | `/login` |
+| Superadmin | admin@blockfinity.test | Blockfinity2026 | `/admin/login` |
+| Usuario ejecutivo (a cargo de Banco Demo) | ejecutiva@blockfinity.test | Blockfinity2026 | `/admin/login` |
+| Administrador delegado institucional | maria.rojas@bancodemo.test | Cliente2026demo | `/login` |
+| Usuario institucional (inscrito en el proyecto Crystal, con un certificado) | jorge.quiroga@bancodemo.test | Cliente2026demo | `/login` |
+| Usuario institucional (sin proyectos) | lucia.fernandez@bancodemo.test | Cliente2026demo | `/login` |
 
 Pruebas: `cd Backend && composer test` (27 pruebas: aislamiento entre instituciones, aprobaciones, verificación, bolsa de horas, enlaces de video y CMS).
 Las pruebas también comprueban que cada página que pide el Backend exista en `Frontend/Paginas`.
@@ -131,6 +131,22 @@ Los reportes se leen dentro del portal, **sin opción de descarga**:
 
 ---
 
+## Certificados
+
+El superadmin o el usuario ejecutivo los suben en **CMS → Certificados**: persona, título, descripción, puntaje y el PDF.
+La persona lo ve en **Mis acreditaciones** (puede abrirlo y guardarlo, porque es suyo) y gana el puntaje en monedas para su avatar, una sola vez.
+Su administrador delegado ve los certificados de todo su equipo.
+
+---
+
+## Marca de cada institución
+
+En **CMS → Instituciones**, cada institución tiene su color principal, su color de acento y su logo (PNG, JPG o WEBP), con una vista previa del portal en el formulario.
+Sus usuarios ven el portal con esos colores y con su logo junto al de Blockfinity. Los tonos claros y oscuros se calculan solos a partir del color principal (`Frontend/Utilidades/Paleta_Marca.js`), y un color muy claro se oscurece para que el texto se lea.
+El login es el mismo para todos, porque antes de ingresar no se sabe a qué institución pertenece la persona.
+
+---
+
 ## Niveles de alianza y avatares
 
 - **Nivel de alianza** (de la institución): depende de cuántos servicios (unidades de negocio) tiene contratados. 1 servicio = Explorador, 2 o más = Aliado, todos = Socio Estratégico. Se ajusta en `config/Configuracion_Portal.php`.
@@ -184,10 +200,10 @@ Roles:
 
 | Rol | Qué hace |
 |---|---|
-| `staff` | Personal de Blockfinity con todo el CMS: instituciones, contenido general (videos, research), auditoría. |
-| `ejecutivo_cuenta` | Encargado/a ejecutivo/a: en el CMS solo ve y administra las instituciones a su cargo (sus usuarios institucionales y básicos, proyectos, entregables, facturas y horas). |
-| `cliente_institucional` | Responsable de la institución en el portal: facturación, bolsa de horas, aprobación de entregables, y decide qué clientes básicos participan en cada proyecto. |
-| `cliente_basico` | Portal simple: píldoras y webinars, los proyectos donde lo inscribieron, research y su credencial. |
+| `superadmin` | Personal de Blockfinity con todo el CMS: todas las instituciones, contenido general (videos, research, Forja), configuración y auditoría. |
+| `usuario_ejecutivo` | Personal de Blockfinity a cargo de instituciones: en el CMS ve y administra solo las suyas (sus datos, colores y logo, sus usuarios, proyectos, entregables, certificados, facturas y horas). Las instituciones que crea quedan a su cargo. No puede eliminarlas. |
+| `administrador_delegado` | Responsable de la institución en el portal: facturación, bolsa de horas, aprobación de entregables, certificados de su equipo, y decide qué usuarios institucionales participan en cada proyecto. |
+| `usuario_institucional` | Portal simple: píldoras y webinars, los proyectos donde lo inscribieron, research, sus certificados, su avatar y su credencial. |
 
 El **código de verificación** de un documento es un código único que se calcula a partir del archivo (SHA-256): si el archivo cambia, el código cambia. No es una firma digital ni un dato biométrico.
 

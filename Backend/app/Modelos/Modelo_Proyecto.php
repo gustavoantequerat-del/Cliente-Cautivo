@@ -46,18 +46,18 @@ class Modelo_Proyecto extends Model
         return $this->hasMany(Modelo_Entregable::class, 'proyecto_id');
     }
 
-    /** Clientes básicos inscritos por el cliente institucional */
+    /** Usuarios institucionales inscritos por el administrador delegado */
     public function Participantes(): BelongsToMany
     {
         return $this->belongsToMany(Modelo_Usuario::class, 'proyectos_participantes', 'proyecto_id', 'usuario_id')->withTimestamps();
     }
 
-    /** El cliente institucional ve todos los proyectos de su institución; el básico, solo donde está inscrito */
+    /** El administrador delegado ve todos los proyectos de su institución; el usuario institucional, solo donde está inscrito */
     #[Scope]
     protected function Accesibles_Para_Usuario(Builder $Consulta, Modelo_Usuario $Usuario): void
     {
         $Consulta->where('proyectos.institucion_id', $Usuario->institucion_id);
-        if (! $Usuario->Es_Cliente_Institucional()) {
+        if (! $Usuario->Es_Administrador_Delegado()) {
             $Consulta->whereHas('Participantes', fn (Builder $Participante) => $Participante->where('usuarios.id', $Usuario->id));
         }
     }
