@@ -1,11 +1,27 @@
 {
   "Aplicacion_Principal.js": {
-    "file": "assets/Aplicacion_Principal-D6SEiZH-.js",
+    "file": "assets/Aplicacion_Principal-YnTF-jX3.js",
     "name": "Aplicacion_Principal",
     "src": "Aplicacion_Principal.js",
     "isEntry": true,
+    "dynamicImports": [
+      "node_modules/.pnpm/pdfjs-dist@4.10.38/node_modules/pdfjs-dist/build/pdf.mjs"
+    ],
     "css": [
-      "assets/Aplicacion_Principal-xgmugyaW.css"
+      "assets/Aplicacion_Principal-wTjCT0I5.css"
+    ],
+    "assets": [
+      "assets/pdf.worker.min-yatZIOMy.mjs"
     ]
+  },
+  "node_modules/.pnpm/pdfjs-dist@4.10.38/node_modules/pdfjs-dist/build/pdf.mjs": {
+    "file": "assets/pdf-DUPavs6M.js",
+    "name": "pdf",
+    "src": "node_modules/.pnpm/pdfjs-dist@4.10.38/node_modules/pdfjs-dist/build/pdf.mjs",
+    "isDynamicEntry": true
+  },
+  "node_modules/.pnpm/pdfjs-dist@4.10.38/node_modules/pdfjs-dist/build/pdf.worker.min.mjs": {
+    "file": "assets/pdf.worker.min-yatZIOMy.mjs",
+    "src": "node_modules/.pnpm/pdfjs-dist@4.10.38/node_modules/pdfjs-dist/build/pdf.worker.min.mjs"
   }
 }
