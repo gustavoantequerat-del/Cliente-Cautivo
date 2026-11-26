@@ -1,4 +1,2 @@
-
-# Generado por "pnpm run build" en Frontend
-/public/build
+# public/build SÍ se versiona: el despliegue en cPanel usa el build compilado (pnpm run build en Frontend)
 /public/hot

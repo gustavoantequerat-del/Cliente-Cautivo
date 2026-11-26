@@ -1,6 +1,6 @@
 {
   "Aplicacion_Principal.js": {
-    "file": "assets/Aplicacion_Principal-6f_xYYOM.js",
+    "file": "assets/Aplicacion_Principal-yAQPpelD.js",
     "name": "Aplicacion_Principal",
     "src": "Aplicacion_Principal.js",
     "isEntry": true,
@@ -8,7 +8,7 @@
       "node_modules/.pnpm/pdfjs-dist@4.10.38/node_modules/pdfjs-dist/build/pdf.mjs"
     ],
     "css": [
-      "assets/Aplicacion_Principal-5Q4XVlHp.css"
+      "assets/Aplicacion_Principal-DwyDK0x1.css"
     ],
     "assets": [
       "assets/pdf.worker.min-yatZIOMy.mjs"
