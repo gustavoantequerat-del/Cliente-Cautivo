@@ -111,6 +111,20 @@ Si su PHP de consola no es 8.2+, use la ruta completa, por ejemplo `/opt/cpanel/
 ### 5. Actualizar
 Suba los archivos nuevos (o `git pull`; en ese caso el dominio apunta a `.../Backend/public`), luego, dentro de `Backend/`, `php artisan migrate --force` y `php artisan optimize`.
 
+### "Page Expired" (error 419) al ingresar
+
+El navegador no devolvió la cookie de sesión. Revise, en este orden:
+
+1. **El sitio debe abrirse con `https://`.** Con `SESSION_SECURE_COOKIE=true` el navegador no guarda la sesión en `http://`.
+   Active SSL en cPanel (*SSL/TLS Status → Run AutoSSL*). Solo para probar sin SSL: `SESSION_SECURE_COOKIE=false`.
+2. **`APP_URL`** igual a la dirección real (mismo dominio, con o sin `www`, con `https`). Deje `SESSION_DOMAIN` vacío.
+3. **Tabla de sesiones:** `php artisan migrate --force` (con `SESSION_DRIVER=database`).
+4. **`storage/` y `bootstrap/cache/` con permiso de escritura** (755 en carpetas).
+5. Después de cambiar `.env`: `php artisan optimize:clear && php artisan optimize`.
+
+Si la sesión simplemente venció (página abierta más de `SESSION_LIFETIME` minutos), el portal vuelve al formulario con
+el aviso "Su sesión expiró" y el segundo intento funciona.
+
 ---
 
 ## Reportes de Research (visor protegido)
