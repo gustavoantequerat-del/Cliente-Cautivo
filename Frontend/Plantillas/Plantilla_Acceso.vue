@@ -4,7 +4,7 @@ import Componente_Icono from '../Componentes/Componente_Icono.vue';
 
 const Beneficios = [
     { Icono: 'credencial', Texto: 'Credencial personal' },
-    { Icono: 'proyectos', Texto: 'Sus proyectos al día' },
+    { Icono: 'capas', Texto: 'El ecosistema Blockfinity' },
     { Icono: 'escudo', Texto: 'Documentos verificables' },
 ];
 </script>

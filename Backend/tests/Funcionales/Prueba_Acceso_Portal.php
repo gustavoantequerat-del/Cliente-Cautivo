@@ -2,7 +2,6 @@
 
 namespace Tests\Funcionales;
 
-use App\Modelos\Modelo_Proyecto;
 use App\Modelos\Modelo_Usuario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Pagina_Inertia;
@@ -25,7 +24,7 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
     {
         $Usuario = $this->Crear_Cliente();
         $this->post('/login', ['email' => $Usuario->email, 'password' => self::Contrasena_Prueba])->assertRedirect('/');
-        $this->get('/')->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->component('Portal/Pagina_Inicio')->has('Panel_Institucional.Unidades_Negocio'));
+        $this->get('/')->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->component('Portal/Pagina_Inicio')->has('Ecosistema.Contratados', 1)->has('Panel_Institucional'));
         $this->assertDatabaseHas('registros_auditoria', ['usuario_id' => $Usuario->id, 'accion' => 'inicio_sesion']);
     }
 
@@ -36,14 +35,6 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
         $Usuario->update(['esta_activo' => false]);
         $this->post('/login', ['email' => $Usuario->email, 'password' => self::Contrasena_Prueba])->assertSessionHasErrors('email');
         $this->actingAs($Usuario)->get('/')->assertRedirect('/login');
-    }
-
-    #[Test]
-    public function Cliente_No_Ve_Proyecto_De_Otra_Institucion(): void
-    {
-        $Usuario = $this->Crear_Cliente();
-        $Proyecto_Ajeno = Modelo_Proyecto::create(['institucion_id' => $this->Crear_Institucion()->id, 'nombre' => 'Ajeno']);
-        $this->actingAs($Usuario)->get("/proyectos/{$Proyecto_Ajeno->id}")->assertNotFound();
     }
 
     #[Test]
@@ -93,7 +84,7 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
     public function Todas_Las_Paginas_Del_Portal_Cargan(): void
     {
         $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['BCS', 'RESEARCH']), Modelo_Usuario::Rol_Administrador_Delegado);
-        foreach (['/', '/proyectos', '/entregables', '/research', '/academia', '/facturacion', '/bolsa-de-horas', '/credencial', '/perfil'] as $Url) {
+        foreach (['/', '/ecosistema', '/entregables', '/research', '/academia', '/facturacion', '/bolsa-de-horas', '/credencial', '/perfil'] as $Url) {
             $this->actingAs($Usuario)->get($Url)->assertOk();
         }
     }
@@ -102,7 +93,7 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
     public function Todas_Las_Paginas_Del_Cms_Cargan(): void
     {
         $Superadmin = $this->Crear_Superadmin();
-        foreach (['/admin/solicitudes-horas', '/admin/auditoria', '/admin/instituciones', '/admin/usuarios/crear', "/admin/usuarios/{$Superadmin->id}/editar"] as $Url) {
+        foreach (['/admin/solicitudes-horas', '/admin/auditoria', '/admin/instituciones', '/admin/ecosistema', '/admin/solicitudes-productos', '/admin/ecosistema/crear', '/admin/usuarios/crear', "/admin/usuarios/{$Superadmin->id}/editar"] as $Url) {
             $this->actingAs($Superadmin)->get($Url)->assertOk();
         }
     }

@@ -4,8 +4,8 @@ namespace App\Controladores\Portal;
 
 use App\Modelos\Modelo_Contrato;
 use App\Modelos\Modelo_Entregable;
-use App\Modelos\Modelo_Proyecto;
 use App\Modelos\Modelo_Registro_Auditoria;
+use App\Modelos\Modelo_Unidad_Negocio;
 use App\Servicios\Servicio_Archivos;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +25,7 @@ class Controlador_Entregables
             'Version' => $Entregable->version,
             'Etiqueta_Fase' => $Entregable->etiqueta_fase,
             'Codigo_Unidad' => $Entregable->Unidad_Negocio?->codigo,
-            'Nombre_Proyecto' => $Entregable->Proyecto?->nombre,
+            'Nombre_Producto' => $Entregable->Unidad_Negocio?->nombre,
             'Estado' => $Entregable->estado,
             'Fecha' => ($Entregable->fecha_publicacion ?? $Entregable->created_at)?->translatedFormat('j M Y'),
             'Codigo_Verificacion' => $Entregable->codigo_verificacion,
@@ -40,14 +40,14 @@ class Controlador_Entregables
     {
         $Usuario = $Peticion->user();
         $Tipo_Filtrado = $Peticion->query('tipo');
-        $Proyecto_Filtrado = $Peticion->query('proyecto');
+        $Producto_Filtrado = $Peticion->query('producto');
 
-        $Consulta = Modelo_Entregable::Visibles_Para_Usuario($Usuario)->Visibles_Para_Cliente()->with(['Unidad_Negocio', 'Proyecto', 'Aprobador']);
+        $Consulta = Modelo_Entregable::Visibles_Para_Usuario($Usuario)->Visibles_Para_Cliente()->with(['Unidad_Negocio', 'Aprobador']);
         if ($Tipo_Filtrado) {
             $Consulta->where('tipo', $Tipo_Filtrado);
         }
-        if ($Proyecto_Filtrado) {
-            $Consulta->where('proyecto_id', $Proyecto_Filtrado);
+        if ($Producto_Filtrado) {
+            $Consulta->where('unidad_negocio_id', $Producto_Filtrado);
         }
 
         $Cantidad_Por_Tipo = Modelo_Entregable::Visibles_Para_Usuario($Usuario)->Visibles_Para_Cliente()
@@ -73,9 +73,9 @@ class Controlador_Entregables
             'Tipos_Entregable' => collect(Modelo_Entregable::Tipos)->map(fn ($Nombre, $Clave) => [
                 'Clave' => $Clave, 'Nombre' => $Nombre, 'Cantidad' => $Cantidad_Por_Tipo[$Clave] ?? 0,
             ])->values(),
-            'Proyectos' => Modelo_Proyecto::Visibles_Para_Usuario($Usuario)->orderBy('nombre')->get()
-                ->map(fn (Modelo_Proyecto $Proyecto) => ['Id' => $Proyecto->id, 'Nombre' => $Proyecto->nombre]),
-            'Filtros_Aplicados' => ['Tipo' => $Tipo_Filtrado, 'Proyecto' => $Proyecto_Filtrado],
+            'Productos' => Modelo_Unidad_Negocio::whereIn('id', Modelo_Entregable::Visibles_Para_Usuario($Usuario)->Visibles_Para_Cliente()->select('unidad_negocio_id'))
+                ->orderBy('nombre')->get()->map(fn (Modelo_Unidad_Negocio $Producto) => ['Id' => $Producto->id, 'Nombre' => $Producto->nombre]),
+            'Filtros_Aplicados' => ['Tipo' => $Tipo_Filtrado, 'Producto' => $Producto_Filtrado],
             'Registro_Accesos' => $Registro_Accesos,
             'Resumen' => [
                 'Total' => $Cantidad_Por_Estado->sum(),
@@ -151,13 +151,9 @@ class Controlador_Entregables
         ]);
     }
 
-    /** El administrador delegado accede a todo lo de su institución; el usuario institucional, solo a lo de sus proyectos */
+    /** Las rutas ya exigen administrador delegado; aquí se comprueba que sea de su institución y no un borrador */
     private function Validar_Acceso_Entregable(Request $Peticion, Modelo_Entregable $Entregable): void
     {
-        $Usuario = $Peticion->user();
-        $Es_De_Su_Institucion = $Entregable->institucion_id == $Usuario->institucion_id && $Entregable->estado !== 'borrador';
-        $Puede_Verlo = $Usuario->Es_Administrador_Delegado() || ($Entregable->proyecto_id
-            && Modelo_Proyecto::Accesibles_Para_Usuario($Usuario)->whereKey($Entregable->proyecto_id)->exists());
-        abort_unless($Es_De_Su_Institucion && $Puede_Verlo, 404);
+        abort_unless($Entregable->institucion_id == $Peticion->user()->institucion_id && $Entregable->estado !== 'borrador', 404);
     }
 }

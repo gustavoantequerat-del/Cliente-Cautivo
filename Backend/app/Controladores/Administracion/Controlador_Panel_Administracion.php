@@ -6,6 +6,7 @@ use App\Modelos\Modelo_Entregable;
 use App\Modelos\Modelo_Factura;
 use App\Modelos\Modelo_Institucion;
 use App\Modelos\Modelo_Solicitud_Horas;
+use App\Modelos\Modelo_Solicitud_Producto;
 use App\Modelos\Modelo_Usuario;
 use App\Servicios\Servicio_Definicion_Cms;
 use Illuminate\Database\Eloquent\Builder;
@@ -39,6 +40,8 @@ class Controlador_Panel_Administracion
                     'Valor' => $De_Sus_Instituciones(Modelo_Usuario::where('esta_activo', true)->whereIn('rol', [Modelo_Usuario::Rol_Usuario_Institucional, Modelo_Usuario::Rol_Administrador_Delegado]))->count()],
                 ['Etiqueta' => 'Solicitudes de horas', 'Icono' => 'reloj', 'Url' => '/admin/solicitudes-horas',
                     'Valor' => $De_Sus_Instituciones(Modelo_Solicitud_Horas::whereIn('estado', ['pendiente', 'en_atencion']))->count()],
+                ['Etiqueta' => 'Productos solicitados', 'Icono' => 'correo', 'Url' => '/admin/solicitudes-productos?filtro=pendiente',
+                    'Valor' => $De_Sus_Instituciones(Modelo_Solicitud_Producto::where('estado', 'pendiente'))->count()],
                 ['Etiqueta' => 'Esperando aprobación', 'Icono' => 'boveda', 'Url' => '/admin/entregables',
                     'Valor' => $De_Sus_Instituciones(Modelo_Entregable::where('estado', 'pendiente_aprobacion'))->count()],
                 ['Etiqueta' => 'Facturas pendientes', 'Icono' => 'facturacion', 'Url' => '/admin/facturas',

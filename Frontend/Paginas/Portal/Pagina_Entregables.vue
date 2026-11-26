@@ -11,18 +11,18 @@ import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 import Componente_Estado_Vacio from '../../Componentes/Componente_Estado_Vacio.vue';
 import Componente_Numero_Animado from '../../Componentes/Componente_Numero_Animado.vue';
 
-const Propiedades = defineProps({ Entregables: Object, Tipos_Entregable: Array, Proyectos: Array, Filtros_Aplicados: Object, Registro_Accesos: Array, Resumen: Object });
+const Propiedades = defineProps({ Entregables: Object, Tipos_Entregable: Array, Productos: Array, Filtros_Aplicados: Object, Registro_Accesos: Array, Resumen: Object });
 const Pagina = usePage();
-const Filtros = reactive({ tipo: Propiedades.Filtros_Aplicados.Tipo ?? '', proyecto: Propiedades.Filtros_Aplicados.Proyecto ?? '' });
+const Filtros = reactive({ tipo: Propiedades.Filtros_Aplicados.Tipo ?? '', producto: Propiedades.Filtros_Aplicados.Producto ?? '' });
 const Resultado_Verificacion = computed(() => Pagina.props.Mensajes_Flash?.Resultado_Verificacion);
 const Entregables_Pendientes = computed(() => Propiedades.Entregables.data.filter((Entregable) => Entregable.Estado === 'pendiente_aprobacion'));
 const Esta_Verificando = ref(false);
 
-// Agrupa los entregables de la página por proyecto: se lee más fácil que una tabla larga
-const Grupos_Por_Proyecto = computed(() => {
+// Agrupa los entregables de la página por producto: se lee más fácil que una tabla larga
+const Grupos_Por_Producto = computed(() => {
     const Grupos = new Map();
     for (const Entregable of Propiedades.Entregables.data) {
-        const Nombre_Grupo = Entregable.Nombre_Proyecto ?? 'Otros documentos';
+        const Nombre_Grupo = Entregable.Nombre_Producto ?? 'Otros documentos';
         if (!Grupos.has(Nombre_Grupo)) Grupos.set(Nombre_Grupo, []);
         Grupos.get(Nombre_Grupo).push(Entregable);
     }
@@ -45,7 +45,7 @@ function Verificar_Codigo(Codigo_Verificacion) {
 
 <template>
     <Head title="Entregables" />
-    <Componente_Encabezado_Pagina Icono="boveda" Titulo="Entregables" Introduccion="Todos los documentos de sus proyectos." />
+    <Componente_Encabezado_Pagina Icono="boveda" Titulo="Entregables" Introduccion="Los documentos que Blockfinity entregó a su institución." />
 
     <section :class="$style.summary" class="escalonado">
         <div :class="$style.stat"><span class="burbuja burbuja-sm"><Componente_Icono Nombre="archivo" :Tamano="18" /></span><span><strong><Componente_Numero_Animado :Valor="Resumen.Total" /></strong>documentos</span></div>
@@ -63,15 +63,15 @@ function Verificar_Codigo(Codigo_Verificacion) {
                         {{ Tipo.Nombre }} <span :class="$style.count">{{ Tipo.Cantidad }}</span>
                     </button>
                 </div>
-                <select v-model="Filtros.proyecto" class="select" :class="$style.select" aria-label="Proyecto" @change="Aplicar_Filtros">
-                    <option value="">Todos los proyectos</option>
-                    <option v-for="Proyecto in Proyectos" :key="Proyecto.Id" :value="String(Proyecto.Id)">{{ Proyecto.Nombre }}</option>
+                <select v-if="Productos.length > 1" v-model="Filtros.producto" class="select" :class="$style.select" aria-label="Producto" @change="Aplicar_Filtros">
+                    <option value="">Todos los productos</option>
+                    <option v-for="Producto in Productos" :key="Producto.Id" :value="String(Producto.Id)">{{ Producto.Nombre }}</option>
                 </select>
             </div>
 
             <Componente_Estado_Vacio v-if="!Entregables.data.length" Icono="boveda" Texto="No hay documentos con estos filtros" />
-            <div v-for="Grupo in Grupos_Por_Proyecto" :key="Grupo.Nombre" class="stack" :class="$style.group">
-                <h3 :class="$style.groupTitle"><Componente_Icono Nombre="proyectos" :Tamano="16" />{{ Grupo.Nombre }}</h3>
+            <div v-for="Grupo in Grupos_Por_Producto" :key="Grupo.Nombre" class="stack" :class="$style.group">
+                <h3 :class="$style.groupTitle"><Componente_Icono Nombre="capas" :Tamano="16" />{{ Grupo.Nombre }}</h3>
                 <ul class="lista escalonado">
                     <li v-for="Entregable in Grupo.Entregables" :key="Entregable.Id">
                         <span class="lista-texto">

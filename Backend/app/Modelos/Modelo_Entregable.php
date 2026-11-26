@@ -20,7 +20,7 @@ class Modelo_Entregable extends Model
     protected $table = 'entregables';
 
     protected $fillable = [
-        'institucion_id', 'proyecto_id', 'unidad_negocio_id', 'titulo', 'tipo', 'version', 'etiqueta_fase',
+        'institucion_id', 'unidad_negocio_id', 'titulo', 'tipo', 'version', 'etiqueta_fase',
         'ruta_archivo', 'nombre_archivo', 'tamano_archivo', 'enlace_externo', 'codigo_verificacion', 'estado',
         'fecha_publicacion',
     ];
@@ -28,11 +28,6 @@ class Modelo_Entregable extends Model
     protected function casts(): array
     {
         return ['fecha_aprobacion' => 'datetime', 'fecha_publicacion' => 'datetime'];
-    }
-
-    public function Proyecto(): BelongsTo
-    {
-        return $this->belongsTo(Modelo_Proyecto::class, 'proyecto_id');
     }
 
     public function Unidad_Negocio(): BelongsTo

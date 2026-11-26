@@ -3,7 +3,6 @@
 namespace Tests\Funcionales;
 
 use App\Modelos\Modelo_Entregable;
-use App\Modelos\Modelo_Proyecto;
 use App\Modelos\Modelo_Usuario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Pagina_Inertia;
@@ -22,42 +21,21 @@ class Prueba_Roles extends Caso_Prueba_Base
             $this->actingAs($Basico)->get($Url)->assertRedirect('/');
         }
         $this->actingAs($Basico)->get('/')->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->where('Panel_Institucional', null));
-        foreach (['/academia', '/proyectos', '/credencial', '/perfil'] as $Url) {
+        foreach (['/academia', '/ecosistema', '/credencial', '/perfil'] as $Url) {
             $this->actingAs($Basico)->get($Url)->assertOk();
         }
     }
 
     #[Test]
-    public function El_Cliente_Basico_Solo_Ve_Los_Proyectos_Donde_Lo_Inscribieron(): void
+    public function El_Cliente_Basico_No_Descarga_Entregables(): void
     {
-        $Institucional = $this->Crear_Cliente();
-        $Basico = $this->Crear_Cliente($Institucional->Institucion, Modelo_Usuario::Rol_Usuario_Institucional);
-        $Proyecto = Modelo_Proyecto::create(['institucion_id' => $Institucional->institucion_id, 'nombre' => 'Piloto']);
-        $Entregable = Modelo_Entregable::create(['institucion_id' => $Proyecto->institucion_id, 'proyecto_id' => $Proyecto->id,
+        $Administrador = $this->Crear_Cliente();
+        $Basico = $this->Crear_Cliente($Administrador->Institucion, Modelo_Usuario::Rol_Usuario_Institucional);
+        $Entregable = Modelo_Entregable::create(['institucion_id' => $Administrador->institucion_id,
             'titulo' => 'Informe', 'estado' => 'publicado', 'enlace_externo' => 'https://drive.google.com/x']);
 
-        $this->actingAs($Basico)->get("/proyectos/{$Proyecto->id}")->assertNotFound();
-        $this->actingAs($Basico)->get("/entregables/{$Entregable->id}/descargar")->assertNotFound();
-
-        $this->actingAs($Institucional)->post("/proyectos/{$Proyecto->id}/participantes", ['usuario_id' => $Basico->id, 'inscrito' => true])
-            ->assertSessionHas('Mensaje_Exito');
-
-        $this->actingAs($Basico)->get('/proyectos')->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->has('Lista_Proyectos', 1));
-        $this->actingAs($Basico)->get("/proyectos/{$Proyecto->id}")->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->where('Equipo', null));
-        $this->actingAs($Basico)->get("/entregables/{$Entregable->id}/descargar")->assertRedirect('https://drive.google.com/x');
-        $this->actingAs($Basico)->post("/proyectos/{$Proyecto->id}/participantes", ['usuario_id' => $Basico->id, 'inscrito' => false])->assertRedirect('/');
-    }
-
-    #[Test]
-    public function El_Institucional_Solo_Inscribe_A_Clientes_Basicos_De_Su_Institucion(): void
-    {
-        $Institucional = $this->Crear_Cliente();
-        $Proyecto = Modelo_Proyecto::create(['institucion_id' => $Institucional->institucion_id, 'nombre' => 'Piloto']);
-        $Basico_Ajeno = $this->Crear_Cliente(null, Modelo_Usuario::Rol_Usuario_Institucional);
-
-        $this->actingAs($Institucional)->post("/proyectos/{$Proyecto->id}/participantes", ['usuario_id' => $Basico_Ajeno->id, 'inscrito' => true])
-            ->assertSessionHasErrors('usuario_id');
-        $this->assertSame(0, $Proyecto->Participantes()->count());
+        $this->actingAs($Basico)->get("/entregables/{$Entregable->id}/descargar")->assertRedirect('/');
+        $this->actingAs($Administrador)->get("/entregables/{$Entregable->id}/descargar")->assertRedirect('https://drive.google.com/x');
     }
 
     #[Test]

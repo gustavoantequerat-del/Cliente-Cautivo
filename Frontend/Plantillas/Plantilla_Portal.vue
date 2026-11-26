@@ -22,7 +22,7 @@ const Variables_Marca = computed(() => Construir_Variables_Marca(Institucion_Act
 // El usuario institucional ve lo esencial; el administrador delegado, además, la gestión de su institución
 const Elementos_Menu = computed(() => [
     { Url: '/', Etiqueta: 'Inicio', Icono: 'inicio', Coincidencia_Exacta: true },
-    { Url: '/proyectos', Etiqueta: 'Proyectos', Icono: 'proyectos' },
+    { Url: '/ecosistema', Etiqueta: 'Ecosistema Blockfinity', Icono: 'capas' },
     { Url: '/academia', Etiqueta: 'Píldoras y webinars', Icono: 'reproducir' },
     ...(Tiene_Research.value ? [{ Url: '/research', Etiqueta: 'Research', Icono: 'grafico' }] : []),
     { Url: '/certificados', Etiqueta: 'Mis acreditaciones', Icono: 'certificado' },

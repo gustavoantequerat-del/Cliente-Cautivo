@@ -158,12 +158,12 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
             <template v-else>
                 <label :for="Campo.Nombre">{{ Campo.Etiqueta }}<span v-if="Campo.Obligatorio" aria-hidden="true"> *</span></label>
 
-                <select v-if="Campo.Tipo === 'lista' || Campo.Tipo === 'relacion'" :id="Campo.Nombre" v-model="Formulario[Campo.Nombre]" class="select">
+                <select v-if="Campo.Tipo === 'lista' || Campo.Tipo === 'relacion'" :id="Campo.Nombre" v-model="Formulario[Campo.Nombre]" class="select" :disabled="Campo.Solo_Lectura">
                     <option :value="null">{{ Campo.Obligatorio ? 'Seleccione…' : '— Ninguno —' }}</option>
                     <option v-for="Opcion in Opciones[Campo.Nombre]" :key="Opcion.Valor" :value="Opcion.Valor">{{ Opcion.Etiqueta }}</option>
                 </select>
 
-                <textarea v-else-if="Campo.Tipo === 'texto_largo'" :id="Campo.Nombre" v-model="Formulario[Campo.Nombre]" class="textarea" maxlength="10000" />
+                <textarea v-else-if="Campo.Tipo === 'texto_largo'" :id="Campo.Nombre" v-model="Formulario[Campo.Nombre]" class="textarea" maxlength="10000" :readonly="Campo.Solo_Lectura" />
 
                 <template v-else-if="Campo.Tipo === 'archivo'">
                     <div v-if="Campo.Archivo_Actual" class="row">

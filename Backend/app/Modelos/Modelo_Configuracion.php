@@ -9,6 +9,8 @@ class Modelo_Configuracion extends Model
 {
     public const Clave_Texto_Marca_Agua = 'texto_marca_agua';
 
+    public const Clave_Correo_Contacto = 'correo_contacto';
+
     protected $table = 'configuraciones';
 
     protected $fillable = ['clave', 'etiqueta', 'valor'];

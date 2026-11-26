@@ -3,7 +3,6 @@
 namespace App\Servicios;
 
 use App\Modelos;
-use App\Modelos\Modelo_Proyecto;
 use App\Modelos\Modelo_Usuario;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -16,7 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
  * Opcionales: Permite_Crear / Permite_Eliminar (false para ajustes fijos), Eliminar_Solo_Superadmin,
  * Vista_Previa ('marca' en instituciones). Un campo con Solo_Superadmin no se le muestra al usuario ejecutivo.
  * Además: Solo_Superadmin (contenido global que el usuario ejecutivo no ve) o Alcance (cómo se filtra por
- * institución para el ejecutivo: 'institucion' por la columna institucion_id, 'proyecto' por el proyecto).
+ * institución para el ejecutivo: 'institucion' por la columna institucion_id, 'propia' por su id).
  *
  * Claves de cada campo: Nombre (columna), Etiqueta, Tipo, Obligatorio, En_Tabla, Unico, Por_Defecto,
  * Ayuda, Solo_Lectura, Opciones, Minimo, Maximo, y según el tipo: Modelo, Columna_Etiqueta, Filtro_Donde
@@ -32,8 +31,7 @@ class Servicio_Definicion_Cms
     public static function Obtener_Todos_Los_Recursos(): array
     {
         $Campo_Institucion = ['Tipo' => 'relacion', 'Modelo' => Modelos\Modelo_Institucion::class, 'Columna_Etiqueta' => 'nombre'];
-        $Campo_Unidad = ['Tipo' => 'relacion', 'Modelo' => Modelos\Modelo_Unidad_Negocio::class, 'Columna_Etiqueta' => 'codigo'];
-        $Campo_Proyecto = ['Tipo' => 'relacion', 'Modelo' => Modelos\Modelo_Proyecto::class, 'Columna_Etiqueta' => 'nombre'];
+        $Campo_Unidad = ['Tipo' => 'relacion', 'Modelo' => Modelos\Modelo_Unidad_Negocio::class, 'Columna_Etiqueta' => 'nombre'];
         $Lista_Desde_Valores = fn (array $Valores) => array_combine($Valores, $Valores);
 
         return [
@@ -45,7 +43,7 @@ class Servicio_Definicion_Cms
                 'Campos' => [
                     ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'identificador', 'Etiqueta' => 'Identificador (slug)', 'Tipo' => 'identificador', 'Obligatorio' => true, 'Unico' => true,
-                        'Ayuda' => 'Solo minúsculas, números y guiones. Ej.: banco-demo'],
+                        'Ayuda' => 'Solo minúsculas, números y guiones. Ej.: banco-nacional-de-bolivia'],
                     ['Nombre' => 'razon_social', 'Etiqueta' => 'Razón social', 'Tipo' => 'texto'],
                     ['Nombre' => 'nit', 'Etiqueta' => 'NIT', 'Tipo' => 'numerico', 'En_Tabla' => true],
                     ['Nombre' => 'correo_facturacion', 'Etiqueta' => 'Correo de facturación', 'Tipo' => 'email'],
@@ -53,7 +51,7 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'ejecutivo_cuenta_id', 'Etiqueta' => 'Usuario ejecutivo a cargo', 'Tipo' => 'relacion', 'En_Tabla' => true, 'Solo_Superadmin' => true,
                         'Modelo' => Modelos\Modelo_Usuario::class, 'Columna_Etiqueta' => 'nombre', 'Filtro_Donde' => ['rol', [Modelos\Modelo_Usuario::Rol_Usuario_Ejecutivo, Modelos\Modelo_Usuario::Rol_Superadmin]]],
                     ['Nombre' => 'esta_activa', 'Etiqueta' => 'Acceso activo', 'Tipo' => 'si_no', 'En_Tabla' => true, 'Por_Defecto' => true],
-                    ['Nombre' => 'unidades_contratadas', 'Etiqueta' => 'Unidades contratadas', 'Tipo' => 'unidades'],
+                    ['Nombre' => 'unidades_contratadas', 'Etiqueta' => 'Productos contratados (definen el nivel de alianza)', 'Tipo' => 'unidades'],
                     ['Nombre' => 'color_primario', 'Etiqueta' => 'Color principal del portal', 'Tipo' => 'color', 'Obligatorio' => true, 'Por_Defecto' => '#1F3F73',
                         'Ayuda' => 'Menú, botones y encabezados del portal de esta institución.'],
                     ['Nombre' => 'color_secundario', 'Etiqueta' => 'Color de acento', 'Tipo' => 'color', 'Obligatorio' => true, 'Por_Defecto' => '#5AA9E6'],
@@ -102,51 +100,39 @@ class Servicio_Definicion_Cms
                         'Ayuda' => 'Al desactivarla se cierra su sesión y deja de verificarse el QR.'],
                 ],
             ],
-            'unidades' => [
-                'Solo_Superadmin' => true, 'Icono' => 'capas', 'Titulo' => 'Unidades de negocio', 'Singular' => 'unidad', 'Modelo' => Modelos\Modelo_Unidad_Negocio::class,
-                'Columnas_Busqueda' => ['codigo', 'nombre'], 'Orden' => ['orden', 'asc'], 'Grupo' => 'Cuentas',
+            'ecosistema' => [
+                'Solo_Superadmin' => true, 'Icono' => 'capas', 'Titulo' => 'Ecosistema Blockfinity', 'Singular' => 'producto', 'Modelo' => Modelos\Modelo_Unidad_Negocio::class,
+                'Columnas_Busqueda' => ['codigo', 'nombre'], 'Orden' => ['orden', 'asc'], 'Grupo' => 'Ecosistema',
                 'Campos' => [
-                    ['Nombre' => 'codigo', 'Etiqueta' => 'Código', 'Tipo' => 'codigo', 'Obligatorio' => true, 'Unico' => true, 'En_Tabla' => true],
-                    ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'nombre', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'codigo', 'Etiqueta' => 'Código', 'Tipo' => 'codigo', 'Obligatorio' => true, 'Unico' => true, 'En_Tabla' => true,
+                        'Ayuda' => 'Corto y en mayúsculas, ej. BCS. RESEARCH habilita la sección Research del portal.'],
+                    ['Nombre' => 'subtitulo', 'Etiqueta' => 'Subtítulo', 'Tipo' => 'texto', 'En_Tabla' => true],
                     ['Nombre' => 'descripcion', 'Etiqueta' => 'Descripción', 'Tipo' => 'texto_largo'],
+                    ['Nombre' => 'ruta_imagen', 'Etiqueta' => 'Imagen (PNG, JPG o WEBP)', 'Tipo' => 'archivo', 'Carpeta' => 'ecosistema',
+                        'Extensiones' => 'png,jpg,jpeg,webp', 'Ayuda' => 'Horizontal, idealmente 1200 × 675 px.'],
+                    ['Nombre' => 'enlace_pagina', 'Etiqueta' => 'Página del producto (landing, https)', 'Tipo' => 'enlace', 'Solo_Https' => true,
+                        'Ayuda' => 'Se muestra dentro del portal y el botón "Ver más" lleva a ella. La página debe permitir mostrarse en un iframe.'],
+                    ['Nombre' => 'enlace_video', 'Etiqueta' => 'Video explicativo (si no hay página)', 'Tipo' => 'enlace_video',
+                        'Ayuda' => 'Drive, YouTube o Vimeo. Se usa solo cuando el producto no tiene página.'],
                     ['Nombre' => 'orden', 'Etiqueta' => 'Orden', 'Tipo' => 'entero', 'Minimo' => 0, 'Por_Defecto' => 0, 'En_Tabla' => true],
+                    ['Nombre' => 'esta_publicado', 'Etiqueta' => 'Visible en el portal', 'Tipo' => 'si_no', 'Por_Defecto' => true, 'En_Tabla' => true],
                 ],
             ],
-            'proyectos' => [
-                'Alcance' => 'institucion', 'Icono' => 'proyectos', 'Titulo' => 'Proyectos', 'Singular' => 'proyecto', 'Modelo' => Modelos\Modelo_Proyecto::class,
-                'Columnas_Busqueda' => ['nombre'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'institucion_id',
+            'solicitudes-productos' => [
+                'Alcance' => 'institucion', 'Icono' => 'correo', 'Titulo' => 'Solicitudes de productos', 'Singular' => 'solicitud',
+                'Modelo' => Modelos\Modelo_Solicitud_Producto::class, 'Columnas_Busqueda' => ['comentario'], 'Orden' => ['created_at', 'desc'],
+                'Grupo' => 'Ecosistema', 'Columna_Filtro' => 'estado', 'Permite_Crear' => false,
                 'Campos' => [
-                    ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
-                    ['Nombre' => 'unidad_negocio_id', 'Etiqueta' => 'Unidad', 'En_Tabla' => true] + $Campo_Unidad,
-                    ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
-                    ['Nombre' => 'descripcion', 'Etiqueta' => 'Descripción', 'Tipo' => 'texto_largo'],
-                    ['Nombre' => 'estado', 'Etiqueta' => 'Estado', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'activo',
-                        'Opciones' => ['activo' => 'En ejecución', 'cerrado' => 'Cerrado']],
-                    ['Nombre' => 'avance', 'Etiqueta' => 'Avance (%)', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 100, 'Por_Defecto' => 0, 'En_Tabla' => true],
-                    ['Nombre' => 'proximo_hito', 'Etiqueta' => 'Próximo hito', 'Tipo' => 'texto'],
-                    ['Nombre' => 'fecha_inicio', 'Etiqueta' => 'Inicio', 'Tipo' => 'fecha'],
-                    ['Nombre' => 'fecha_fin', 'Etiqueta' => 'Fin estimado', 'Tipo' => 'fecha'],
-                ],
-            ],
-            'fases' => [
-                'Alcance' => 'proyecto', 'Icono' => 'lista', 'Titulo' => 'Fases de proyecto', 'Singular' => 'fase', 'Modelo' => Modelos\Modelo_Fase_Proyecto::class,
-                'Columnas_Busqueda' => ['nombre'], 'Orden' => ['proyecto_id', 'asc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'proyecto_id',
-                'Campos' => [
-                    ['Nombre' => 'proyecto_id', 'Etiqueta' => 'Proyecto', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Proyecto,
-                    ['Nombre' => 'posicion', 'Etiqueta' => 'N.º de fase', 'Tipo' => 'entero', 'Minimo' => 1, 'Maximo' => 50, 'Por_Defecto' => 1, 'En_Tabla' => true],
-                    ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Solo_Lectura' => true, 'En_Tabla' => true] + $Campo_Institucion,
+                    ['Nombre' => 'unidad_negocio_id', 'Etiqueta' => 'Producto', 'Solo_Lectura' => true, 'En_Tabla' => true] + $Campo_Unidad,
+                    ['Nombre' => 'usuario_id', 'Etiqueta' => 'Solicitado por', 'Tipo' => 'relacion', 'Solo_Lectura' => true, 'En_Tabla' => true,
+                        'Modelo' => Modelos\Modelo_Usuario::class, 'Columna_Etiqueta' => 'nombre'],
+                    ['Nombre' => 'comentario', 'Etiqueta' => 'Comentario', 'Tipo' => 'texto_largo', 'Solo_Lectura' => true],
+                    ['Nombre' => 'created_at', 'Etiqueta' => 'Fecha', 'Tipo' => 'fecha_hora', 'Solo_Lectura' => true, 'En_Tabla' => true],
                     ['Nombre' => 'estado', 'Etiqueta' => 'Estado', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'pendiente',
-                        'Opciones' => ['completada' => 'Completada', 'en_curso' => 'En curso', 'pendiente' => 'Pendiente']],
-                    ['Nombre' => 'fecha_limite', 'Etiqueta' => 'Fecha objetivo', 'Tipo' => 'fecha', 'En_Tabla' => true],
-                ],
-            ],
-            'bitacora' => [
-                'Alcance' => 'proyecto', 'Icono' => 'libro', 'Titulo' => 'Bitácora de proyectos', 'Singular' => 'entrada', 'Modelo' => Modelos\Modelo_Bitacora_Proyecto::class,
-                'Columnas_Busqueda' => ['detalle'], 'Orden' => ['fecha', 'desc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'proyecto_id',
-                'Campos' => [
-                    ['Nombre' => 'proyecto_id', 'Etiqueta' => 'Proyecto', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Proyecto,
-                    ['Nombre' => 'fecha', 'Etiqueta' => 'Fecha', 'Tipo' => 'fecha', 'Obligatorio' => true, 'En_Tabla' => true],
-                    ['Nombre' => 'detalle', 'Etiqueta' => 'Detalle', 'Tipo' => 'texto_largo', 'Obligatorio' => true, 'En_Tabla' => true],
+                        'Opciones' => Modelos\Modelo_Solicitud_Producto::Estados,
+                        'Ayuda' => 'Se marca "Habilitado" sola al activar el producto en la institución.'],
                 ],
             ],
             'entregables' => [
@@ -154,8 +140,7 @@ class Servicio_Definicion_Cms
                 'Columnas_Busqueda' => ['titulo'], 'Orden' => ['created_at', 'desc'], 'Grupo' => 'Relación', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
-                    ['Nombre' => 'proyecto_id', 'Etiqueta' => 'Proyecto'] + $Campo_Proyecto,
-                    ['Nombre' => 'unidad_negocio_id', 'Etiqueta' => 'Unidad'] + $Campo_Unidad,
+                    ['Nombre' => 'unidad_negocio_id', 'Etiqueta' => 'Producto', 'En_Tabla' => true] + $Campo_Unidad,
                     ['Nombre' => 'titulo', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'tipo', 'Etiqueta' => 'Tipo', 'Tipo' => 'lista', 'Opciones' => Modelos\Modelo_Entregable::Tipos,
                         'Obligatorio' => true, 'Por_Defecto' => 'informe', 'En_Tabla' => true],
@@ -244,7 +229,7 @@ class Servicio_Definicion_Cms
                 'Columnas_Busqueda' => ['titulo'], 'Orden' => ['fecha_firma', 'desc'], 'Grupo' => 'Administración', 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Institución', 'Obligatorio' => true, 'En_Tabla' => true] + $Campo_Institucion,
-                    ['Nombre' => 'unidad_negocio_id', 'Etiqueta' => 'Unidad', 'En_Tabla' => true] + $Campo_Unidad,
+                    ['Nombre' => 'unidad_negocio_id', 'Etiqueta' => 'Producto', 'En_Tabla' => true] + $Campo_Unidad,
                     ['Nombre' => 'tipo', 'Etiqueta' => 'Tipo', 'Tipo' => 'lista', 'Obligatorio' => true, 'Por_Defecto' => 'contrato', 'En_Tabla' => true,
                         'Opciones' => ['contrato' => 'Contrato', 'presupuesto' => 'Presupuesto firmado']],
                     ['Nombre' => 'titulo', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
@@ -314,7 +299,6 @@ class Servicio_Definicion_Cms
         return match ($Recurso['Alcance'] ?? null) {
             'institucion' => $Consulta->whereIn('institucion_id', $Ids_Instituciones),
             'propia' => $Consulta->whereIn('id', $Ids_Instituciones),
-            'proyecto' => $Consulta->whereIn('proyecto_id', Modelo_Proyecto::whereIn('institucion_id', $Ids_Instituciones)->select('id')),
             default => $Consulta->whereRaw('1 = 0'),
         };
     }

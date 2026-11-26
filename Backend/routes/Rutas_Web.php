@@ -10,12 +10,12 @@ use App\Controladores\Portal\Controlador_Academia;
 use App\Controladores\Portal\Controlador_Bolsa_Horas;
 use App\Controladores\Portal\Controlador_Certificados;
 use App\Controladores\Portal\Controlador_Credencial;
+use App\Controladores\Portal\Controlador_Ecosistema;
 use App\Controladores\Portal\Controlador_Entregables;
 use App\Controladores\Portal\Controlador_Facturacion;
 use App\Controladores\Portal\Controlador_Inicio;
 use App\Controladores\Portal\Controlador_Marca;
 use App\Controladores\Portal\Controlador_Perfil;
-use App\Controladores\Portal\Controlador_Proyectos;
 use App\Controladores\Portal\Controlador_Research;
 use App\Controladores\Publico\Controlador_Verificar_Credencial;
 use App\Middleware\Middleware_Exigir_Cliente;
@@ -50,9 +50,9 @@ Route::post('/logout', [Controlador_Inicio_Sesion::class, 'Cerrar_Sesion'])->mid
 Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function () {
     Route::get('/', [Controlador_Inicio::class, 'Mostrar_Inicio']);
 
-    Route::get('/proyectos', [Controlador_Proyectos::class, 'Listar_Proyectos']);
-    Route::get('/proyectos/{Proyecto}', [Controlador_Proyectos::class, 'Mostrar_Proyecto']);
-    Route::get('/entregables/{Entregable}/descargar', [Controlador_Entregables::class, 'Descargar_Entregable']);
+    Route::get('/ecosistema', [Controlador_Ecosistema::class, 'Listar_Productos']);
+    Route::get('/ecosistema/{Producto}', [Controlador_Ecosistema::class, 'Mostrar_Producto'])->whereNumber('Producto');
+    Route::get('/ecosistema/{Producto}/imagen', [Controlador_Ecosistema::class, 'Mostrar_Imagen'])->whereNumber('Producto');
 
     Route::middleware(Middleware_Exigir_Unidad_Contratada::class.':RESEARCH')->group(function () {
         Route::get('/research', [Controlador_Research::class, 'Listar_Reportes']);
@@ -73,15 +73,15 @@ Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function ()
     Route::get('/certificados/{Certificado}/archivo', [Controlador_Certificados::class, 'Ver_Archivo']);
     Route::get('/marca/logo', [Controlador_Marca::class, 'Mostrar_Logo']);
 
-
     Route::get('/perfil', [Controlador_Perfil::class, 'Mostrar_Perfil']);
     Route::put('/perfil/contrasena', [Controlador_Perfil::class, 'Cambiar_Contrasena']);
 
     // Solo el administrador delegado: gestiona su institución y su equipo
     Route::middleware(Middleware_Exigir_Administrador_Delegado::class)->group(function () {
-        Route::post('/proyectos/{Proyecto}/participantes', [Controlador_Proyectos::class, 'Actualizar_Participante']);
+        Route::post('/ecosistema/{Producto}/solicitar', [Controlador_Ecosistema::class, 'Solicitar_Producto'])->whereNumber('Producto')->middleware('throttle:6,1');
 
         Route::get('/entregables', [Controlador_Entregables::class, 'Listar_Entregables']);
+        Route::get('/entregables/{Entregable}/descargar', [Controlador_Entregables::class, 'Descargar_Entregable']);
         Route::post('/entregables/{Entregable}/aprobar', [Controlador_Entregables::class, 'Aprobar_Entregable'])->middleware('throttle:10,1');
         Route::post('/entregables/verificar', [Controlador_Entregables::class, 'Verificar_Codigo_Documento'])->middleware('throttle:30,1');
 
