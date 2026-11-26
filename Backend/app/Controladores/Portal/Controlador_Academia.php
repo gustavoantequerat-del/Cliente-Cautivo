@@ -3,7 +3,6 @@
 namespace App\Controladores\Portal;
 
 use App\Modelos\Modelo_Configuracion;
-use App\Modelos\Modelo_Movimiento_Monedas;
 use App\Modelos\Modelo_Progreso_Video;
 use App\Modelos\Modelo_Registro_Auditoria;
 use App\Modelos\Modelo_Video;
@@ -87,18 +86,14 @@ class Controlador_Academia
         $Usuario = $Peticion->user();
 
         $Progreso = Modelo_Progreso_Video::firstOrNew(['video_id' => $Video->id, 'usuario_id' => $Usuario->id]);
-        $Progreso->fecha_completado ??= now();
-        $Progreso->save();
-        // Las monedas van al usuario, para su avatar (una sola vez por video)
-        $Gano_Monedas = Modelo_Movimiento_Monedas::Otorgar_Una_Vez($Usuario, $Video->puntos, 'video', $Video->id, 'Completó «'.$Video->titulo.'»');
-
-        if ($Gano_Monedas) {
-            Modelo_Registro_Auditoria::Registrar_Evento('video.completar', $Video, 'Completó «'.$Video->titulo.'»', ['Monedas' => $Video->puntos]);
+        if ($Progreso->fecha_completado) {
+            return back()->with('Mensaje_Exito', 'Este contenido ya estaba marcado como visto.');
         }
+        $Progreso->fecha_completado = now();
+        $Progreso->save();
+        Modelo_Registro_Auditoria::Registrar_Evento('video.completar', $Video, 'Completó «'.$Video->titulo.'»');
 
-        return back()->with('Mensaje_Exito', $Gano_Monedas
-            ? "¡Listo! Ganó {$Video->puntos} monedas para su avatar."
-            : 'Este contenido ya estaba marcado como visto.');
+        return back()->with('Mensaje_Exito', '¡Listo! Lo marcamos como visto.');
     }
 
     public function Inscribirse_Webinar(Request $Peticion, Modelo_Video $Video): RedirectResponse
@@ -153,7 +148,6 @@ class Controlador_Academia
             'Tema' => $Video->tema,
             'Expositor' => $Video->expositor,
             'Duracion_Minutos' => $Video->duracion_minutos,
-            'Puntos' => $Video->puntos,
             'Fecha_Programada' => $Video->fecha_programada?->translatedFormat('l j \d\e F · H:i'),
             'Es_Proximo' => $Video->formato === 'en_vivo' && $Video->fecha_programada?->isFuture(),
             'Miniatura' => $Video->enlace_miniatura ?: Servicio_Enlaces_Video::Construir_Url_Miniatura($Video->proveedor, $Video->id_externo),

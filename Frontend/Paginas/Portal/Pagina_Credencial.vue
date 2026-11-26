@@ -1,29 +1,22 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import Componente_Encabezado_Pagina from '../../Componentes/Componente_Encabezado_Pagina.vue';
 import Componente_Codigo_QR from '../../Componentes/Componente_Codigo_QR.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
-import Componente_Numero_Animado from '../../Componentes/Componente_Numero_Animado.vue';
-import Componente_Avatar from '../../Componentes/Componente_Avatar.vue';
 
-const Propiedades = defineProps({ Tarjeta: Object, Nivel_Alianza: Object, Videos_Completados: Number, Saldo_Monedas: Number, Miembros_Institucion: Array });
-const Objetos_Avatar = computed(() => usePage().props.Usuario_Actual.Objetos_Avatar);
-const Porcentaje_Nivel = computed(() => Math.round((Propiedades.Nivel_Alianza.Servicios_Contratados / Math.max(1, Propiedades.Nivel_Alianza.Servicios_Totales)) * 100));
-// "actual" = nivel de la institución, "alcanzado" = ya superado, "siguiente" = aún no alcanzado
-function Obtener_Situacion_Nivel(Nivel) {
-    if (Propiedades.Nivel_Alianza.Servicios_Contratados < Nivel.Servicios_Requeridos) return 'siguiente';
-    return Nivel.Clave === Propiedades.Nivel_Alianza.Nivel_Actual.Clave ? 'actual' : 'alcanzado';
-}
-function Obtener_Texto_Situacion(Nivel) {
-    const Situacion = Obtener_Situacion_Nivel(Nivel);
-    if (Situacion === 'actual') return 'Nivel actual';
-    if (Situacion === 'alcanzado') return 'Alcanzado';
-    const Faltan = Nivel.Servicios_Requeridos - Propiedades.Nivel_Alianza.Servicios_Contratados;
-    return `Falta${Faltan === 1 ? '' : 'n'} ${Faltan} servicio${Faltan === 1 ? '' : 's'}`;
-}
-const Texto_Requisito = (Nivel) => (Nivel.Servicios_Requeridos >= Propiedades.Nivel_Alianza.Servicios_Totales
-    ? 'TODOS LOS SERVICIOS' : `${Nivel.Servicios_Requeridos} SERVICIO${Nivel.Servicios_Requeridos === 1 ? '' : 'S'}`);
+const Propiedades = defineProps({ Tarjeta: Object, Nivel_Alianza: Object, Videos_Completados: Number, Miembros_Institucion: Array });
+const Contratados = computed(() => Math.min(Propiedades.Nivel_Alianza.Servicios_Contratados, Propiedades.Nivel_Alianza.Servicios_Para_Premium));
+const Porcentaje_Nivel = computed(() => Math.round((Contratados.value / Propiedades.Nivel_Alianza.Servicios_Para_Premium) * 100));
+const Esta_Alcanzado = (Nivel) => Propiedades.Nivel_Alianza.Servicios_Contratados >= Nivel.Servicios_Minimos;
+const Texto_Requisito = (Nivel) => (Nivel === Propiedades.Nivel_Alianza.Niveles.at(-1)
+    ? `${Nivel.Servicios_Minimos} O MÁS PRODUCTOS` : `${Nivel.Servicios_Minimos} PRODUCTO${Nivel.Servicios_Minimos === 1 ? '' : 'S'}`);
+// Ej. "1 producto más para Premium"
+const Texto_Faltante = computed(() => {
+    const { Nivel_Siguiente, Servicios_Faltantes } = Propiedades.Nivel_Alianza;
+    if (!Nivel_Siguiente) return '¡Su institución tiene todos los beneficios!';
+    return `${Servicios_Faltantes} producto${Servicios_Faltantes === 1 ? '' : 's'} más para ${Nivel_Siguiente.Nombre}`;
+});
 </script>
 
 <template>
@@ -32,13 +25,13 @@ const Texto_Requisito = (Nivel) => (Nivel.Servicios_Requeridos >= Propiedades.Ni
 
     <div :class="$style.top">
         <div class="stack" :class="$style.cardCol">
-            <div :class="$style.card">
+            <div :class="[$style.card, $style['card_' + Nivel_Alianza.Nivel_Actual.Clave]]">
                 <div class="row between">
                     <span :class="$style.cardLabel">CREDENCIAL DE ACCESO</span>
                     <span :class="$style.pill">Intransferible</span>
                 </div>
                 <div :class="$style.identity">
-                    <Link href="/avatar" :class="$style.cardAvatar" aria-label="Vestir mi avatar"><Componente_Avatar :Objetos="Objetos_Avatar" Recorte="busto" /></Link>
+                    <span :class="$style.cardInitials">{{ $page.props.Usuario_Actual.Iniciales }}</span>
                     <div class="stack" :class="$style.who">
                         <span :class="$style.name">{{ Tarjeta.Nombre }}</span>
                         <span :class="$style.org">{{ Tarjeta.Area }}<template v-if="Tarjeta.Area"> · </template>{{ Tarjeta.Institucion }}</span>
@@ -62,18 +55,28 @@ const Texto_Requisito = (Nivel) => (Nivel.Servicios_Requeridos >= Propiedades.Ni
     <section class="card stack">
         <div class="row between">
             <div class="row"><span class="burbuja burbuja-ambar"><Componente_Icono Nombre="estrella" /></span><h2>Niveles de alianza</h2></div>
-            <span class="badge badge-blue">{{ Nivel_Alianza.Servicios_Contratados }} de {{ Nivel_Alianza.Servicios_Totales }} servicios</span>
+            <span class="badge badge-blue">{{ Contratados }} de {{ Nivel_Alianza.Servicios_Para_Premium }} productos activos para Premium</span>
         </div>
         <div class="barra"><span :style="{ width: Porcentaje_Nivel + '%' }" /></div>
+        <strong :class="$style.next">{{ Texto_Faltante }}</strong>
         <div :class="$style.levels" class="escalonado">
-            <article v-for="Nivel in Nivel_Alianza.Niveles" :key="Nivel.Clave" :class="[$style.level, $style[Obtener_Situacion_Nivel(Nivel)]]">
-                <span :class="$style.pts">{{ Texto_Requisito(Nivel) }}</span>
+            <article v-for="Nivel in Nivel_Alianza.Niveles" :key="Nivel.Clave"
+                :class="[$style.level, Nivel.Clave === Nivel_Alianza.Nivel_Actual.Clave ? $style.actual : !Esta_Alcanzado(Nivel) && $style.bloqueado]">
+                <span :class="$style.pts"><span :class="$style.swatch" :style="{ background: Nivel.Color }" />{{ Texto_Requisito(Nivel) }}</span>
                 <strong>{{ Nivel.Nombre }}</strong>
-                <span :class="$style.tag">{{ Obtener_Texto_Situacion(Nivel) }}</span>
-                <p :class="$style.benefit">{{ Nivel.Beneficios }}</p>
+                <span :class="$style.tag">
+                    <template v-if="Nivel.Clave === Nivel_Alianza.Nivel_Actual.Clave">Su nivel actual</template>
+                    <template v-else-if="Esta_Alcanzado(Nivel)">Incluido</template>
+                    <template v-else><Componente_Icono Nombre="candado" :Tamano="12" /> Se desbloquea en {{ Nivel.Nombre }}</template>
+                </span>
+                <ul :class="$style.benefits">
+                    <li v-for="Beneficio in Nivel.Beneficios" :key="Beneficio">
+                        <Componente_Icono :Nombre="Esta_Alcanzado(Nivel) ? 'visto' : 'candado'" :Tamano="14" />{{ Beneficio }}
+                    </li>
+                </ul>
             </article>
         </div>
-        <p class="muted" :class="$style.small"><Componente_Icono Nombre="info" :Tamano="14" /> El nivel sube al contratar más servicios de Blockfinity. Sus monedas personales (<Componente_Numero_Animado :Valor="Saldo_Monedas" />) son para su avatar.</p>
+        <p class="muted" :class="$style.small"><Componente_Icono Nombre="info" :Tamano="14" /> El nivel depende de cuántos productos o servicios de Blockfinity tiene activos su institución.</p>
     </section>
 
     <section v-if="Miembros_Institucion" class="stack">
@@ -114,8 +117,11 @@ const Texto_Requisito = (Nivel) => (Nivel.Servicios_Requeridos >= Propiedades.Ni
 .cardLabel { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; color: var(--side-text); }
 .pill { font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1px solid #5A6B85; color: #DDE3EB; }
 .identity { display: flex; align-items: center; gap: 14px; }
-.cardAvatar { width: 64px; height: 64px; flex: none; border-radius: 50%; overflow: hidden; background: rgba(255, 255, 255, 0.14); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25); transition: transform 0.2s var(--ease); }
-.cardAvatar:hover { transform: scale(1.06); }
+.cardInitials { width: 64px; height: 64px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; background: rgba(255, 255, 255, 0.14); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25); }
+/* Color de la credencial según el nivel: plomo, azul y azul marino con plata */
+.card_explorador { background: linear-gradient(135deg, #8A939E 0%, #5B636D 60%, #474E57 100%); }
+.card_aliado { background: linear-gradient(135deg, #2F6FD6 0%, #1B4C9E 60%, #163C7A 100%); }
+.card_premium { background: linear-gradient(135deg, #16294A 0%, #0A1628 60%, #1C2633 100%); box-shadow: 0 24px 48px rgba(10, 22, 40, 0.28), inset 0 0 0 2px #C9D1DB; }
 .who { gap: 4px; }
 .name { font-size: 26px; font-weight: 800; }
 .org { font-size: 14px; color: var(--side-text); }
@@ -131,12 +137,17 @@ const Texto_Requisito = (Nivel) => (Nivel.Servicios_Requeridos >= Propiedades.Ni
 .memberAvatar { width: 40px; height: 40px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--gradient-primary); color: #fff; font-size: 13px; font-weight: 800; }
 .levels { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); }
 .level { transition: transform 0.25s var(--ease); border: 1px solid var(--line-2); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 6px; background: var(--surface); }
-.alcanzado { background: var(--surface-2); border-color: var(--line); }
+.bloqueado { background: var(--surface-2); border-style: dashed; }
+.bloqueado strong, .bloqueado .benefits { opacity: 0.6; }
+.next { font-size: 15px; color: var(--navy-700); }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.benefits { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.benefits li { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; line-height: 1.45; color: var(--text-2); }
+.benefits li :global(svg) { flex: none; margin-top: 2px; }
 .actual { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(15, 34, 64, 0.3); background: var(--gradient-primary); border-color: var(--navy-950); color: #fff; }
 .actual strong { color: #fff; }
 .pts { font-family: var(--mono); font-size: 12px; color: var(--muted); }
-.actual .pts, .actual .tag, .actual .benefit { color: var(--side-text); }
-.tag { font-size: 12px; font-weight: 700; color: var(--navy-700); }
-.benefit { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+.actual .pts, .actual .tag, .actual .benefits li { color: var(--side-text); }
+.tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--navy-700); }
 @media (max-width: 520px) { .card { aspect-ratio: auto; min-height: 220px; gap: 18px; } }
 </style>

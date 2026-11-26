@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
  * Cada recurso lleva Icono (nombre de Componente_Icono), Titulo, Singular, Modelo, Columnas_Busqueda, Orden y Grupo.
  * Un campo con Visible_Si => [campo, valor] solo se muestra en el formulario cuando ese campo tiene ese valor.
  * Opcionales: Permite_Crear / Permite_Eliminar (false para ajustes fijos), Eliminar_Solo_Superadmin,
- * Vista_Previa ('avatar' en la Forja, 'marca' en instituciones). Un campo con Solo_Superadmin no se le muestra al usuario ejecutivo.
+ * Vista_Previa ('marca' en instituciones). Un campo con Solo_Superadmin no se le muestra al usuario ejecutivo.
  * Además: Solo_Superadmin (contenido global que el usuario ejecutivo no ve) o Alcance (cómo se filtra por
  * institución para el ejecutivo: 'institucion' por la columna institucion_id, 'proyecto' por el proyecto).
  *
@@ -70,8 +70,8 @@ class Servicio_Definicion_Cms
                         'Filtro_Donde' => ['rol', [Modelos\Modelo_Usuario::Rol_Usuario_Institucional, Modelos\Modelo_Usuario::Rol_Administrador_Delegado]]],
                     ['Nombre' => 'titulo', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'descripcion', 'Etiqueta' => 'Descripción', 'Tipo' => 'texto_largo'],
-                    ['Nombre' => 'puntaje', 'Etiqueta' => 'Puntaje (monedas que gana la persona)', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 10000,
-                        'Por_Defecto' => 0, 'En_Tabla' => true, 'Ayuda' => 'Se suman a sus monedas una sola vez, al crear el certificado.'],
+                    ['Nombre' => 'puntaje', 'Etiqueta' => 'Puntaje obtenido', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 10000,
+                        'Por_Defecto' => 0, 'En_Tabla' => true],
                     ['Nombre' => 'ruta_archivo', 'Etiqueta' => 'Certificado (PDF)', 'Tipo' => 'archivo', 'Obligatorio' => true, 'Carpeta' => 'certificados',
                         'Extensiones' => 'pdf', 'Guardar_Nombre_En' => 'nombre_archivo', 'Guardar_Codigo_En' => 'codigo_verificacion'],
                 ],
@@ -189,7 +189,6 @@ class Servicio_Definicion_Cms
                         'Guardar_Nombre_En' => 'nombre_archivo'],
                     ['Nombre' => 'enlace_externo', 'Etiqueta' => 'O enlace de Google Drive del PDF', 'Tipo' => 'enlace_drive',
                         'Ayuda' => 'Compártalo como "Cualquier persona con el enlace". Se muestra en el portal sin opción de descarga.'],
-                    ['Nombre' => 'puntos', 'Etiqueta' => 'Monedas por leerlo', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 1000, 'Por_Defecto' => 10],
                     ['Nombre' => 'es_destacado', 'Etiqueta' => 'Destacado', 'Tipo' => 'si_no', 'En_Tabla' => true],
                     ['Nombre' => 'esta_publicado', 'Etiqueta' => 'Publicado', 'Tipo' => 'si_no', 'Por_Defecto' => true, 'En_Tabla' => true],
                     ['Nombre' => 'fecha_publicacion', 'Etiqueta' => 'Fecha de publicación', 'Tipo' => 'fecha', 'En_Tabla' => true],
@@ -218,7 +217,6 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'fecha_programada', 'Etiqueta' => 'Fecha y hora (en vivo)', 'Tipo' => 'fecha_hora', 'En_Tabla' => true],
                     ['Nombre' => 'enlace_sala', 'Etiqueta' => 'Enlace de la sala (Meet/Zoom/Teams)', 'Tipo' => 'enlace'],
                     ['Nombre' => 'enlace_miniatura', 'Etiqueta' => 'Miniatura (URL de imagen, opcional)', 'Tipo' => 'enlace'],
-                    ['Nombre' => 'puntos', 'Etiqueta' => 'Monedas al completarlo', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 1000, 'Por_Defecto' => 10],
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Exclusivo para', 'Ayuda' => 'Vacío = visible para todos.'] + $Campo_Institucion,
                     ['Nombre' => 'esta_publicado', 'Etiqueta' => 'Publicado', 'Tipo' => 'si_no', 'Por_Defecto' => true, 'En_Tabla' => true],
                 ],
@@ -267,22 +265,6 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'horas', 'Etiqueta' => 'Horas (+ abono / − consumo)', 'Tipo' => 'decimal', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'descripcion', 'Etiqueta' => 'Detalle', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'fecha_vencimiento', 'Etiqueta' => 'Vencen el (solo abonos)', 'Tipo' => 'fecha', 'En_Tabla' => true],
-                ],
-            ],
-            'forja' => [
-                'Solo_Superadmin' => true, 'Icono' => 'estrella', 'Titulo' => 'Forja', 'Singular' => 'objeto', 'Modelo' => Modelos\Modelo_Item_Avatar::class,
-                'Columnas_Busqueda' => ['nombre'], 'Orden' => ['tipo', 'asc'], 'Grupo' => 'Avatares', 'Vista_Previa' => 'avatar',
-                'Campos' => [
-                    ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
-                    ['Nombre' => 'estilo', 'Etiqueta' => 'Parte y estilo', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true,
-                        'Por_Defecto' => 'camisa.manga_corta', 'Opciones' => Modelos\Modelo_Item_Avatar::Estilos,
-                        'Ayuda' => 'Extra = se lleva en la mano (máximo 2). Accesorio = va encima (mochila, capa…). Pose = cómo se para el avatar.'],
-                    ['Nombre' => 'color_principal', 'Etiqueta' => 'Color principal', 'Tipo' => 'color', 'Obligatorio' => true, 'Por_Defecto' => '#3B5B8C'],
-                    ['Nombre' => 'color_secundario', 'Etiqueta' => 'Color de detalles', 'Tipo' => 'color', 'Obligatorio' => true, 'Por_Defecto' => '#FFFFFF'],
-                    ['Nombre' => 'precio', 'Etiqueta' => 'Precio (monedas)', 'Tipo' => 'entero', 'Minimo' => 0, 'Maximo' => 100000, 'Por_Defecto' => 50,
-                        'Obligatorio' => true, 'En_Tabla' => true],
-                    ['Nombre' => 'detalle', 'Etiqueta' => 'Detalle', 'Tipo' => 'texto_largo'],
-                    ['Nombre' => 'esta_publicado', 'Etiqueta' => 'Disponible en la tienda', 'Tipo' => 'si_no', 'Por_Defecto' => true, 'En_Tabla' => true],
                 ],
             ],
             'configuracion' => [

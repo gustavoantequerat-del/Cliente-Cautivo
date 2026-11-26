@@ -31,9 +31,6 @@ const Todos_Los_Grupos = [
         { Url: '/admin/videos', Etiqueta: 'Videos y webinars', Icono: 'reproducir', Solo_Superadmin: true },
         { Url: '/admin/research', Etiqueta: 'Research', Icono: 'grafico', Solo_Superadmin: true },
     ] },
-    { Titulo: 'Avatares', Enlaces: [
-        { Url: '/admin/forja', Etiqueta: 'Forja', Icono: 'estrella', Solo_Superadmin: true },
-    ] },
     { Titulo: 'Administración', Enlaces: [
         { Url: '/admin/facturas', Etiqueta: 'Facturas', Icono: 'facturacion' },
         { Url: '/admin/contratos', Etiqueta: 'Contratos', Icono: 'archivo' },

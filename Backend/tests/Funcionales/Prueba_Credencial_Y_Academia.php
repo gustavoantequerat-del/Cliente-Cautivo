@@ -29,19 +29,19 @@ class Prueba_Credencial_Y_Academia extends Caso_Prueba_Base
     }
 
     #[Test]
-    public function Marcar_Video_Visto_Da_Monedas_Una_Sola_Vez(): void
+    public function Marcar_Video_Visto_Registra_El_Avance_Una_Sola_Vez(): void
     {
         $Usuario = $this->Crear_Cliente();
-        $Video = Modelo_Video::create(['titulo' => 'Píldora', 'formato' => 'pildora', 'puntos' => 10,
+        $Video = Modelo_Video::create(['titulo' => 'Píldora', 'formato' => 'pildora',
             'enlace_original' => 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view']);
 
         $this->assertSame('drive', $Video->proveedor);
         $this->actingAs($Usuario)->get("/academia/{$Video->id}")
             ->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->where('Video.Url_Embebida', 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/preview'));
 
-        $this->actingAs($Usuario)->post("/academia/{$Video->id}/visto");
-        $this->actingAs($Usuario)->post("/academia/{$Video->id}/visto");
-        $this->assertSame(10, $Usuario->Calcular_Saldo_Monedas());
+        $this->actingAs($Usuario)->post("/academia/{$Video->id}/visto")->assertSessionHas('Mensaje_Exito', '¡Listo! Lo marcamos como visto.');
+        $this->actingAs($Usuario)->post("/academia/{$Video->id}/visto")->assertSessionHas('Mensaje_Exito', 'Este contenido ya estaba marcado como visto.');
+        $this->assertDatabaseCount('progreso_videos', 1);
     }
 
     #[Test]

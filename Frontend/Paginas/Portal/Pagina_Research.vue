@@ -40,8 +40,6 @@ defineProps({ Reporte_Destacado: Object, Reportes: Object, Temas: Array, Tema_Se
             <p v-if="Reporte.Resumen" :class="$style.summary">{{ Reporte.Resumen }}</p>
             <span class="row" :class="$style.meta">
                 <span v-if="Reporte.Minutos_Lectura" class="muted" :class="$style.small"><Componente_Icono Nombre="reloj" :Tamano="13" /> {{ Reporte.Minutos_Lectura }} min</span>
-                <span v-if="Reporte.Esta_Leido" class="badge badge-ok"><Componente_Icono Nombre="visto" :Tamano="12" />Leído</span>
-                <span v-else class="badge badge-warn"><Componente_Icono Nombre="estrella" :Tamano="12" />+{{ Reporte.Monedas }} monedas</span>
             </span>
             <div class="row between" :class="$style.foot">
                 <span :class="['badge', Reporte.Es_Exclusivo ? 'badge-navy' : 'badge-blue']">{{ Reporte.Es_Exclusivo ? 'Exclusivo' : 'Incluido' }}</span>

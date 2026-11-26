@@ -9,7 +9,7 @@ defineProps({ Mis_Certificados: Array, Certificados_Del_Equipo: Array });
 
 <template>
     <Head title="Mis acreditaciones" />
-    <Componente_Encabezado_Pagina Icono="certificado" Titulo="Mis acreditaciones" Introduccion="Sus certificados con Blockfinity. Cada uno suma monedas para su avatar." />
+    <Componente_Encabezado_Pagina Icono="certificado" Titulo="Mis acreditaciones" Introduccion="Sus certificados con Blockfinity, listos para ver y compartir." />
 
     <Componente_Estado_Vacio v-if="!Mis_Certificados.length" Icono="certificado" Texto="Aún no tiene certificados" />
     <div v-else class="grid-3 escalonado">
@@ -19,7 +19,7 @@ defineProps({ Mis_Certificados: Array, Certificados_Del_Equipo: Array });
             <h3 :class="$style.title">{{ Certificado.Titulo }}</h3>
             <p v-if="Certificado.Descripcion" :class="$style.description">{{ Certificado.Descripcion }}</p>
             <div class="row between" :class="$style.foot">
-                <span v-if="Certificado.Puntaje" class="badge badge-warn"><Componente_Icono Nombre="estrella" :Tamano="12" />+{{ Certificado.Puntaje }} monedas</span>
+                <span v-if="Certificado.Puntaje" class="badge badge-blue"><Componente_Icono Nombre="estrella" :Tamano="12" />Puntaje {{ Certificado.Puntaje }}</span>
                 <a v-if="Certificado.Tiene_Archivo" :href="`/certificados/${Certificado.Id}/archivo`" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
                     Ver certificado <Componente_Icono Nombre="externo" :Tamano="14" />
                 </a>

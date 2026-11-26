@@ -6,7 +6,7 @@ import Componente_Visor_Pdf from '../../Componentes/Componente_Visor_Pdf.vue';
 
 const Propiedades = defineProps({ Video: Object, Texto_Marca_Agua: String });
 const Marcar_Como_Visto = () => router.post(`/academia/${Propiedades.Video.Id}/visto`, {}, { preserveScroll: true });
-// En los PDF, llegar a la última página cuenta como completado (y da las monedas una sola vez)
+// En los PDF, llegar a la última página cuenta como completado 
 const Al_Terminar_Pdf = () => { if (!Propiedades.Video.Esta_Completado) Marcar_Como_Visto(); };
 const Inscribirse_Webinar = () => router.post(`/academia/${Propiedades.Video.Id}/inscribirme`, {}, { preserveScroll: true });
 </script>
@@ -49,7 +49,6 @@ const Inscribirse_Webinar = () => router.post(`/academia/${Propiedades.Video.Id}
                 <span class="badge badge-ok"><Componente_Icono Nombre="visto" :Tamano="14" />Completado</span>
             </template>
             <template v-else>
-                <span class="badge badge-blue" :class="$style.points"><Componente_Icono Nombre="estrella" :Tamano="14" />+{{ Video.Puntos }} monedas al terminar</span>
                 <p v-if="Video.Tipo_Contenido === 'pdf'" class="muted" :class="$style.hint">Se completa solo al llegar a la última página.</p>
                 <button v-else type="button" class="btn btn-secondary" :disabled="!Video.Url_Embebida" @click="Marcar_Como_Visto">
                     <Componente_Icono Nombre="visto" :Tamano="16" />Marcar como visto
@@ -68,6 +67,5 @@ const Inscribirse_Webinar = () => router.post(`/academia/${Propiedades.Video.Id}
 .title { font-size: 26px; }
 .desc { font-size: 16px; color: var(--text-2); line-height: 1.6; white-space: pre-line; }
 .when { font-size: 17px; text-transform: capitalize; }
-.points { align-self: flex-start; }
 .hint { font-size: 13px; }
 </style>
