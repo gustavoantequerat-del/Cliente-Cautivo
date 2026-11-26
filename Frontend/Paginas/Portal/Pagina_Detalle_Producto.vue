@@ -4,7 +4,7 @@ import Componente_Boton_Solicitar from '../../Componentes/Componente_Boton_Solic
 import Componente_Reproductor_Video from '../../Componentes/Componente_Reproductor_Video.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 
-// Con página: se muestra en un iframe con "Solicitar" y "Ver más" (lleva a la landing). Sin página: el video explicativo.
+// "Ver más" abre la landing del producto en una pestaña nueva; si hay video explicativo, se muestra debajo.
 defineProps({ Producto: Object, Puede_Solicitar: Boolean });
 </script>
 
@@ -21,9 +21,9 @@ defineProps({ Producto: Object, Puede_Solicitar: Boolean });
             <h1 :class="$style.title">{{ Producto.Titulo }}</h1>
             <p v-if="Producto.Subtitulo" :class="$style.subtitle">{{ Producto.Subtitulo }}</p>
             <p v-if="Producto.Descripcion" :class="$style.description">{{ Producto.Descripcion }}</p>
-            <div v-if="Producto.Tipo_Vista === 'pagina'" :class="$style.actions">
+            <div :class="$style.actions">
                 <Componente_Boton_Solicitar :Producto="Producto" :Puede_Solicitar="Puede_Solicitar" />
-                <a :href="Producto.Enlace_Pagina" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+                <a v-if="Producto.Enlace_Pagina" :href="Producto.Enlace_Pagina" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
                     Ver más <Componente_Icono Nombre="externo" :Tamano="15" />
                 </a>
             </div>
@@ -31,16 +31,9 @@ defineProps({ Producto: Object, Puede_Solicitar: Boolean });
         <span v-if="Producto.Url_Imagen" :class="$style.image"><img :src="Producto.Url_Imagen" :alt="Producto.Titulo"></span>
     </header>
 
-    <section v-if="Producto.Tipo_Vista === 'pagina'" :class="$style.site">
-        <div :class="$style.browserBar" aria-hidden="true"><span /><span /><span /><em>{{ Producto.Enlace_Pagina }}</em></div>
-        <iframe :src="Producto.Enlace_Pagina" :title="`Página de ${Producto.Titulo}`" loading="lazy"
-                referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" />
-        <p class="muted" :class="$style.note"><Componente_Icono Nombre="info" :Tamano="14" />¿No se ve la página? Ábrala con "Ver más".</p>
-    </section>
-    <section v-else-if="Producto.Tipo_Vista === 'video'" :class="$style.video">
+    <section v-if="Producto.Url_Video" :class="$style.video">
         <Componente_Reproductor_Video :Url_Embebida="Producto.Url_Video" :Titulo="Producto.Titulo" />
     </section>
-    <p v-else class="vacio">Pronto publicaremos más información de este producto.</p>
 </template>
 
 <style module>
@@ -54,12 +47,6 @@ defineProps({ Producto: Object, Puede_Solicitar: Boolean });
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 4px; }
 .image { flex: 1 1 260px; max-width: 420px; aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden; }
 .image img { width: 100%; height: 100%; object-fit: cover; }
-.site { display: flex; flex-direction: column; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); background: var(--surface); }
-.browserBar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
-.browserBar span { width: 10px; height: 10px; border-radius: 50%; background: var(--line-2); }
-.browserBar em { margin-left: 8px; font-style: normal; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.site iframe { width: 100%; height: min(78vh, 900px); border: 0; background: #fff; }
-.note { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; font-size: 13px; }
 .video { max-width: 960px; }
-@media (max-width: 700px) { .title { font-size: 24px; } .site iframe { height: 70vh; } }
+@media (max-width: 700px) { .title { font-size: 24px; } }
 </style>

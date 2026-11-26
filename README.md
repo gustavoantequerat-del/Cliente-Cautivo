@@ -127,22 +127,17 @@ el aviso "Su sesión expiró" y el segundo intento funciona.
 
 ---
 
-## Reportes de Research (visor protegido)
+## Reportes de Research y PDFs (visor de Google Drive)
 
-Los reportes se leen dentro del portal, **sin opción de descarga**:
+Los PDF de Research, webinars y píldoras se leen dentro del portal con el **visor de Google Drive**:
 
-1. En el CMS, en **Reportes de Research**, suba el PDF o pegue el enlace de Google Drive (compartido como "Cualquier persona con el enlace").
-2. El navegador no puede pedir el archivo directo a Drive (CORS), así que lo pide al Backend (`/research/{id}/documento`), que lo descarga con el ID del enlace y lo guarda en caché 12 horas. **El hosting debe permitir conexiones salientes a Google.**
-3. El portal dibuja cada página con PDF.js en un `<canvas>` (el texto queda como imagen y no se puede seleccionar), con una **marca de agua diagonal** encima, sin clic derecho y sin impresión.
-4. El texto de la marca de agua se edita en **CMS → Configuración**. Admite `{usuario}`, `{institucion}` y `{fecha}`, para saber de quién salió una copia.
+1. Suba el PDF a Google Drive y compártalo como **"Cualquier persona con el enlace"**.
+2. En el CMS pegue ese enlace (Reportes de Research, o Webinars y píldoras con contenido **PDF**).
+3. El portal lo muestra con el visor de Google, más un enlace "Abrir en Google Drive" por si la red bloquea el visor.
 
-> Esto desalienta copiar, pero no lo impide del todo: una captura de pantalla siempre es posible. Por eso conviene que la marca de agua lleve el nombre de quien lee.
-
----
-
-## Webinars y píldoras en PDF
-
-Al crear un webinar o píldora en el CMS se elige el **contenido: Video o PDF**. Si es PDF se sube el archivo o se pega el enlace de Drive, y el portal lo muestra en el mismo visor protegido de Research (marca de agua, sin descarga). Al llegar a la última página se marca como completado.
+El servidor no descarga ni guarda los PDF. Las opciones de descarga e impresión son las que el propietario del archivo
+permita en Drive (en Drive → Compartir → ⚙︎ se puede desactivar "descargar, imprimir y copiar" para lectores).
+En webinars y píldoras en PDF, la persona pulsa **"Marcar como leído"** para registrar su avance.
 
 ---
 
@@ -179,17 +174,16 @@ En **Credencial y beneficios** se ve el avance ("2 de 3 productos activos para P
 ## Ecosistema Blockfinity
 
 Reemplaza a los antiguos proyectos. Cada producto (CMS → Ecosistema → Productos, solo superadmin) tiene título, subtítulo,
-descripción, imagen y **página** (landing `https`) o, si no hay página, **video explicativo** (Drive, YouTube o Vimeo).
+descripción, imagen, **página** (landing `https`) y, opcional, **video explicativo** (Drive, YouTube o Vimeo).
 
 - **Portal**: tarjetas con imagen, título, subtítulo, **Solicitar** y **Ver más**. Lo contratado se resalta en verde y va primero.
-- **Detalle**: título, subtítulo y descripción; si hay página se muestra dentro del portal con **Solicitar** y **Ver más**
-  (abre la landing); si no, el video.
+- **Detalle** (clic en la imagen o el título): título, subtítulo, descripción, **Solicitar**, **Ver más** y el video si lo hay.
 - **Solicitar** (solo el administrador delegado): queda registrada en CMS → Solicitudes de productos y llega un correo al
   *correo de contacto* (CMS → Configuración; si está vacío, `PORTAL_NOTIFY_EMAIL`) con copia al usuario ejecutivo a cargo.
 - **Habilitar**: el ejecutivo marca el producto en la institución (CMS → Instituciones → Productos contratados). La solicitud
   pasa sola a "Habilitado" y el producto cuenta para el nivel de alianza.
-- La página de cada producto se permite automáticamente en la cabecera de seguridad (CSP `frame-src`). Si la landing
-  prohíbe mostrarse dentro de otros sitios (`X-Frame-Options`), el cliente usa "Ver más".
+- **Ver más** abre la landing del producto en una pestaña nueva (no se incrusta en el portal). Si el producto no tiene
+  landing, "Ver más" lleva al detalle, que muestra la descripción y el video explicativo si lo hay.
 
 ---
 
