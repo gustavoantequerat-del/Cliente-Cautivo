@@ -20,12 +20,12 @@ Los videos **no se suben al servidor** (BYOS): se publican en Google Drive, YouT
 
 | Portal cliente | CMS (staff Blockfinity, `/admin`) |
 |---|---|
-| Acceso con correo y contraseña; revocación inmediata | Instituciones con sus unidades contratadas |
-| Inicio: nivel de alianza, horas, webinar, facturas, unidades activas y por descubrir, proyectos | Usuarios, credenciales y roles |
-| Proyectos: fases, entregables, bitácora | Proyectos, fases y bitácora |
+| Acceso con correo y contraseña; revocación inmediata | Instituciones con sus productos contratados |
+| Inicio: nivel de alianza, productos activos y por descubrir, webinar, horas y facturas | Usuarios, credenciales y roles |
+| **Ecosistema Blockfinity**: productos con página o video, contratados resaltados y botón Solicitar | Productos del ecosistema y solicitudes de los clientes |
 | **Aprobación de entregables** con contraseña, código de verificación, IP y auditoría | Entregables (archivo ≤10 MB o enlace de Drive + código de verificación) |
 | Bóveda de entregables + **verificación de documentos en el navegador** (el archivo no se sube) | Videos y webinars por enlace, con vista previa |
-| Research (solo si tienen la unidad RESEARCH contratada) | Reportes de Research (generales o exclusivos) |
+| Research (solo si tienen el producto RESEARCH contratado) | Reportes de Research (generales o exclusivos) |
 | Academia: webinars en vivo (inscripción + `.ics`), grabados y píldoras con reproductor embebido | Facturas (PDF + XML del SIAT) y contratos |
 | Facturación y contratos con descargas | Bolsa de horas: movimientos y atención de solicitudes |
 | Bolsa de horas: saldo, vencimientos y solicitudes de consulta o emergencia | Registro de auditoría |
@@ -48,7 +48,9 @@ cp .env.example .env
 #   SESSION_SECURE_COOKIE=false, MAIL_MAILER=log
 php artisan key:generate
 touch database/database.sqlite
-php artisan migrate --seed --seeder=Sembrador_Datos_Demo   # carga la cuenta demo "Banco Demo S.A."
+php artisan migrate
+php artisan db:seed --class=Sembrador_Banco_Nacional_Bolivia                       # catálogo del ecosistema + la institución
+ADMIN_EMAIL=usted@blockfinityadvisors.com php artisan db:seed --class=Sembrador_Administrador   # superadmin (imprime la contraseña)
 php artisan serve
 
 # Frontend (terminal 2)
@@ -57,17 +59,11 @@ pnpm install       # la primera vez crea pnpm-lock.yaml: versiónelo
 pnpm run dev       # o "pnpm run build" para compilar dentro de Backend/public/build
 ```
 
-Usuarios de la demo (**solo para local; no use el seeder demo en producción**):
+No hay datos de demostración: todo se carga desde el CMS. Con el superadmin cree el usuario ejecutivo, asígnele el
+Banco Nacional de Bolivia S.A., marque sus productos contratados y cree sus usuarios (o use
+`ADMIN_DELEGADO_EMAIL=persona@bnb.com.bo php artisan db:seed --class=Sembrador_Banco_Nacional_Bolivia` para su administrador delegado).
 
-| Rol | Correo | Contraseña | Entra por |
-|---|---|---|---|
-| Superadmin | admin@blockfinity.test | Blockfinity2026 | `/admin/login` |
-| Usuario ejecutivo (a cargo de Banco Demo) | ejecutiva@blockfinity.test | Blockfinity2026 | `/admin/login` |
-| Administrador delegado institucional | maria.rojas@bancodemo.test | Cliente2026demo | `/login` |
-| Usuario institucional (inscrito en el proyecto Crystal, con un certificado) | jorge.quiroga@bancodemo.test | Cliente2026demo | `/login` |
-| Usuario institucional (sin proyectos) | lucia.fernandez@bancodemo.test | Cliente2026demo | `/login` |
-
-Pruebas: `cd Backend && composer test` (27 pruebas: aislamiento entre instituciones, aprobaciones, verificación, bolsa de horas, enlaces de video y CMS).
+Pruebas: `cd Backend && composer test` (aislamiento entre instituciones, ecosistema y solicitudes, niveles, aprobaciones, verificación, bolsa de horas, enlaces de video y CMS).
 Las pruebas también comprueban que cada página que pide el Backend exista en `Frontend/Paginas`.
 
 ---
@@ -98,7 +94,7 @@ Si el cPanel tiene *Terminal* y Composer, puede clonar el repo con *Git Version 
    ```bash
    php artisan key:generate --force
    php artisan migrate --force
-   php artisan db:seed --class=Sembrador_Unidades_Negocio --force
+   php artisan db:seed --class=Sembrador_Banco_Nacional_Bolivia --force    # catálogo del ecosistema + la institución
    ADMIN_EMAIL=usted@blockfinityadvisors.com php artisan db:seed --class=Sembrador_Administrador --force   # muestra la contraseña
    php artisan config:cache && php artisan route:cache && php artisan view:cache
    ```
@@ -154,7 +150,7 @@ El login es el mismo para todos, porque antes de ingresar no se sabe a qué inst
 
 ## Niveles de alianza
 
-El único incentivo es el nivel de la institución, según cuántos productos o servicios (unidades de negocio) tiene activos:
+El único incentivo es el nivel de la institución, según cuántos productos del **Ecosistema Blockfinity** tiene contratados:
 
 | Nivel | Productos activos | Credencial | Beneficios |
 |---|---|---|---|
@@ -163,6 +159,23 @@ El único incentivo es el nivel de la institución, según cuántos productos o 
 | **Premium** | 3 o más | Azul marino y plata | Research a medida y benchmark, mesa cerrada con reguladores, línea prioritaria y comité trimestral |
 
 En **Credencial y beneficios** se ve el avance ("2 de 3 productos activos para Premium", "1 producto más para Premium") y los beneficios que aún se desbloquean. Nombres, umbrales y beneficios se ajustan en `config/Configuracion_Portal.php`.
+
+---
+
+## Ecosistema Blockfinity
+
+Reemplaza a los antiguos proyectos. Cada producto (CMS → Ecosistema → Productos, solo superadmin) tiene título, subtítulo,
+descripción, imagen y **página** (landing `https`) o, si no hay página, **video explicativo** (Drive, YouTube o Vimeo).
+
+- **Portal**: tarjetas con imagen, título, subtítulo, **Solicitar** y **Ver más**. Lo contratado se resalta en verde y va primero.
+- **Detalle**: título, subtítulo y descripción; si hay página se muestra dentro del portal con **Solicitar** y **Ver más**
+  (abre la landing); si no, el video.
+- **Solicitar** (solo el administrador delegado): queda registrada en CMS → Solicitudes de productos y llega un correo al
+  *correo de contacto* (CMS → Configuración; si está vacío, `PORTAL_NOTIFY_EMAIL`) con copia al usuario ejecutivo a cargo.
+- **Habilitar**: el ejecutivo marca el producto en la institución (CMS → Instituciones → Productos contratados). La solicitud
+  pasa sola a "Habilitado" y el producto cuenta para el nivel de alianza.
+- La página de cada producto se permite automáticamente en la cabecera de seguridad (CSP `frame-src`). Si la landing
+  prohíbe mostrarse dentro de otros sitios (`X-Frame-Options`), el cliente usa "Ver más".
 
 ---
 
@@ -185,7 +198,7 @@ Documentos pesados: súbalos también a Drive y pegue el enlace en el entregable
 
 ```
 Backend/                                 ← Laravel (lo que se sube al cPanel)
-  app/Controladores/Portal/              ← pantallas del cliente (Controlador_Proyectos, Controlador_Entregables…)
+  app/Controladores/Portal/              ← pantallas del cliente (Controlador_Ecosistema, Controlador_Entregables…)
   app/Controladores/Administracion/      ← CMS genérico, solicitudes de horas, auditoría
   app/Controladores/Acceso/              ← ingreso y recuperación de contraseña
   app/Controladores/Publico/             ← verificación pública del QR de la credencial
@@ -211,9 +224,9 @@ Roles:
 | Rol | Qué hace |
 |---|---|
 | `superadmin` | Personal de Blockfinity con todo el CMS: todas las instituciones, contenido general (videos, research), configuración y auditoría. |
-| `usuario_ejecutivo` | Personal de Blockfinity a cargo de instituciones: en el CMS ve y administra solo las suyas (sus datos, colores y logo, sus usuarios, proyectos, entregables, certificados, facturas y horas). Las instituciones que crea quedan a su cargo. No puede eliminarlas. |
-| `administrador_delegado` | Responsable de la institución en el portal: facturación, bolsa de horas, aprobación de entregables, certificados de su equipo, y decide qué usuarios institucionales participan en cada proyecto. |
-| `usuario_institucional` | Portal simple: píldoras y webinars, los proyectos donde lo inscribieron, research, sus certificados y su credencial. |
+| `usuario_ejecutivo` | Personal de Blockfinity a cargo de instituciones: en el CMS ve y administra solo las suyas (sus datos, colores y logo, productos contratados, solicitudes de productos, usuarios, entregables, certificados, facturas y horas). Las instituciones que crea quedan a su cargo. No puede eliminarlas. |
+| `administrador_delegado` | Responsable de la institución en el portal: facturación, bolsa de horas, aprobación de entregables y **solicitud de productos** del ecosistema. |
+| `usuario_institucional` | Portal simple: Ecosistema Blockfinity (sin solicitar), píldoras y webinars, research, sus certificados y su credencial. |
 
 El **código de verificación** de un documento es un código único que se calcula a partir del archivo (SHA-256): si el archivo cambia, el código cambia. No es una firma digital ni un dato biométrico.
 
@@ -231,9 +244,9 @@ El **prefijo dice qué es**, así que basta leer el nombre para saber qué hay d
 | Middleware | `Middleware_` + regla | `Middleware_Exigir_Unidad_Contratada` |
 | Servicio (lógica reutilizable) | `Servicio_` + tema | `Servicio_Enlaces_Video` |
 | Rasgo (trait) | `Rasgo_` + comportamiento | `Rasgo_Exclusivo_De_Institucion` |
-| Seeder | `Sembrador_` + datos | `Sembrador_Datos_Demo` |
+| Seeder | `Sembrador_` + datos | `Sembrador_Banco_Nacional_Bolivia` |
 | Prueba | `Prueba_` + tema; cada método describe lo que comprueba | `Prueba_Entregables::Aprobar_Exige_La_Contrasena_Correcta` |
-| Página Vue | `Pagina_` + pantalla | `Pagina_Detalle_Proyecto.vue` |
+| Página Vue | `Pagina_` + pantalla | `Pagina_Detalle_Producto.vue` |
 | Componente Vue | `Componente_` + qué muestra | `Componente_Panel_Aprobacion.vue` |
 | Plantilla Vue (layout) | `Plantilla_` + zona | `Plantilla_Portal.vue` |
 | Función / método | Verbo + objeto | `Calcular_Saldo_Horas()`, `Aprobar_Entregable()` |

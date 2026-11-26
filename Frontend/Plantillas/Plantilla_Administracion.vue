@@ -18,12 +18,12 @@ const Todos_Los_Grupos = [
     { Titulo: 'Cuentas', Enlaces: [
         { Url: '/admin/instituciones', Etiqueta: 'Instituciones', Icono: 'edificio' },
         { Url: '/admin/usuarios', Etiqueta: 'Usuarios', Icono: 'usuarios' },
-        { Url: '/admin/unidades', Etiqueta: 'Unidades de negocio', Icono: 'capas', Solo_Superadmin: true },
+    ] },
+    { Titulo: 'Ecosistema', Enlaces: [
+        { Url: '/admin/solicitudes-productos', Etiqueta: 'Solicitudes de productos', Icono: 'correo' },
+        { Url: '/admin/ecosistema', Etiqueta: 'Productos', Icono: 'capas', Solo_Superadmin: true },
     ] },
     { Titulo: 'Relación', Enlaces: [
-        { Url: '/admin/proyectos', Etiqueta: 'Proyectos', Icono: 'proyectos' },
-        { Url: '/admin/fases', Etiqueta: 'Fases', Icono: 'lista' },
-        { Url: '/admin/bitacora', Etiqueta: 'Bitácora', Icono: 'libro' },
         { Url: '/admin/entregables', Etiqueta: 'Entregables', Icono: 'boveda' },
         { Url: '/admin/certificados', Etiqueta: 'Certificados', Icono: 'certificado' },
     ] },

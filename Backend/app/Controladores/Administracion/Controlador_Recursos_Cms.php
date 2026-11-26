@@ -4,7 +4,7 @@ namespace App\Controladores\Administracion;
 
 use App\Modelos\Modelo_Institucion;
 use App\Modelos\Modelo_Registro_Auditoria;
-use App\Modelos\Modelo_Proyecto;
+use App\Modelos\Modelo_Solicitud_Producto;
 use App\Modelos\Modelo_Unidad_Negocio;
 use App\Modelos\Modelo_Usuario;
 use App\Servicios\Servicio_Archivos;
@@ -277,6 +277,9 @@ class Controlador_Recursos_Cms
                 }
             }
             $Registro->Unidades_Contratadas()->sync($Unidades_A_Sincronizar);
+            // Lo que pidió el cliente y ya quedó activo deja de estar pendiente
+            Modelo_Solicitud_Producto::where('institucion_id', $Registro->id)->where('estado', 'pendiente')
+                ->whereIn('unidad_negocio_id', array_keys($Unidades_A_Sincronizar))->update(['estado' => 'habilitado']);
         }
     }
 
@@ -315,6 +318,9 @@ class Controlador_Recursos_Cms
         if ($Campo['Unico'] ?? false) {
             $Reglas[] = Rule::unique($Registro->getTable(), $Campo['Nombre'])->ignore($Registro->getKey());
         }
+        if ($Campo['Solo_Https'] ?? false) {
+            $Reglas[] = 'starts_with:https://';
+        }
         if ($Campo['Tipo'] === 'enlace_drive') {
             $Reglas[] = function ($Atributo, $Valor, $Fallar) {
                 if ($Valor && ! Servicio_Google_Drive::Extraer_Id_Archivo($Valor)) {
@@ -347,7 +353,7 @@ class Controlador_Recursos_Cms
                 if ($Ids_Instituciones !== null && $Campo['Modelo'] === Modelo_Institucion::class) {
                     $Consulta->whereIn('id', $Ids_Instituciones);
                 }
-                if ($Ids_Instituciones !== null && in_array($Campo['Modelo'], [Modelo_Proyecto::class, Modelo_Usuario::class])) {
+                if ($Ids_Instituciones !== null && $Campo['Modelo'] === Modelo_Usuario::class) {
                     $Consulta->whereIn('institucion_id', $Ids_Instituciones);
                 }
                 $Opciones[$Campo['Nombre']] = $Consulta->get(['id', $Campo['Columna_Etiqueta']])

@@ -6,7 +6,6 @@ use App\Modelos\Modelo_Entregable;
 use App\Modelos\Modelo_Factura;
 use App\Modelos\Modelo_Institucion;
 use App\Modelos\Modelo_Progreso_Video;
-use App\Modelos\Modelo_Proyecto;
 use App\Modelos\Modelo_Reporte_Research;
 use App\Modelos\Modelo_Unidad_Negocio;
 use App\Modelos\Modelo_Usuario;
@@ -16,8 +15,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Todos ven sus proyectos, la formación y su nivel. El administrador delegado además ve
- * el panel de gestión: aprobaciones, facturas, horas, equipo y unidades contratadas.
+ * Todos ven sus productos del ecosistema, la formación y su nivel. El administrador delegado además ve
+ * el panel de gestión: aprobaciones, facturas, horas y equipo.
  */
 class Controlador_Inicio
 {
@@ -26,9 +25,8 @@ class Controlador_Inicio
         $Usuario = $Peticion->user();
         $Institucion = $Usuario->Institucion->load('Unidades_Contratadas');
 
-        $Proyectos_Activos = Modelo_Proyecto::Accesibles_Para_Usuario($Usuario)->where('estado', 'activo')
-            ->with(['Unidad_Negocio', 'Fases'])->latest()->get()
-            ->map(fn (Modelo_Proyecto $Proyecto) => Controlador_Proyectos::Formatear_Resumen_Proyecto($Proyecto));
+        $Productos_Publicados = Modelo_Unidad_Negocio::where('esta_publicado', true)->orderBy('orden')->get();
+        $Productos_Contratados = $Productos_Publicados->filter(fn ($Producto) => $Institucion->Unidades_Contratadas->contains('id', $Producto->id));
 
         $Reporte_Destacado = $Institucion->Tiene_Unidad_Contratada('RESEARCH')
             ? Modelo_Reporte_Research::Visibles_Para_Usuario($Usuario)->where('esta_publicado', true)
@@ -42,7 +40,15 @@ class Controlador_Inicio
 
         return Inertia::render('Portal/Pagina_Inicio', [
             'Fecha_Hoy' => ucfirst(now()->translatedFormat('l j \d\e F')),
-            'Proyectos_Activos' => $Proyectos_Activos,
+            'Ecosistema' => [
+                'Contratados' => $Productos_Contratados->map(fn (Modelo_Unidad_Negocio $Producto) => [
+                    'Id' => $Producto->id,
+                    'Titulo' => $Producto->nombre,
+                    'Subtitulo' => $Producto->subtitulo,
+                    'Url_Imagen' => $Producto->ruta_imagen ? "/ecosistema/{$Producto->id}/imagen?v=".$Producto->updated_at?->timestamp : null,
+                ])->values(),
+                'Por_Descubrir' => $Productos_Publicados->count() - $Productos_Contratados->count(),
+            ],
             'Reporte_Destacado' => $Reporte_Destacado ? [
                 'Id' => $Reporte_Destacado->id,
                 'Titulo' => $Reporte_Destacado->titulo,
@@ -80,12 +86,6 @@ class Controlador_Inicio
             ],
             'Saldo_Horas' => $Institucion->Calcular_Saldo_Horas(),
             'Cantidad_Equipo' => Modelo_Usuario::where('institucion_id', $Institucion->id)->where('rol', Modelo_Usuario::Rol_Usuario_Institucional)->where('esta_activo', true)->count(),
-            'Unidades_Negocio' => Modelo_Unidad_Negocio::orderBy('orden')->get()->map(fn (Modelo_Unidad_Negocio $Unidad) => [
-                'Codigo' => $Unidad->codigo,
-                'Nombre' => $Unidad->nombre,
-                'Descripcion' => $Unidad->descripcion,
-                'Esta_Contratada' => $Institucion->Unidades_Contratadas->contains('id', $Unidad->id),
-            ]),
         ];
     }
 }

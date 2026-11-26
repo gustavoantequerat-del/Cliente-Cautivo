@@ -6,12 +6,11 @@ import Componente_Numero_Animado from '../../Componentes/Componente_Numero_Anima
 import Componente_Estado_Vacio from '../../Componentes/Componente_Estado_Vacio.vue';
 
 const Propiedades = defineProps({
-    Fecha_Hoy: String, Proyectos_Activos: Array, Reporte_Destacado: Object, Proximo_Webinar: Object,
+    Fecha_Hoy: String, Ecosistema: Object, Reporte_Destacado: Object, Proximo_Webinar: Object,
     Mi_Avance: Object, Nivel_Alianza: Object, Panel_Institucional: Object,
 });
 const Pagina = usePage();
 const Primer_Nombre = computed(() => Pagina.props.Usuario_Actual.Nombre.split(' ')[0]);
-const Ejecutivo_Cuenta = computed(() => Pagina.props.Ejecutivo_Cuenta);
 const Saludo = computed(() => {
     const Hora = new Date().getHours();
     return Hora < 12 ? 'Buenos días' : Hora < 19 ? 'Buenas tardes' : 'Buenas noches';
@@ -23,8 +22,6 @@ const Texto_Faltante = computed(() => {
     return Nivel_Siguiente ? `${Servicios_Faltantes} producto${Servicios_Faltantes === 1 ? '' : 's'} más para ${Nivel_Siguiente.Nombre}` : 'Todos los beneficios activos';
 });
 const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
-const Seccion_Por_Unidad = { BCS: '/proyectos', NEXUM: '/academia', RESEARCH: '/research' };
-const Icono_Por_Unidad = { BCS: 'escudo', NEXUM: 'reproducir', RESEARCH: 'grafico', LABS: 'estrella', BUILD: 'capas', W3M: 'correo' };
 </script>
 
 <template>
@@ -35,7 +32,7 @@ const Icono_Por_Unidad = { BCS: 'escudo', NEXUM: 'reproducir', RESEARCH: 'grafic
             <span :class="$style.date">{{ Fecha_Hoy }}</span>
             <h1 :class="$style.title">{{ Saludo }}, {{ Primer_Nombre }} 👋</h1>
             <div class="row">
-                <span :class="$style.pill"><Componente_Icono Nombre="proyectos" :Tamano="16" />{{ Proyectos_Activos.length }} {{ Proyectos_Activos.length === 1 ? 'proyecto activo' : 'proyectos activos' }}</span>
+                <Link href="/ecosistema" :class="$style.pill"><Componente_Icono Nombre="capas" :Tamano="16" />{{ Ecosistema.Contratados.length }} {{ Ecosistema.Contratados.length === 1 ? 'producto activo' : 'productos activos' }}</Link>
                 <Link v-if="Panel_Institucional?.Cantidad_Aprobaciones_Pendientes" href="/entregables" :class="[$style.pill, $style.pillAlert]">
                     <span :class="$style.pulse" />{{ Panel_Institucional.Cantidad_Aprobaciones_Pendientes }} por aprobar
                 </Link>
@@ -83,7 +80,7 @@ const Icono_Por_Unidad = { BCS: 'escudo', NEXUM: 'reproducir', RESEARCH: 'grafic
                 <span class="burbuja burbuja-sm burbuja-verde"><Componente_Icono Nombre="reloj" :Tamano="18" /></span>
                 <span :class="$style.manageText"><strong><Componente_Numero_Animado :Valor="Panel_Institucional.Saldo_Horas" :Decimales="2" /> h</strong>disponibles</span>
             </Link>
-            <Link href="/proyectos" :class="$style.manageItem" class="elevable">
+            <Link href="/credencial" :class="$style.manageItem" class="elevable">
                 <span class="burbuja burbuja-sm burbuja-violeta"><Componente_Icono Nombre="usuarios" :Tamano="18" /></span>
                 <span :class="$style.manageText"><strong><Componente_Numero_Animado :Valor="Panel_Institucional.Cantidad_Equipo" /></strong>personas en su equipo</span>
             </Link>
@@ -93,22 +90,27 @@ const Icono_Por_Unidad = { BCS: 'escudo', NEXUM: 'reproducir', RESEARCH: 'grafic
     <section class="grid-2">
         <div class="card stack">
             <div class="row between">
-                <h2>Mis proyectos</h2>
-                <Link v-if="Proyectos_Activos.length" href="/proyectos" class="link-arrow">Ver todos <Componente_Icono Nombre="flecha" :Tamano="16" /></Link>
+                <h2>Mis productos Blockfinity</h2>
+                <Link href="/ecosistema" class="link-arrow">Ecosistema <Componente_Icono Nombre="flecha" :Tamano="16" /></Link>
             </div>
-            <Componente_Estado_Vacio v-if="!Proyectos_Activos.length" Icono="proyectos"
-                                     :Texto="Panel_Institucional ? 'Sin proyectos activos por ahora' : 'Aún no participa en proyectos'" />
-            <div v-else class="stack escalonado" :class="$style.projects">
-                <Link v-for="Proyecto in Proyectos_Activos" :key="Proyecto.Id" :href="`/proyectos/${Proyecto.Id}`" :class="$style.project" class="elevable">
-                    <div class="row between">
-                        <span class="badge badge-navy">{{ Proyecto.Codigo_Unidad ?? 'Blockfinity' }}</span>
-                        <strong :class="$style.percent">{{ Proyecto.Avance }}%</strong>
-                    </div>
-                    <strong>{{ Proyecto.Nombre }}</strong>
-                    <div class="barra"><span :style="{ width: Proyecto.Avance + '%' }" /></div>
-                    <span v-if="Proyecto.Fase_Actual" class="muted" :class="$style.small"><Componente_Icono Nombre="lista" :Tamano="14" /> {{ Proyecto.Fase_Actual }}</span>
+            <Componente_Estado_Vacio v-if="!Ecosistema.Contratados.length" Icono="capas" Texto="Su institución aún no tiene productos activos" />
+            <div v-else class="stack escalonado" :class="$style.products">
+                <Link v-for="Producto in Ecosistema.Contratados" :key="Producto.Id" :href="`/ecosistema/${Producto.Id}`" :class="$style.product" class="elevable">
+                    <span :class="$style.productThumb">
+                        <img v-if="Producto.Url_Imagen" :src="Producto.Url_Imagen" alt="" loading="lazy">
+                        <Componente_Icono v-else Nombre="capas" :Tamano="20" />
+                    </span>
+                    <span :class="$style.productText">
+                        <strong>{{ Producto.Titulo }}</strong>
+                        <span v-if="Producto.Subtitulo" class="muted">{{ Producto.Subtitulo }}</span>
+                    </span>
+                    <span class="badge badge-ok">Contratado</span>
                 </Link>
             </div>
+            <Link v-if="Ecosistema.Por_Descubrir" href="/ecosistema" :class="$style.discover">
+                <Componente_Icono Nombre="estrella" :Tamano="16" />
+                {{ Ecosistema.Por_Descubrir }} {{ Ecosistema.Por_Descubrir === 1 ? 'producto más' : 'productos más' }} por descubrir
+            </Link>
         </div>
         <div v-if="Reporte_Destacado" class="card stack" :class="$style.reportCard">
             <div class="row">
@@ -124,23 +126,6 @@ const Icono_Por_Unidad = { BCS: 'escudo', NEXUM: 'reproducir', RESEARCH: 'grafic
         </div>
     </section>
 
-    <section v-if="Panel_Institucional" class="stack">
-        <h2>Su ecosistema Blockfinity</h2>
-        <div class="grid-3 escalonado">
-            <article v-for="Unidad in Panel_Institucional.Unidades_Negocio" :key="Unidad.Codigo" :class="[$style.unitCard, !Unidad.Esta_Contratada && $style.unitOff]" :title="Unidad.Descripcion">
-                <span class="burbuja burbuja-sm" :class="!Unidad.Esta_Contratada && $style.bubbleOff"><Componente_Icono :Nombre="Icono_Por_Unidad[Unidad.Codigo] ?? 'capas'" :Tamano="18" /></span>
-                <div :class="$style.unitText">
-                    <strong>{{ Unidad.Nombre }}</strong>
-                    <span :class="['badge', Unidad.Esta_Contratada ? 'badge-ok' : 'badge-outline']">{{ Unidad.Esta_Contratada ? 'Activa' : 'Disponible' }}</span>
-                </div>
-                <Link v-if="Unidad.Esta_Contratada && Seccion_Por_Unidad[Unidad.Codigo]" :href="Seccion_Por_Unidad[Unidad.Codigo]" :class="$style.unitGo" :aria-label="`Ir a ${Unidad.Nombre}`">
-                    <Componente_Icono Nombre="flecha" :Tamano="18" />
-                </Link>
-                <a v-else-if="!Unidad.Esta_Contratada && Ejecutivo_Cuenta" :href="`mailto:${Ejecutivo_Cuenta.Email}?subject=${encodeURIComponent('Me interesa ' + Unidad.Nombre)}`"
-                   :class="$style.unitGo" :aria-label="`Me interesa ${Unidad.Nombre}`"><Componente_Icono Nombre="correo" :Tamano="18" /></a>
-            </article>
-        </div>
-    </section>
 </template>
 
 <style module>
@@ -185,27 +170,25 @@ const Icono_Por_Unidad = { BCS: 'escudo', NEXUM: 'reproducir', RESEARCH: 'grafic
 .manageItem:hover { color: var(--ink); }
 .manageText { display: flex; flex-direction: column; font-size: 13px; color: var(--muted); line-height: 1.3; }
 .manageText strong { font-size: 20px; color: var(--navy-950); }
-.projects { gap: 12px; }
-.project {
-  display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: var(--radius); border: 1px solid var(--line);
+.products { gap: 10px; }
+.product {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius); border: 1px solid var(--line);
   text-decoration: none; color: var(--ink); background: var(--surface);
 }
-.project:hover { color: var(--ink); }
-.percent { font-size: 15px; color: var(--navy-700); }
+.product:hover { color: var(--ink); }
+.productThumb {
+  width: 56px; height: 40px; flex: none; border-radius: 10px; overflow: hidden; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--gradient-primary); color: #fff;
+}
+.productThumb img { width: 100%; height: 100%; object-fit: cover; }
+.productText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.productText strong { font-size: 15px; }
+.discover {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px;
+  font-size: 13px; font-weight: 700; text-decoration: none; background: var(--blue-100); color: var(--navy-700);
+}
 .reportCard { background: linear-gradient(160deg, var(--blue-50) 0%, var(--blue-100) 100%); border-color: transparent; }
 .summary { font-size: 14px; color: var(--text-2); line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .self { align-self: flex-start; }
-.unitCard {
-  display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: var(--radius-lg);
-  background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
-}
-.unitOff { background: var(--surface-2); border-style: dashed; box-shadow: none; }
-.bubbleOff { background: var(--line); color: var(--muted); }
-.unitText { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.unitGo {
-  width: 36px; height: 36px; flex: none; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
-  color: var(--navy-700); background: var(--blue-100); transition: background 0.2s, color 0.2s, transform 0.2s var(--ease);
-}
-.unitGo:hover { background: var(--navy-700); color: #fff; transform: translateX(2px); }
 @media (max-width: 700px) { .hero { padding: 24px 20px; } .title { font-size: 26px; } .heroArt { display: none; } }
 </style>

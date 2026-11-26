@@ -38,16 +38,18 @@ return [
     'required_if' => 'Complete el campo :attribute.',
     'string' => 'El campo :attribute debe ser texto.',
     'unique' => 'Ya existe un registro con ese :attribute.',
+    'starts_with' => 'El campo :attribute debe empezar con :values.',
     'url' => 'Escriba un enlace válido (empieza con https://).',
 
     // Nombres legibles de los campos (columnas de la base de datos)
     'attributes' => [
+        'enlace_pagina' => 'página del producto', 'enlace_video' => 'video', 'subtitulo' => 'subtítulo', 'ruta_imagen' => 'imagen', 'comentario' => 'comentario',
         'nombre' => 'nombre', 'email' => 'correo', 'password' => 'contraseña', 'current_password' => 'contraseña actual',
         'rol' => 'rol', 'institucion_id' => 'institución', 'telefono' => 'teléfono', 'nit' => 'NIT', 'identificador' => 'identificador',
         'codigo' => 'código', 'codigo_verificacion' => 'código de verificación',
         'horas_estimadas' => 'horas estimadas', 'horas_cobradas' => 'horas a descontar', 'descripcion' => 'descripción',
         'especialidad' => 'especialidad', 'modalidad' => 'tipo de solicitud', 'titulo' => 'título', 'enlace_original' => 'enlace del video',
         'enlace_externo' => 'enlace externo', 'monto' => 'monto', 'numero' => 'número', 'concepto' => 'concepto', 'estado' => 'estado',
-        'usuario_id' => 'persona', 'color_primario' => 'color principal', 'color_secundario' => 'color de acento', 'ruta_logo' => 'logo', 'ruta_archivo' => 'archivo', 'puntaje' => 'puntaje', 'tipo_contenido' => 'contenido', 'proyecto_id' => 'proyecto', 'unidad_negocio_id' => 'unidad',
+        'usuario_id' => 'persona', 'color_primario' => 'color principal', 'color_secundario' => 'color de acento', 'ruta_logo' => 'logo', 'ruta_archivo' => 'archivo', 'puntaje' => 'puntaje', 'tipo_contenido' => 'contenido', 'unidad_negocio_id' => 'producto',
     ],
 ];

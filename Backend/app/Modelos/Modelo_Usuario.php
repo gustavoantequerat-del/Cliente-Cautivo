@@ -20,7 +20,7 @@ class Modelo_Usuario extends Usuario_Autenticable
 
     // Personal de la institución cliente (entra por /login)
     public const Rol_Administrador_Delegado = 'administrador_delegado'; // Facturación, horas, aprobaciones y su equipo
-    public const Rol_Usuario_Institucional = 'usuario_institucional';               // Formación y los proyectos donde lo inscribieron
+    public const Rol_Usuario_Institucional = 'usuario_institucional';               // Formación, research, ecosistema y su credencial
 
     public const Roles = [
         self::Rol_Usuario_Institucional => 'Usuario institucional',
