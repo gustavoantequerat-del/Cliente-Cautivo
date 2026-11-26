@@ -99,7 +99,6 @@ Si el cPanel tiene *Terminal* y Composer, puede clonar el repo con *Git Version 
    php artisan key:generate --force
    php artisan migrate --force
    php artisan db:seed --class=Sembrador_Unidades_Negocio --force
-   php artisan db:seed --class=Sembrador_Forja_Inicial --force      # catálogo inicial de objetos del avatar
    ADMIN_EMAIL=usted@blockfinityadvisors.com php artisan db:seed --class=Sembrador_Administrador --force   # muestra la contraseña
    php artisan config:cache && php artisan route:cache && php artisan view:cache
    ```
@@ -133,14 +132,14 @@ Los reportes se leen dentro del portal, **sin opción de descarga**:
 
 ## Webinars y píldoras en PDF
 
-Al crear un webinar o píldora en el CMS se elige el **contenido: Video o PDF**. Si es PDF se sube el archivo o se pega el enlace de Drive, y el portal lo muestra en el mismo visor protegido de Research (marca de agua, sin descarga). Al llegar a la última página se marca como completado y se ganan las monedas.
+Al crear un webinar o píldora en el CMS se elige el **contenido: Video o PDF**. Si es PDF se sube el archivo o se pega el enlace de Drive, y el portal lo muestra en el mismo visor protegido de Research (marca de agua, sin descarga). Al llegar a la última página se marca como completado.
 
 ---
 
 ## Certificados
 
 El superadmin o el usuario ejecutivo los suben en **CMS → Certificados**: persona, título, descripción, puntaje y el PDF.
-La persona lo ve en **Mis acreditaciones** (puede abrirlo y guardarlo, porque es suyo) y gana el puntaje en monedas para su avatar, una sola vez.
+La persona lo ve en **Mis acreditaciones** (puede abrirlo y guardarlo, porque es suyo) junto con el puntaje que obtuvo.
 Su administrador delegado ve los certificados de todo su equipo.
 
 ---
@@ -153,12 +152,17 @@ El login es el mismo para todos, porque antes de ingresar no se sabe a qué inst
 
 ---
 
-## Niveles de alianza y avatares
+## Niveles de alianza
 
-- **Nivel de alianza** (de la institución): depende de cuántos servicios (unidades de negocio) tiene contratados. 1 servicio = Explorador, 2 o más = Aliado, todos = Socio Estratégico. Se ajusta en `config/Configuracion_Portal.php`.
-- **Monedas** (de cada persona): se ganan una sola vez por cada webinar o píldora completados y por cada reporte leído hasta el final. La cantidad se define en cada video o reporte en el CMS.
-- **Avatar**: en **Mi avatar**, cada persona gasta sus monedas en objetos y los combina. Hay 7 partes: camisa, pantalones, zapatos, gorra, extra (en la mano, máximo 2), accesorio (mochila, capa…) y pose.
-- **Forja** (CMS, solo superadmin): crea los objetos eligiendo la parte y el estilo, dos colores, un precio y un detalle, con vista previa en vivo. Los dibujos están en `Frontend/Utilidades/Dibujo_Avatar.js`: para un estilo nuevo, se agrega allí su dibujo y en `Modelo_Item_Avatar::Estilos` su nombre.
+El único incentivo es el nivel de la institución, según cuántos productos o servicios (unidades de negocio) tiene activos:
+
+| Nivel | Productos activos | Credencial | Beneficios |
+|---|---|---|---|
+| **Cliente Explorador** | 1 | Plomo | Webinars abiertos, prueba guiada de una herramienta, soporte local en 24 h |
+| **Aliado Institucional** | 2 | Azul | Webinar trimestral exclusivo, 3 cupos para el Foro, ejecutiva de cuenta asignada |
+| **Premium** | 3 o más | Azul marino y plata | Research a medida y benchmark, mesa cerrada con reguladores, línea prioritaria y comité trimestral |
+
+En **Credencial y beneficios** se ve el avance ("2 de 3 productos activos para Premium", "1 producto más para Premium") y los beneficios que aún se desbloquean. Nombres, umbrales y beneficios se ajustan en `config/Configuracion_Portal.php`.
 
 ---
 
@@ -206,10 +210,10 @@ Roles:
 
 | Rol | Qué hace |
 |---|---|
-| `superadmin` | Personal de Blockfinity con todo el CMS: todas las instituciones, contenido general (videos, research, Forja), configuración y auditoría. |
+| `superadmin` | Personal de Blockfinity con todo el CMS: todas las instituciones, contenido general (videos, research), configuración y auditoría. |
 | `usuario_ejecutivo` | Personal de Blockfinity a cargo de instituciones: en el CMS ve y administra solo las suyas (sus datos, colores y logo, sus usuarios, proyectos, entregables, certificados, facturas y horas). Las instituciones que crea quedan a su cargo. No puede eliminarlas. |
 | `administrador_delegado` | Responsable de la institución en el portal: facturación, bolsa de horas, aprobación de entregables, certificados de su equipo, y decide qué usuarios institucionales participan en cada proyecto. |
-| `usuario_institucional` | Portal simple: píldoras y webinars, los proyectos donde lo inscribieron, research, sus certificados, su avatar y su credencial. |
+| `usuario_institucional` | Portal simple: píldoras y webinars, los proyectos donde lo inscribieron, research, sus certificados y su credencial. |
 
 El **código de verificación** de un documento es un código único que se calcula a partir del archivo (SHA-256): si el archivo cambia, el código cambia. No es una firma digital ni un dato biométrico.
 

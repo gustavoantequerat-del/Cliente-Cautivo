@@ -44,7 +44,7 @@ return [
     'attributes' => [
         'nombre' => 'nombre', 'email' => 'correo', 'password' => 'contraseña', 'current_password' => 'contraseña actual',
         'rol' => 'rol', 'institucion_id' => 'institución', 'telefono' => 'teléfono', 'nit' => 'NIT', 'identificador' => 'identificador',
-        'codigo' => 'código', 'codigo_verificacion' => 'código de verificación', 'puntos_alianza' => 'puntos de alianza',
+        'codigo' => 'código', 'codigo_verificacion' => 'código de verificación',
         'horas_estimadas' => 'horas estimadas', 'horas_cobradas' => 'horas a descontar', 'descripcion' => 'descripción',
         'especialidad' => 'especialidad', 'modalidad' => 'tipo de solicitud', 'titulo' => 'título', 'enlace_original' => 'enlace del video',
         'enlace_externo' => 'enlace externo', 'monto' => 'monto', 'numero' => 'número', 'concepto' => 'concepto', 'estado' => 'estado',

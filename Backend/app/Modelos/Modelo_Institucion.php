@@ -45,25 +45,26 @@ class Modelo_Institucion extends Model
      * Nivel de alianza según cuántos servicios (unidades de negocio) tiene contratados.
      * Los requisitos están en config/Configuracion_Portal.php; null = todos los servicios.
      */
+    /** Nivel según la cantidad de productos o servicios activos: 1 Explorador, 2 Aliado, 3 o más Premium */
     public function Calcular_Nivel_Alianza(): array
     {
-        $Servicios_Totales = Modelo_Unidad_Negocio::count();
         $Servicios_Contratados = $this->Unidades_Contratadas->count();
-        $Niveles = array_map(fn ($Nivel) => $Nivel + ['Servicios_Requeridos' => $Nivel['Servicios_Minimos'] ?? $Servicios_Totales],
-            config('Configuracion_Portal.Niveles_Alianza'));
+        $Niveles = config('Configuracion_Portal.Niveles_Alianza');
 
         $Posicion_Actual = 0;
         foreach ($Niveles as $Posicion => $Nivel) {
-            if ($Servicios_Contratados >= $Nivel['Servicios_Requeridos']) {
+            if ($Servicios_Contratados >= $Nivel['Servicios_Minimos']) {
                 $Posicion_Actual = $Posicion;
             }
         }
+        $Nivel_Siguiente = $Niveles[$Posicion_Actual + 1] ?? null;
 
         return [
             'Nivel_Actual' => $Niveles[$Posicion_Actual],
-            'Nivel_Siguiente' => $Niveles[$Posicion_Actual + 1] ?? null,
+            'Nivel_Siguiente' => $Nivel_Siguiente,
             'Servicios_Contratados' => $Servicios_Contratados,
-            'Servicios_Totales' => $Servicios_Totales,
+            'Servicios_Para_Premium' => end($Niveles)['Servicios_Minimos'],
+            'Servicios_Faltantes' => $Nivel_Siguiente ? $Nivel_Siguiente['Servicios_Minimos'] - $Servicios_Contratados : 0,
             'Niveles' => $Niveles,
         ];
     }

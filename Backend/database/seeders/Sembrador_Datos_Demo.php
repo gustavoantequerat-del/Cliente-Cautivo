@@ -7,7 +7,6 @@ use App\Modelos\Modelo_Contrato;
 use App\Modelos\Modelo_Entregable;
 use App\Modelos\Modelo_Factura;
 use App\Modelos\Modelo_Institucion;
-use App\Modelos\Modelo_Movimiento_Monedas;
 use App\Modelos\Modelo_Movimiento_Horas;
 use App\Modelos\Modelo_Proyecto;
 use App\Modelos\Modelo_Reporte_Research;
@@ -26,7 +25,7 @@ class Sembrador_Datos_Demo extends Seeder
 {
     public function run(): void
     {
-        $this->call([Sembrador_Unidades_Negocio::class, Sembrador_Forja_Inicial::class]);
+        $this->call([Sembrador_Unidades_Negocio::class]);
 
         $Administrador = Modelo_Usuario::create([
             'nombre' => 'Administrador Blockfinity', 'email' => 'admin@blockfinity.test',
@@ -147,19 +146,19 @@ class Sembrador_Datos_Demo extends Seeder
             'formato' => 'en_vivo', 'titulo' => 'Travel Rule en Bolivia: qué deben preparar las entidades financieras',
             'descripcion' => 'Lectura comparada del estándar internacional y su aplicación local, con un caso práctico.',
             'tema' => 'Normativa', 'expositor' => 'Diego Ballón Ossio · Yhovanna Machaca', 'duracion_minutos' => 60,
-            'fecha_programada' => now()->addDays(10)->setTime(10, 0), 'enlace_sala' => 'https://meet.google.com/', 'puntos' => 40,
+            'fecha_programada' => now()->addDays(10)->setTime(10, 0), 'enlace_sala' => 'https://meet.google.com/',
         ]);
         foreach ([
-            ['grabado', 'El Pulso Oculto del Mercado Cripto Boliviano', 'Metodologías', 'Webinar CABLOCK · Blockfinity × Crystal Intelligence', 62, 20],
-            ['grabado', 'Activos virtuales: lectura comparada Bolivia – Reino Unido', 'Normativa', 'Diego Ballón Ossio', 48, 20],
-            ['grabado', 'Evaluación de riesgo de contrapartes VASP paso a paso', 'Metodologías', 'Equipo BCS', 40, 20],
-            ['pildora', 'Cómo leer una alerta de Crystal Expert', 'Herramientas', 'Equipo BCS', 8, 10],
-            ['pildora', 'Travel Rule en 7 minutos', 'Normativa', 'Research & Market Intelligence', 7, 10],
-            ['pildora', 'Debida diligencia de un PSAV en 5 pasos', 'Metodologías', 'Equipo BCS', 6, 10],
-        ] as [$Formato, $Titulo, $Tema, $Expositor, $Minutos, $Puntos]) {
+            ['grabado', 'El Pulso Oculto del Mercado Cripto Boliviano', 'Metodologías', 'Webinar CABLOCK · Blockfinity × Crystal Intelligence', 62],
+            ['grabado', 'Activos virtuales: lectura comparada Bolivia – Reino Unido', 'Normativa', 'Diego Ballón Ossio', 48],
+            ['grabado', 'Evaluación de riesgo de contrapartes VASP paso a paso', 'Metodologías', 'Equipo BCS', 40],
+            ['pildora', 'Cómo leer una alerta de Crystal Expert', 'Herramientas', 'Equipo BCS', 8],
+            ['pildora', 'Travel Rule en 7 minutos', 'Normativa', 'Research & Market Intelligence', 7],
+            ['pildora', 'Debida diligencia de un PSAV en 5 pasos', 'Metodologías', 'Equipo BCS', 6],
+        ] as [$Formato, $Titulo, $Tema, $Expositor, $Minutos]) {
             Modelo_Video::create([
                 'formato' => $Formato, 'titulo' => $Titulo, 'tema' => $Tema, 'expositor' => $Expositor,
-                'duracion_minutos' => $Minutos, 'puntos' => $Puntos,
+                'duracion_minutos' => $Minutos,
             ]);
         }
 
@@ -205,14 +204,9 @@ class Sembrador_Datos_Demo extends Seeder
         Storage::disk('local')->put($Ruta_Certificado, $this->Generar_Pdf_Simple('Certificado NEXUM Nivel 1 - Jorge Quiroga'));
         Modelo_Certificado::create([
             'usuario_id' => $Jorge->id, 'titulo' => 'NEXUM · Nivel 1: Fundamentos de activos virtuales',
-            'descripcion' => 'Aprobó el programa de formación NEXUM para Servicios Financieros.', 'puntaje' => 50,
+            'descripcion' => 'Aprobó el programa de formación NEXUM para Servicios Financieros.', 'puntaje' => 92,
             'ruta_archivo' => $Ruta_Certificado, 'nombre_archivo' => 'certificado-nexum.pdf',
         ]);
-
-        // --- Monedas de demostración para probar la tienda del avatar ----------
-        foreach ([$Maria, $Jorge] as $Usuario_Demo) {
-            Modelo_Movimiento_Monedas::Otorgar_Una_Vez($Usuario_Demo, 150, 'bono', 1, 'Monedas de bienvenida (demo)');
-        }
     }
 
     /** PDF mínimo de una página con un texto (solo para la demo) */

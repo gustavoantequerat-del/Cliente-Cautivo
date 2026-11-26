@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Certificado de una persona. Lo sube el personal de Blockfinity desde el CMS;
- * al crearse, la persona gana su puntaje en monedas para el avatar (una sola vez).
+ * el puntaje es la calificación que obtuvo la persona.
  */
 class Modelo_Certificado extends Model
 {
@@ -27,9 +27,6 @@ class Modelo_Certificado extends Model
     {
         // La institución es siempre la de la persona (sirve para que el usuario ejecutivo solo vea las suyas)
         static::saving(fn (Modelo_Certificado $Certificado) => $Certificado->institucion_id = Modelo_Usuario::whereKey($Certificado->usuario_id)->value('institucion_id'));
-        static::created(fn (Modelo_Certificado $Certificado) => Modelo_Movimiento_Monedas::Otorgar_Una_Vez(
-            $Certificado->Usuario, $Certificado->puntaje, 'certificado', $Certificado->id, 'Certificado «'.$Certificado->titulo.'»'
-        ));
     }
 
     public function Usuario(): BelongsTo

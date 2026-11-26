@@ -34,7 +34,7 @@ class Prueba_Certificados_Y_Marca extends Caso_Prueba_Base
 
         $Certificado = Modelo_Certificado::firstOrFail();
         $this->assertEquals($Mi_Institucion->id, $Certificado->institucion_id);
-        $this->assertSame(40, $Persona->Calcular_Saldo_Monedas());
+        $this->assertSame(40, $Certificado->puntaje);
 
         // La persona lo ve y lo abre; otra persona de la misma institución, no
         $this->actingAs($Persona)->get('/certificados')->assertOk()

@@ -5,7 +5,6 @@ import Componente_Calculadora_Codigo from '../../Componentes/Componente_Calculad
 import Componente_Reproductor_Video from '../../Componentes/Componente_Reproductor_Video.vue';
 import Componente_Encabezado_Pagina from '../../Componentes/Componente_Encabezado_Pagina.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
-import Componente_Avatar from '../../Componentes/Componente_Avatar.vue';
 import Componente_Marca_Blockfinity from '../../Componentes/Componente_Marca_Blockfinity.vue';
 import { Construir_Variables_Marca } from '../../Utilidades/Paleta_Marca.js';
 
@@ -57,11 +56,6 @@ function Filtrar_Entrada(Evento, Campo) {
     Evento.target.value = Valor_Limpio;
     Formulario[Campo.Nombre] = Valor_Limpio;
 }
-// Forja: el objeto que se está diseñando, puesto sobre el avatar
-const Objeto_En_Diseno = computed(() => {
-    const [Tipo, Estilo] = String(Formulario.estilo ?? '').split('.');
-    return { Tipo, Estilo, Color_Principal: Formulario.color_principal, Color_Secundario: Formulario.color_secundario };
-});
 // Instituciones: así se verá su portal con los colores y el logo elegidos
 const Variables_Marca_En_Diseno = computed(() => Construir_Variables_Marca(Formulario.color_primario, Formulario.color_secundario));
 let Url_Logo_Temporal = null;
@@ -122,12 +116,7 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
     <Componente_Encabezado_Pagina :Icono="Es_Edicion ? 'lapiz' : 'agregar'" :Antetitulo="Recurso.Titulo" :Titulo="`${Es_Edicion ? 'Editar' : 'Nuevo/a'} ${Recurso.Singular}`" />
 
     <div :class="Recurso.Vista_Previa && $style.withPreview">
-    <aside v-if="Recurso.Vista_Previa === 'avatar'" class="card" :class="$style.previewCard">
-        <span class="eyebrow">Vista previa</span>
-        <div :class="$style.previewAvatar"><Componente_Avatar :Objetos="[Objeto_En_Diseno]" /></div>
-        <span class="muted" :class="$style.previewHint">Así se verá sobre el avatar.</span>
-    </aside>
-    <aside v-else-if="Recurso.Vista_Previa === 'marca'" class="card" :class="$style.previewCard">
+    <aside v-if="Recurso.Vista_Previa === 'marca'" class="card" :class="$style.previewCard">
         <span class="eyebrow">Así se verá su portal</span>
         <div :class="$style.mockPortal" :style="Variables_Marca_En_Diseno">
             <div :class="$style.mockSide">
@@ -234,7 +223,6 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
 .withPreview { display: flex; flex-wrap: wrap-reverse; gap: 20px; align-items: flex-start; }
 .withPreview .form { flex: 999 1 520px; }
 .previewCard { flex: 1 1 220px; position: sticky; top: 90px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.previewAvatar { width: 180px; height: 252px; border-radius: 18px; background: radial-gradient(circle at 50% 30%, #FFFFFF 0%, #E3E9F2 75%); }
 .previewHint { font-size: 12px; }
 .mockPortal { width: 100%; max-width: 300px; height: 190px; display: flex; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #F2F4F8; }
 .mockSide { width: 42%; padding: 10px 8px; display: flex; flex-direction: column; gap: 8px; background: linear-gradient(180deg, var(--navy-950) 0%, var(--navy-900) 100%); }

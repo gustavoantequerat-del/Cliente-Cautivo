@@ -1,15 +1,15 @@
 <?php
 
 return [
-    // Niveles de alianza: dependen de cuántos servicios (unidades de negocio) contrató la institución.
-    // Servicios_Minimos null = todos los servicios.
+    // Niveles de alianza: dependen de cuántos productos o servicios (unidades de negocio) tiene activos la institución.
+    // Color = color de la credencial del nivel.
     'Niveles_Alianza' => [
-        ['Clave' => 'explorador', 'Nombre' => 'Explorador', 'Servicios_Minimos' => 1,
-            'Beneficios' => 'Acceso al portal, biblioteca de Research y agenda de eventos.'],
-        ['Clave' => 'aliado', 'Nombre' => 'Aliado', 'Servicios_Minimos' => 2,
-            'Beneficios' => 'Reportes completos, Laboratorio de herramientas y certificados verificables.'],
-        ['Clave' => 'socio_estrategico', 'Nombre' => 'Socio Estratégico', 'Servicios_Minimos' => null,
-            'Beneficios' => 'Todos los beneficios: análisis a medida, cupos NEXUM de cortesía, Consejo Consultivo y acceso anticipado a productos.'],
+        ['Clave' => 'explorador', 'Nombre' => 'Cliente Explorador', 'Servicios_Minimos' => 1, 'Color' => '#8A939E',
+            'Beneficios' => ['Acceso a webinars abiertos', 'Prueba guiada de una herramienta', 'Soporte local en 24 horas']],
+        ['Clave' => 'aliado', 'Nombre' => 'Aliado Institucional', 'Servicios_Minimos' => 2, 'Color' => '#2F6FD6',
+            'Beneficios' => ['Webinar trimestral exclusivo', '3 cupos para el Foro', 'Ejecutiva de cuenta asignada']],
+        ['Clave' => 'premium', 'Nombre' => 'Premium', 'Servicios_Minimos' => 3, 'Color' => '#16294A',
+            'Beneficios' => ['Research a medida y benchmark', 'Mesa cerrada con reguladores', 'Línea prioritaria y comité trimestral']],
     ],
 
     // Tamaño máximo de subida en KB (los videos nunca se suben: van por enlace)

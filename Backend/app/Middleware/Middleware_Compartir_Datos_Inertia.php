@@ -27,8 +27,6 @@ class Middleware_Compartir_Datos_Inertia extends Middleware
                 'Es_Superadmin' => $Usuario->Es_Superadmin(),
                 'Es_Administrador_Delegado' => $Usuario->Es_Administrador_Delegado(),
                 'Numero_Credencial' => $Usuario->numero_credencial,
-                // Los clientes muestran su avatar en la barra superior
-                'Objetos_Avatar' => $Usuario->Es_Personal_Blockfinity() ? [] : $Usuario->Obtener_Objetos_Equipados(),
             ] : null,
             'Institucion_Actual' => $Institucion ? [
                 'Nombre' => $Institucion->nombre,

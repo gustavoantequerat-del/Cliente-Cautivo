@@ -38,7 +38,6 @@ const Inscribirse_Webinar = (Id_Video) => router.post(`/academia/${Id_Video}/ins
                 <div><span class="burbuja burbuja-verde"><Componente_Icono Nombre="reloj" /></span><strong :class="$style.big"><Componente_Numero_Animado :Valor="Mi_Avance.Horas" :Decimales="1" /> h</strong><span class="muted">formación</span></div>
                 <div><span class="burbuja burbuja-violeta"><Componente_Icono Nombre="visto" /></span><strong :class="$style.big"><Componente_Numero_Animado :Valor="Mi_Avance.Completados" /></strong><span class="muted">completados</span></div>
             </div>
-            <Link href="/avatar" class="link-arrow">Usar mis monedas <Componente_Icono Nombre="flecha" :Tamano="16" /></Link>
         </aside>
     </div>
 
@@ -67,7 +66,7 @@ const Inscribirse_Webinar = (Id_Video) => router.post(`/academia/${Id_Video}/ins
                 <div class="row between" :class="$style.meta">
                     <span v-if="Video.Esta_Completado" class="badge badge-ok"><Componente_Icono Nombre="visto" :Tamano="14" />Completado</span>
                     <span v-else-if="Video.Es_Proximo" class="badge badge-navy">{{ Video.Fecha_Programada }}</span>
-                    <span v-else class="badge badge-warn"><Componente_Icono Nombre="estrella" :Tamano="12" />+{{ Video.Puntos }} monedas</span>
+                    <span v-else class="badge badge-blue">{{ Video.Tipo_Contenido === 'pdf' ? 'Lectura' : 'Video' }}</span>
                 </div>
             </div>
         </Link>

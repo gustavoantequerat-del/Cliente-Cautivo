@@ -15,7 +15,7 @@ class Modelo_Reporte_Research extends Model
 
     protected $fillable = [
         'institucion_id', 'titulo', 'resumen', 'tema', 'autor', 'minutos_lectura', 'ruta_archivo',
-        'nombre_archivo', 'enlace_externo', 'es_destacado', 'esta_publicado', 'fecha_publicacion', 'puntos',
+        'nombre_archivo', 'enlace_externo', 'es_destacado', 'esta_publicado', 'fecha_publicacion',
     ];
 
     protected function casts(): array

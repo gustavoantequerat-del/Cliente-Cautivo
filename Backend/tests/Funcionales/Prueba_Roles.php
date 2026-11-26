@@ -76,7 +76,7 @@ class Prueba_Roles extends Caso_Prueba_Base
         $this->actingAs($Ejecutivo)->get("/admin/usuarios/{$Cliente_Ajeno->id}/editar")->assertNotFound();
 
         // Contenido global y auditoría: solo el superadmin
-        foreach (['/admin/videos', '/admin/auditoria', '/admin/forja'] as $Url) {
+        foreach (['/admin/videos', '/admin/auditoria', '/admin/configuracion'] as $Url) {
             $this->actingAs($Ejecutivo)->get($Url)->assertForbidden();
         }
 
