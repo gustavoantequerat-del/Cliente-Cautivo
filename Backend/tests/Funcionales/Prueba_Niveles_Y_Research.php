@@ -8,6 +8,8 @@ use App\Modelos\Modelo_Unidad_Negocio;
 use App\Modelos\Modelo_Usuario;
 use App\Modelos\Modelo_Video;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Pagina_Inertia;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Caso_Prueba_Base;
@@ -41,35 +43,53 @@ class Prueba_Niveles_Y_Research extends Caso_Prueba_Base
     }
 
     #[Test]
-    public function El_Reporte_Se_Lee_Con_El_Visor_De_Google_Drive(): void
+    public function El_Reporte_Se_Sube_Como_Pdf_Y_Se_Lee_En_El_Portal(): void
     {
+        Storage::fake('local');
+        $this->actingAs($this->Crear_Superadmin())->post('/admin/research', ['titulo' => 'Pulse', 'tema' => 'Regulación', 'esta_publicado' => 1,
+            'ruta_archivo' => UploadedFile::fake()->createWithContent('pulse t3.pdf', '%PDF-1.4 contenido')])->assertRedirect('/admin/research');
+        $Reporte = Modelo_Reporte_Research::where('titulo', 'Pulse')->firstOrFail();
         $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['RESEARCH']), Modelo_Usuario::Rol_Usuario_Institucional);
-        $Reporte = Modelo_Reporte_Research::create(['titulo' => 'Pulse', 'tema' => 'Regulación',
-            'enlace_externo' => 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view?usp=sharing']);
 
         $this->actingAs($Usuario)->get("/research/{$Reporte->id}")->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina
-            ->component('Portal/Pagina_Detalle_Reporte')
-            ->where('Reporte.Documento.Url_Visor', 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/preview')
-            ->where('Reporte.Documento.Url_Abrir', 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view'));
-        // Sin Research contratado no se ve
-        $this->actingAs($this->Crear_Cliente($this->Crear_Institucion(['BCS'])))->get("/research/{$Reporte->id}")->assertRedirect('/');
+            ->component('Portal/Pagina_Detalle_Reporte')->where('Reporte.Documento.Url_Visor', "/research/{$Reporte->id}/documento"));
+        $Documento = $this->actingAs($Usuario)->get("/research/{$Reporte->id}/documento");
+        $Documento->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        $this->assertStringStartsWith('inline', $Documento->headers->get('Content-Disposition'));
+
+        // Sin Research contratado no se ve ni se abre
+        $Otro = $this->Crear_Cliente($this->Crear_Institucion(['BCS']));
+        $this->actingAs($Otro)->get("/research/{$Reporte->id}/documento")->assertRedirect('/');
     }
 
     #[Test]
-    public function Una_Pildora_En_Pdf_Se_Lee_Con_El_Visor_De_Google_Drive(): void
+    public function Un_Reporte_Antiguo_Con_Enlace_De_Drive_Usa_El_Visor_De_Google(): void
     {
-        $Superadmin = $this->Crear_Superadmin();
-        $this->actingAs($Superadmin)->post('/admin/videos', ['formato' => 'pildora', 'titulo' => 'Guía Travel Rule', 'tipo_contenido' => 'pdf',
-            'esta_publicado' => 1, 'enlace_externo' => 'https://example.com/guia.pdf'])->assertSessionHasErrors('enlace_externo');
-        $this->actingAs($Superadmin)->post('/admin/videos', ['formato' => 'pildora', 'titulo' => 'Guía Travel Rule', 'tipo_contenido' => 'pdf',
-            'esta_publicado' => 1, 'enlace_externo' => 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view'])->assertRedirect('/admin/videos');
+        $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['RESEARCH']));
+        $Reporte = Modelo_Reporte_Research::create(['titulo' => 'Antiguo', 'tema' => 'Regulación',
+            'enlace_externo' => 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view']);
+
+        $this->actingAs($Usuario)->get("/research/{$Reporte->id}")->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina
+            ->where('Reporte.Documento.Url_Visor', 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/preview'));
+    }
+
+    #[Test]
+    public function Una_Pildora_En_Pdf_Se_Sube_Y_Se_Lee_En_El_Portal(): void
+    {
+        Storage::fake('local');
+        $this->actingAs($this->Crear_Superadmin())->post('/admin/videos', ['formato' => 'pildora', 'titulo' => 'Guía Travel Rule', 'tipo_contenido' => 'pdf',
+            'esta_publicado' => 1, 'ruta_archivo' => UploadedFile::fake()->createWithContent('guia.pdf', '%PDF-1.4 guía')])->assertRedirect('/admin/videos');
         $Pildora = Modelo_Video::where('titulo', 'Guía Travel Rule')->firstOrFail();
         $Usuario = $this->Crear_Cliente(null, Modelo_Usuario::Rol_Usuario_Institucional);
 
         $this->actingAs($Usuario)->get("/academia/{$Pildora->id}")->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina
-            ->where('Video.Tipo_Contenido', 'pdf')->where('Video.Documento.Url_Visor', 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/preview'));
+            ->where('Video.Tipo_Contenido', 'pdf')->where('Video.Documento.Url_Visor', "/academia/{$Pildora->id}/documento"));
+        $this->actingAs($Usuario)->get("/academia/{$Pildora->id}/documento")->assertOk()->assertHeader('Content-Type', 'application/pdf');
         $this->actingAs($Usuario)->post("/academia/{$Pildora->id}/visto")->assertSessionHas('Mensaje_Exito');
-        $this->assertDatabaseHas('progreso_videos', ['video_id' => $Pildora->id, 'usuario_id' => $Usuario->id]);
+
+        // Un video no tiene documento
+        $Video = Modelo_Video::create(['titulo' => 'Video', 'formato' => 'grabado', 'esta_publicado' => true]);
+        $this->actingAs($Usuario)->get("/academia/{$Video->id}/documento")->assertNotFound();
     }
 
     #[Test]

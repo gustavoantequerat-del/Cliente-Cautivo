@@ -5,13 +5,14 @@ namespace App\Controladores\Portal;
 use App\Modelos\Modelo_Registro_Auditoria;
 use App\Modelos\Modelo_Reporte_Research;
 use App\Modelos\Modelo_Usuario;
-use App\Servicios\Servicio_Google_Drive;
+use App\Servicios\Servicio_Documentos_Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as Respuesta_Http;
 
 /**
- * Los reportes se leen en el portal con el visor de Google Drive.
+ * Los reportes se leen en el portal con el lector de PDF del navegador (o el visor de Google si es un enlace de Drive).
  */
 class Controlador_Research
 {
@@ -43,9 +44,17 @@ class Controlador_Research
 
         return Inertia::render('Portal/Pagina_Detalle_Reporte', [
             'Reporte' => $this->Formatear_Reporte($Reporte) + [
-                'Documento' => Servicio_Google_Drive::Construir_Visor($Reporte->enlace_externo),
+                'Documento' => Servicio_Documentos_Pdf::Armar_Documento($Reporte->ruta_archivo, $Reporte->enlace_externo, "/research/{$Reporte->id}/documento"),
             ],
         ]);
+    }
+
+    /** El PDF subido, para el lector del navegador */
+    public function Obtener_Documento(Request $Peticion, Modelo_Reporte_Research $Reporte): Respuesta_Http
+    {
+        $this->Validar_Acceso_Reporte($Peticion->user(), $Reporte);
+
+        return Servicio_Documentos_Pdf::Responder_Pdf($Reporte->ruta_archivo, $Reporte->nombre_archivo);
     }
 
     private function Validar_Acceso_Reporte(Modelo_Usuario $Usuario, Modelo_Reporte_Research $Reporte): void
@@ -65,7 +74,7 @@ class Controlador_Research
             'Minutos_Lectura' => $Reporte->minutos_lectura,
             'Fecha' => $Reporte->fecha_publicacion?->translatedFormat('M Y'),
             'Es_Exclusivo' => (bool) $Reporte->institucion_id,
-            'Tiene_Archivo' => (bool) Servicio_Google_Drive::Extraer_Id_Archivo($Reporte->enlace_externo),
+            'Tiene_Archivo' => (bool) ($Reporte->ruta_archivo || $Reporte->enlace_externo),
         ];
     }
 }

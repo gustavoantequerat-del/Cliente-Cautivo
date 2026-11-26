@@ -6,12 +6,13 @@ use App\Modelos\Modelo_Progreso_Video;
 use App\Modelos\Modelo_Registro_Auditoria;
 use App\Modelos\Modelo_Video;
 use App\Servicios\Servicio_Enlaces_Video;
-use App\Servicios\Servicio_Google_Drive;
+use App\Servicios\Servicio_Documentos_Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as Respuesta_Archivo;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as Respuesta_Http;
 
 class Controlador_Academia
 {
@@ -61,10 +62,19 @@ class Controlador_Academia
             'Video' => $this->Formatear_Video($Video, $Progreso) + [
                 'Descripcion' => $Video->descripcion,
                 'Url_Embebida' => $Video->Construir_Url_Embebida(),
-                'Documento' => $Video->Es_Pdf() ? Servicio_Google_Drive::Construir_Visor($Video->enlace_externo) : null,
+                'Documento' => $Video->Es_Pdf() ? Servicio_Documentos_Pdf::Armar_Documento($Video->ruta_archivo, $Video->enlace_externo, "/academia/{$Video->id}/documento") : null,
                 'Enlace_Sala' => $Video->formato === 'en_vivo' ? $Video->enlace_sala : null,
             ],
         ]);
+    }
+
+    /** El PDF subido de un webinar o píldora, para el lector del navegador */
+    public function Obtener_Documento(Request $Peticion, Modelo_Video $Video): Respuesta_Http
+    {
+        $this->Validar_Acceso_Video($Peticion, $Video);
+        abort_unless($Video->Es_Pdf(), 404);
+
+        return Servicio_Documentos_Pdf::Responder_Pdf($Video->ruta_archivo, $Video->nombre_archivo);
     }
 
     /** "Marcar como visto": lo declara el usuario (Drive no permite medir la reproducción) */

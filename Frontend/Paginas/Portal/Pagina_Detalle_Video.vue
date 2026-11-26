@@ -2,7 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import Componente_Reproductor_Video from '../../Componentes/Componente_Reproductor_Video.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
-import Componente_Visor_Google from '../../Componentes/Componente_Visor_Google.vue';
+import Componente_Visor_Documento from '../../Componentes/Componente_Visor_Documento.vue';
 
 const Propiedades = defineProps({ Video: Object });
 const Marcar_Como_Visto = () => router.post(`/academia/${Propiedades.Video.Id}/visto`, {}, { preserveScroll: true });
@@ -16,7 +16,7 @@ const Inscribirse_Webinar = () => router.post(`/academia/${Propiedades.Video.Id}
     <div :class="$style.layout">
         <div class="stack" :class="$style.main">
             <template v-if="Video.Tipo_Contenido === 'pdf'">
-                <Componente_Visor_Google v-if="Video.Documento" :Documento="Video.Documento" :Titulo="Video.Titulo" />
+                <Componente_Visor_Documento v-if="Video.Documento" :Documento="Video.Documento" :Titulo="Video.Titulo" />
                 <p v-else class="vacio">El documento aún no está disponible.</p>
             </template>
             <Componente_Reproductor_Video v-else :Url_Embebida="Video.Url_Embebida" :Titulo="Video.Titulo" :Proveedor="Video.Proveedor" />

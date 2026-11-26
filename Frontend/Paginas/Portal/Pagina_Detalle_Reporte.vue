@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import Componente_Visor_Google from '../../Componentes/Componente_Visor_Google.vue';
+import Componente_Visor_Documento from '../../Componentes/Componente_Visor_Documento.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 
 defineProps({ Reporte: Object });
@@ -21,7 +21,7 @@ defineProps({ Reporte: Object });
         <p v-if="Reporte.Resumen" class="muted">{{ Reporte.Resumen }}</p>
     </header>
 
-    <Componente_Visor_Google v-if="Reporte.Documento" :Documento="Reporte.Documento" :Titulo="Reporte.Titulo" />
+    <Componente_Visor_Documento v-if="Reporte.Documento" :Documento="Reporte.Documento" :Titulo="Reporte.Titulo" />
     <p v-else class="vacio">Este reporte aún no tiene documento.</p>
 </template>
 

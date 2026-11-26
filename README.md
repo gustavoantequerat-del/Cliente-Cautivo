@@ -23,7 +23,7 @@ Los videos **no se suben al servidor** (BYOS): se publican en Google Drive, YouT
 | Acceso con correo y contraseña; revocación inmediata | Instituciones con sus productos contratados |
 | Inicio: nivel de alianza, productos activos y por descubrir, webinar, horas y facturas | Usuarios, credenciales y roles |
 | **Ecosistema Blockfinity**: productos con página o video, contratados resaltados y botón Solicitar | Productos del ecosistema y solicitudes de los clientes |
-| **Aprobación de entregables** con contraseña, código de verificación, IP y auditoría | Entregables (archivo ≤10 MB o enlace de Drive + código de verificación) |
+| **Aprobación de entregables** con contraseña, código de verificación, IP y auditoría | Entregables (archivo ≤20 MB o enlace de Drive + código de verificación) |
 | Bóveda de entregables + **verificación de documentos en el navegador** (el archivo no se sube) | Videos y webinars por enlace, con vista previa |
 | Research (solo si tienen el producto RESEARCH contratado) | Reportes de Research (generales o exclusivos) |
 | Academia: webinars en vivo (inscripción + `.ics`), grabados y píldoras con reproductor embebido | Facturas (PDF + XML del SIAT) y contratos |
@@ -127,17 +127,17 @@ el aviso "Su sesión expiró" y el segundo intento funciona.
 
 ---
 
-## Reportes de Research y PDFs (visor de Google Drive)
+## Reportes de Research y PDFs
 
-Los PDF de Research, webinars y píldoras se leen dentro del portal con el **visor de Google Drive**:
+Los PDF de Research, webinars y píldoras **se suben en el CMS** y se leen dentro del portal con el lector de PDF del
+propio navegador (sin enlaces externos ni librerías). Siempre hay un botón **"Abrir el PDF"** por si el lector
+incrustado no aparece (pasa en algunos celulares). Los registros antiguos con enlace de Drive siguen usando el visor de Google.
 
-1. Suba el PDF a Google Drive y compártalo como **"Cualquier persona con el enlace"**.
-2. En el CMS pegue ese enlace (Reportes de Research, o Webinars y píldoras con contenido **PDF**).
-3. El portal lo muestra con el visor de Google, más un enlace "Abrir en Google Drive" por si la red bloquea el visor.
-
-El servidor no descarga ni guarda los PDF. Las opciones de descarga e impresión son las que el propietario del archivo
-permita en Drive (en Drive → Compartir → ⚙︎ se puede desactivar "descargar, imprimir y copiar" para lectores).
 En webinars y píldoras en PDF, la persona pulsa **"Marcar como leído"** para registrar su avance.
+
+**Límite de subida:** el portal acepta hasta 20 MB (`PORTAL_MAX_UPLOAD_KB`). PHP también tiene su propio límite:
+`Backend/public/.user.ini` lo sube a 20 MB (cPanel lo aplica en unos 5 minutos). Si su hosting lo ignora, cámbielo en
+cPanel → *Select PHP Version* → *Options* (o *MultiPHP INI Editor*): `upload_max_filesize = 20M` y `post_max_size = 25M`.
 
 ---
 

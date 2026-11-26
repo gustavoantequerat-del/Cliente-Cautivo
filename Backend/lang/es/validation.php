@@ -19,6 +19,7 @@ return [
         'array' => 'El campo :attribute no puede tener más de :max elementos.',
     ],
     'mimes' => 'El archivo debe ser de tipo: :values.',
+    'uploaded' => 'El archivo no se pudo subir: probablemente supera el tamaño que permite el servidor (vea README → límite de subida).',
     'min' => [
         'numeric' => 'El campo :attribute debe ser al menos :min.',
         'file' => 'El archivo debe pesar al menos :min KB.',
