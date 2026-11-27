@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Builder;
  * sin escribir una pantalla por tabla. Para agregar un campo: añadirlo aquí.
  *
  * Cada recurso lleva Icono (nombre de Componente_Icono), Titulo, Singular, Modelo, Columnas_Busqueda, Orden y Grupo.
- * Un campo con Visible_Si => [campo, valor] solo se muestra en el formulario cuando ese campo tiene ese valor.
+ * Un campo con Visible_Si => [campo, valor] solo se muestra en el formulario cuando ese campo tiene ese valor
+ * (o con varias condiciones: [[campo, valor], [campo, valor]], todas deben cumplirse).
  * Opcionales: Permite_Crear / Permite_Eliminar (false para ajustes fijos), Eliminar_Solo_Superadmin,
  * Vista_Previa ('marca' en instituciones). Un campo con Solo_Superadmin no se le muestra al usuario ejecutivo.
  * Además: Solo_Superadmin (contenido global que el usuario ejecutivo no ve) o Alcance (cómo se filtra por
@@ -170,8 +171,14 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'minutos_lectura', 'Etiqueta' => 'Minutos de lectura', 'Tipo' => 'entero', 'Minimo' => 1, 'Maximo' => 600],
                     ['Nombre' => 'institucion_id', 'Etiqueta' => 'Exclusivo para', 'En_Tabla' => true,
                         'Ayuda' => 'Vacío = visible para todas las instituciones con Research.'] + $Campo_Institucion,
+                    ['Nombre' => 'origen_documento', 'Etiqueta' => 'PDF del reporte', 'Tipo' => 'lista', 'Obligatorio' => true, 'Por_Defecto' => 'archivo',
+                        'Opciones' => Servicio_Documentos_Pdf::Origenes],
                     ['Nombre' => 'ruta_archivo', 'Etiqueta' => 'Archivo PDF', 'Tipo' => 'archivo', 'Carpeta' => 'research', 'Extensiones' => 'pdf',
-                        'Guardar_Nombre_En' => 'nombre_archivo', 'Ayuda' => 'Se lee dentro del portal con el lector de PDF del navegador.'],
+                        'Guardar_Nombre_En' => 'nombre_archivo', 'Visible_Si' => ['origen_documento', 'archivo'],
+                        'Ayuda' => 'Se lee dentro del portal con el lector de PDF del navegador.'],
+                    ['Nombre' => 'enlace_externo', 'Etiqueta' => 'Enlace de Google Drive del PDF', 'Tipo' => 'enlace_drive',
+                        'Visible_Si' => ['origen_documento', 'drive'], 'Obligatorio_Si' => 'origen_documento,drive',
+                        'Ayuda' => 'Compártalo en Drive como "Cualquier persona con el enlace". Se lee con el visor de Google.'],
                     ['Nombre' => 'es_destacado', 'Etiqueta' => 'Destacado', 'Tipo' => 'si_no', 'En_Tabla' => true],
                     ['Nombre' => 'esta_publicado', 'Etiqueta' => 'Publicado', 'Tipo' => 'si_no', 'Por_Defecto' => true, 'En_Tabla' => true],
                     ['Nombre' => 'fecha_publicacion', 'Etiqueta' => 'Fecha de publicación', 'Tipo' => 'fecha', 'En_Tabla' => true],
@@ -186,9 +193,14 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'titulo', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'descripcion', 'Etiqueta' => 'Descripción', 'Tipo' => 'texto_largo'],
                     ['Nombre' => 'tipo_contenido', 'Etiqueta' => 'Contenido', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true, 'Por_Defecto' => 'video',
-                        'Opciones' => ['video' => 'Video', 'pdf' => 'PDF'], 'Ayuda' => 'El PDF se sube aquí y se lee dentro del portal.'],
+                        'Opciones' => ['video' => 'Video', 'pdf' => 'PDF'], 'Ayuda' => 'El PDF se lee dentro del portal: súbalo o use un enlace de Google Drive.'],
+                    ['Nombre' => 'origen_documento', 'Etiqueta' => 'PDF', 'Tipo' => 'lista', 'Obligatorio_Si' => 'tipo_contenido,pdf', 'Por_Defecto' => 'archivo',
+                        'Opciones' => Servicio_Documentos_Pdf::Origenes, 'Visible_Si' => ['tipo_contenido', 'pdf']],
                     ['Nombre' => 'ruta_archivo', 'Etiqueta' => 'Archivo PDF', 'Tipo' => 'archivo', 'Carpeta' => 'academia', 'Extensiones' => 'pdf',
-                        'Guardar_Nombre_En' => 'nombre_archivo', 'Visible_Si' => ['tipo_contenido', 'pdf']],
+                        'Guardar_Nombre_En' => 'nombre_archivo', 'Visible_Si' => [['tipo_contenido', 'pdf'], ['origen_documento', 'archivo']]],
+                    ['Nombre' => 'enlace_externo', 'Etiqueta' => 'Enlace de Google Drive del PDF', 'Tipo' => 'enlace_drive',
+                        'Visible_Si' => [['tipo_contenido', 'pdf'], ['origen_documento', 'drive']],
+                        'Ayuda' => 'Compártalo en Drive como "Cualquier persona con el enlace". Se lee con el visor de Google.'],
                     ['Nombre' => 'enlace_original', 'Etiqueta' => 'Enlace del video (Drive, YouTube o Vimeo)', 'Tipo' => 'enlace_video', 'Visible_Si' => ['tipo_contenido', 'video'],
                         'Ayuda' => 'Pegue el enlace de compartir. En Drive: "Cualquier persona con el enlace". Para webinars en vivo puede quedar vacío hasta tener la grabación.'],
                     ['Nombre' => 'tema', 'Etiqueta' => 'Tema', 'Tipo' => 'lista', 'En_Tabla' => true,

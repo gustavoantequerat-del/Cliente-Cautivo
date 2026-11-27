@@ -6,19 +6,22 @@ use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response as Respuesta_Http;
 
 /**
- * PDFs de Research, webinars y píldoras. Lo normal es subir el archivo al portal: se muestra con el lector
- * de PDF del propio navegador. Si en vez de archivo hay un enlace de Drive (registros antiguos), se usa el visor de Google.
+ * PDFs de Research, webinars y píldoras. En el CMS se elige el origen: archivo subido (se muestra con el lector
+ * de PDF del navegador) o enlace de Google Drive (se muestra con el visor de Google).
  */
 class Servicio_Documentos_Pdf
 {
     /** { Url_Visor, Url_Abrir } para el Frontend, o null si no hay documento */
-    public static function Armar_Documento(?string $Ruta_Archivo, ?string $Enlace_Drive, string $Url_Propia): ?array
+    public const Origenes = ['archivo' => 'Subir el archivo PDF', 'drive' => 'Enlace de Google Drive'];
+
+    /** { Url_Visor, Url_Abrir } para el Frontend según el origen elegido, o null si no hay documento */
+    public static function Armar_Documento(?string $Origen, ?string $Ruta_Archivo, ?string $Enlace_Drive, string $Url_Propia): ?array
     {
-        if ($Ruta_Archivo) {
-            return ['Url_Visor' => $Url_Propia, 'Url_Abrir' => $Url_Propia];
+        if ($Origen === 'drive') {
+            return Servicio_Google_Drive::Construir_Visor($Enlace_Drive);
         }
 
-        return Servicio_Google_Drive::Construir_Visor($Enlace_Drive);
+        return $Ruta_Archivo ? ['Url_Visor' => $Url_Propia, 'Url_Abrir' => $Url_Propia] : null;
     }
 
     /** El archivo subido, para verlo en el navegador (no como descarga) */

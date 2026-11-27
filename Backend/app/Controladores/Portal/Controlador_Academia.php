@@ -62,7 +62,7 @@ class Controlador_Academia
             'Video' => $this->Formatear_Video($Video, $Progreso) + [
                 'Descripcion' => $Video->descripcion,
                 'Url_Embebida' => $Video->Construir_Url_Embebida(),
-                'Documento' => $Video->Es_Pdf() ? Servicio_Documentos_Pdf::Armar_Documento($Video->ruta_archivo, $Video->enlace_externo, "/academia/{$Video->id}/documento") : null,
+                'Documento' => $Video->Es_Pdf() ? Servicio_Documentos_Pdf::Armar_Documento($Video->origen_documento, $Video->ruta_archivo, $Video->enlace_externo, "/academia/{$Video->id}/documento") : null,
                 'Enlace_Sala' => $Video->formato === 'en_vivo' ? $Video->enlace_sala : null,
             ],
         ]);
