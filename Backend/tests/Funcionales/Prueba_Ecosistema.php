@@ -34,21 +34,16 @@ class Prueba_Ecosistema extends Caso_Prueba_Base
     }
 
     #[Test]
-    public function El_Detalle_Muestra_La_Pagina_O_Si_No_Hay_El_Video(): void
+    public function El_Detalle_Muestra_Descripcion_Video_Y_Enlace_A_La_Landing(): void
     {
         $Usuario = $this->Crear_Cliente();
-        $Con_Pagina = Modelo_Unidad_Negocio::create(['codigo' => 'LABS', 'nombre' => 'Advisory', 'descripcion' => 'Estrategia',
+        $Producto = Modelo_Unidad_Negocio::create(['codigo' => 'LABS', 'nombre' => 'Advisory', 'descripcion' => 'Estrategia',
             'enlace_pagina' => 'https://labs.example.com/', 'enlace_video' => 'https://youtu.be/dQw4w9WgXcQ']);
-        $Con_Video = Modelo_Unidad_Negocio::create(['codigo' => 'W3M', 'nombre' => 'Marketing', 'enlace_video' => 'https://youtu.be/dQw4w9WgXcQ']);
 
-        $this->actingAs($Usuario)->get("/ecosistema/{$Con_Pagina->id}")->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina
-            ->component('Portal/Pagina_Detalle_Producto')->where('Producto.Tipo_Vista', 'pagina')
-            ->where('Producto.Enlace_Pagina', 'https://labs.example.com/')->where('Producto.Descripcion', 'Estrategia'));
-        $this->actingAs($Usuario)->get("/ecosistema/{$Con_Video->id}")->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina
-            ->where('Producto.Tipo_Vista', 'video')->where('Producto.Url_Video', fn ($Url) => str_contains($Url, 'youtube-nocookie.com/embed/dQw4w9WgXcQ')));
-
-        // La página del producto queda permitida en la CSP de producción
-        $this->assertContains('https://labs.example.com', Modelo_Unidad_Negocio::Obtener_Origenes_Iframe());
+        $this->actingAs($Usuario)->get("/ecosistema/{$Producto->id}")->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina
+            ->component('Portal/Pagina_Detalle_Producto')->where('Producto.Enlace_Pagina', 'https://labs.example.com/')
+            ->where('Producto.Descripcion', 'Estrategia')
+            ->where('Producto.Url_Video', fn ($Url) => str_contains($Url, 'youtube-nocookie.com/embed/dQw4w9WgXcQ')));
     }
 
     #[Test]

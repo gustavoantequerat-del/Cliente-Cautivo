@@ -13,7 +13,7 @@ return [
     ],
 
     // Tamaño máximo de subida en KB (los videos nunca se suben: van por enlace)
-    'Tamano_Maximo_Subida_Kb' => env('PORTAL_MAX_UPLOAD_KB', 10240),
+    'Tamano_Maximo_Subida_Kb' => env('PORTAL_MAX_UPLOAD_KB', 20480),
 
     // Correo al que llegan las solicitudes de horas
     'Correo_Notificaciones' => env('PORTAL_NOTIFY_EMAIL'),

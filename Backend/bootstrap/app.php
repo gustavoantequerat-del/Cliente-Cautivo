@@ -7,6 +7,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $Middleware): void {
+        // cPanel y Cloudflare atienden HTTPS delante de PHP: así Laravel sabe que la visita es segura
+        $Middleware->trustProxies(at: '*');
         $Middleware->web(append: [
             Middleware_Exigir_Usuario_Activo::class,
             Middleware_Compartir_Datos_Inertia::class,
@@ -25,5 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $Middleware->redirectUsersTo(fn (Request $Peticion) => $Peticion->user()?->Es_Personal_Blockfinity() ? '/admin' : '/');
     })
     ->withExceptions(function (Exceptions $Excepciones): void {
-        //
+        // 419 = el formulario se envió con una sesión vencida o sin la cookie de sesión.
+        // En vez de la pantalla "Page Expired", se vuelve al formulario con un aviso y un token nuevo.
+        $Excepciones->respond(function (Response $Respuesta, Throwable $Excepcion, Request $Peticion) {
+            if ($Respuesta->getStatusCode() === 419) {
+                return back()->with('Mensaje_Error', 'Su sesión expiró. Vuelva a intentarlo.');
+            }
+
+            return $Respuesta;
+        });
     })->create();

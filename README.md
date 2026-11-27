@@ -23,7 +23,7 @@ Los videos **no se suben al servidor** (BYOS): se publican en Google Drive, YouT
 | Acceso con correo y contraseña; revocación inmediata | Instituciones con sus productos contratados |
 | Inicio: nivel de alianza, productos activos y por descubrir, webinar, horas y facturas | Usuarios, credenciales y roles |
 | **Ecosistema Blockfinity**: productos con página o video, contratados resaltados y botón Solicitar | Productos del ecosistema y solicitudes de los clientes |
-| **Aprobación de entregables** con contraseña, código de verificación, IP y auditoría | Entregables (archivo ≤10 MB o enlace de Drive + código de verificación) |
+| **Aprobación de entregables** con contraseña, código de verificación, IP y auditoría | Entregables (archivo ≤20 MB o enlace de Drive + código de verificación) |
 | Bóveda de entregables + **verificación de documentos en el navegador** (el archivo no se sube) | Videos y webinars por enlace, con vista previa |
 | Research (solo si tienen el producto RESEARCH contratado) | Reportes de Research (generales o exclusivos) |
 | Academia: webinars en vivo (inscripción + `.ics`), grabados y píldoras con reproductor embebido | Facturas (PDF + XML del SIAT) y contratos |
@@ -111,24 +111,33 @@ Si su PHP de consola no es 8.2+, use la ruta completa, por ejemplo `/opt/cpanel/
 ### 5. Actualizar
 Suba los archivos nuevos (o `git pull`; en ese caso el dominio apunta a `.../Backend/public`), luego, dentro de `Backend/`, `php artisan migrate --force` y `php artisan optimize`.
 
+### "Page Expired" (error 419) al ingresar
+
+El navegador no devolvió la cookie de sesión. Revise, en este orden:
+
+1. **El sitio debe abrirse con `https://`.** Con `SESSION_SECURE_COOKIE=true` el navegador no guarda la sesión en `http://`.
+   Active SSL en cPanel (*SSL/TLS Status → Run AutoSSL*). Solo para probar sin SSL: `SESSION_SECURE_COOKIE=false`.
+2. **`APP_URL`** igual a la dirección real (mismo dominio, con o sin `www`, con `https`). Deje `SESSION_DOMAIN` vacío.
+3. **Tabla de sesiones:** `php artisan migrate --force` (con `SESSION_DRIVER=database`).
+4. **`storage/` y `bootstrap/cache/` con permiso de escritura** (755 en carpetas).
+5. Después de cambiar `.env`: `php artisan optimize:clear && php artisan optimize`.
+
+Si la sesión simplemente venció (página abierta más de `SESSION_LIFETIME` minutos), el portal vuelve al formulario con
+el aviso "Su sesión expiró" y el segundo intento funciona.
+
 ---
 
-## Reportes de Research (visor protegido)
+## Reportes de Research y PDFs
 
-Los reportes se leen dentro del portal, **sin opción de descarga**:
+Los PDF de Research, webinars y píldoras **se suben en el CMS** y se leen dentro del portal con el lector de PDF del
+propio navegador (sin enlaces externos ni librerías). Siempre hay un botón **"Abrir el PDF"** por si el lector
+incrustado no aparece (pasa en algunos celulares). Los registros antiguos con enlace de Drive siguen usando el visor de Google.
 
-1. En el CMS, en **Reportes de Research**, suba el PDF o pegue el enlace de Google Drive (compartido como "Cualquier persona con el enlace").
-2. El navegador no puede pedir el archivo directo a Drive (CORS), así que lo pide al Backend (`/research/{id}/documento`), que lo descarga con el ID del enlace y lo guarda en caché 12 horas. **El hosting debe permitir conexiones salientes a Google.**
-3. El portal dibuja cada página con PDF.js en un `<canvas>` (el texto queda como imagen y no se puede seleccionar), con una **marca de agua diagonal** encima, sin clic derecho y sin impresión.
-4. El texto de la marca de agua se edita en **CMS → Configuración**. Admite `{usuario}`, `{institucion}` y `{fecha}`, para saber de quién salió una copia.
+En webinars y píldoras en PDF, la persona pulsa **"Marcar como leído"** para registrar su avance.
 
-> Esto desalienta copiar, pero no lo impide del todo: una captura de pantalla siempre es posible. Por eso conviene que la marca de agua lleve el nombre de quien lee.
-
----
-
-## Webinars y píldoras en PDF
-
-Al crear un webinar o píldora en el CMS se elige el **contenido: Video o PDF**. Si es PDF se sube el archivo o se pega el enlace de Drive, y el portal lo muestra en el mismo visor protegido de Research (marca de agua, sin descarga). Al llegar a la última página se marca como completado.
+**Límite de subida:** el portal acepta hasta 20 MB (`PORTAL_MAX_UPLOAD_KB`). PHP también tiene su propio límite:
+`Backend/public/.user.ini` lo sube a 20 MB (cPanel lo aplica en unos 5 minutos). Si su hosting lo ignora, cámbielo en
+cPanel → *Select PHP Version* → *Options* (o *MultiPHP INI Editor*): `upload_max_filesize = 20M` y `post_max_size = 25M`.
 
 ---
 
@@ -165,17 +174,16 @@ En **Credencial y beneficios** se ve el avance ("2 de 3 productos activos para P
 ## Ecosistema Blockfinity
 
 Reemplaza a los antiguos proyectos. Cada producto (CMS → Ecosistema → Productos, solo superadmin) tiene título, subtítulo,
-descripción, imagen y **página** (landing `https`) o, si no hay página, **video explicativo** (Drive, YouTube o Vimeo).
+descripción, imagen, **página** (landing `https`) y, opcional, **video explicativo** (Drive, YouTube o Vimeo).
 
 - **Portal**: tarjetas con imagen, título, subtítulo, **Solicitar** y **Ver más**. Lo contratado se resalta en verde y va primero.
-- **Detalle**: título, subtítulo y descripción; si hay página se muestra dentro del portal con **Solicitar** y **Ver más**
-  (abre la landing); si no, el video.
+- **Detalle** (clic en la imagen o el título): título, subtítulo, descripción, **Solicitar**, **Ver más** y el video si lo hay.
 - **Solicitar** (solo el administrador delegado): queda registrada en CMS → Solicitudes de productos y llega un correo al
   *correo de contacto* (CMS → Configuración; si está vacío, `PORTAL_NOTIFY_EMAIL`) con copia al usuario ejecutivo a cargo.
 - **Habilitar**: el ejecutivo marca el producto en la institución (CMS → Instituciones → Productos contratados). La solicitud
   pasa sola a "Habilitado" y el producto cuenta para el nivel de alianza.
-- La página de cada producto se permite automáticamente en la cabecera de seguridad (CSP `frame-src`). Si la landing
-  prohíbe mostrarse dentro de otros sitios (`X-Frame-Options`), el cliente usa "Ver más".
+- **Ver más** abre la landing del producto en una pestaña nueva (no se incrusta en el portal). Si el producto no tiene
+  landing, "Ver más" lleva al detalle, que muestra la descripción y el video explicativo si lo hay.
 
 ---
 

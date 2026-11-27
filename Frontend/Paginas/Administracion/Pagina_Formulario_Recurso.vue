@@ -84,7 +84,8 @@ function Guardar_Registro() {
             }
         }
         return Datos_A_Enviar;
-    }).post(Url, { forceFormData: true, preserveScroll: true });
+    // Comportamiento normal de Inertia: JSON, y multipart solo cuando se adjunta un archivo
+    }).post(Url, { preserveScroll: true });
 }
 
 function Eliminar_Registro() {

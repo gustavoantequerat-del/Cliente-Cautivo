@@ -1,9 +1,9 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import Componente_Visor_Pdf from '../../Componentes/Componente_Visor_Pdf.vue';
+import Componente_Visor_Documento from '../../Componentes/Componente_Visor_Documento.vue';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 
-defineProps({ Reporte: Object, Texto_Marca_Agua: String });
+defineProps({ Reporte: Object });
 </script>
 
 <template>
@@ -21,7 +21,7 @@ defineProps({ Reporte: Object, Texto_Marca_Agua: String });
         <p v-if="Reporte.Resumen" class="muted">{{ Reporte.Resumen }}</p>
     </header>
 
-    <Componente_Visor_Pdf v-if="Reporte.Tiene_Archivo" :Url_Documento="Reporte.Url_Documento" :Texto_Marca_Agua="Texto_Marca_Agua" />
+    <Componente_Visor_Documento v-if="Reporte.Documento" :Documento="Reporte.Documento" :Titulo="Reporte.Titulo" />
     <p v-else class="vacio">Este reporte aún no tiene documento.</p>
 </template>
 

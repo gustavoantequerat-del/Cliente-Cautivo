@@ -45,7 +45,8 @@ const Texto_Nivel = computed(() => {
                 <p v-if="Producto.Subtitulo" :class="$style.subtitle">{{ Producto.Subtitulo }}</p>
                 <div :class="$style.actions">
                     <Componente_Boton_Solicitar :Producto="Producto" :Puede_Solicitar="Puede_Solicitar" />
-                    <Link :href="`/ecosistema/${Producto.Id}`" class="btn btn-secondary btn-sm">Ver más <Componente_Icono Nombre="flecha" :Tamano="15" /></Link>
+                    <a v-if="Producto.Enlace_Pagina" :href="Producto.Enlace_Pagina" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Ver más <Componente_Icono Nombre="externo" :Tamano="15" /></a>
+                    <Link v-else :href="`/ecosistema/${Producto.Id}`" class="btn btn-secondary btn-sm">Ver más <Componente_Icono Nombre="flecha" :Tamano="15" /></Link>
                 </div>
             </div>
         </article>

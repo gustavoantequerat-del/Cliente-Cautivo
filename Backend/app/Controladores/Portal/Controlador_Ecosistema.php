@@ -48,7 +48,6 @@ class Controlador_Ecosistema
         return Inertia::render('Portal/Pagina_Detalle_Producto', [
             'Producto' => $this->Formatear_Producto($Producto, $Esta_Contratado, $this->Obtener_Ids_Solicitados($Usuario)) + [
                 'Descripcion' => $Producto->descripcion,
-                'Tipo_Vista' => $Producto->Obtener_Tipo_Vista(),
                 'Url_Video' => $Producto->Obtener_Url_Video(),
             ],
             'Puede_Solicitar' => $Usuario->Es_Administrador_Delegado(),

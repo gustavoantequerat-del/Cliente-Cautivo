@@ -2,7 +2,6 @@
 
 namespace App\Controladores\Portal;
 
-use App\Modelos\Modelo_Configuracion;
 use App\Modelos\Modelo_Registro_Auditoria;
 use App\Modelos\Modelo_Reporte_Research;
 use App\Modelos\Modelo_Usuario;
@@ -13,7 +12,7 @@ use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as Respuesta_Http;
 
 /**
- * Los reportes se leen en el portal (visor con PDF.js y marca de agua), sin descarga.
+ * Los reportes se leen en el portal con el lector de PDF del navegador (o el visor de Google si es un enlace de Drive).
  */
 class Controlador_Research
 {
@@ -45,18 +44,17 @@ class Controlador_Research
 
         return Inertia::render('Portal/Pagina_Detalle_Reporte', [
             'Reporte' => $this->Formatear_Reporte($Reporte) + [
-                'Url_Documento' => "/research/{$Reporte->id}/documento",
+                'Documento' => Servicio_Documentos_Pdf::Armar_Documento($Reporte->ruta_archivo, $Reporte->enlace_externo, "/research/{$Reporte->id}/documento"),
             ],
-            'Texto_Marca_Agua' => Modelo_Configuracion::Armar_Texto_Marca_Agua($Usuario),
         ]);
     }
 
-    /** Entrega el PDF al visor (el navegador no puede pedirlo directo a Drive por CORS) */
+    /** El PDF subido, para el lector del navegador */
     public function Obtener_Documento(Request $Peticion, Modelo_Reporte_Research $Reporte): Respuesta_Http
     {
         $this->Validar_Acceso_Reporte($Peticion->user(), $Reporte);
 
-        return Servicio_Documentos_Pdf::Responder_Pdf($Reporte->ruta_archivo, $Reporte->enlace_externo);
+        return Servicio_Documentos_Pdf::Responder_Pdf($Reporte->ruta_archivo, $Reporte->nombre_archivo);
     }
 
     private function Validar_Acceso_Reporte(Modelo_Usuario $Usuario, Modelo_Reporte_Research $Reporte): void

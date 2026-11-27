@@ -57,14 +57,14 @@ Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function ()
     Route::middleware(Middleware_Exigir_Unidad_Contratada::class.':RESEARCH')->group(function () {
         Route::get('/research', [Controlador_Research::class, 'Listar_Reportes']);
         Route::get('/research/{Reporte}', [Controlador_Research::class, 'Mostrar_Reporte']);
-        Route::get('/research/{Reporte}/documento', [Controlador_Research::class, 'Obtener_Documento'])->middleware('throttle:30,1');
+        Route::get('/research/{Reporte}/documento', [Controlador_Research::class, 'Obtener_Documento']);
     });
 
     Route::get('/academia', [Controlador_Academia::class, 'Listar_Videos']);
     Route::get('/academia/{Video}', [Controlador_Academia::class, 'Mostrar_Video']);
+    Route::get('/academia/{Video}/documento', [Controlador_Academia::class, 'Obtener_Documento']);
     Route::post('/academia/{Video}/visto', [Controlador_Academia::class, 'Marcar_Video_Visto']);
     Route::post('/academia/{Video}/inscribirme', [Controlador_Academia::class, 'Inscribirse_Webinar']);
-    Route::get('/academia/{Video}/documento', [Controlador_Academia::class, 'Obtener_Documento'])->middleware('throttle:30,1');
     Route::get('/academia/{Video}/calendario.ics', [Controlador_Academia::class, 'Descargar_Calendario_Webinar']);
 
     Route::get('/credencial', [Controlador_Credencial::class, 'Mostrar_Credencial']);
