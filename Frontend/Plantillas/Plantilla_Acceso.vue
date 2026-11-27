@@ -26,7 +26,7 @@ const Beneficios = [
                 <span v-if="Url_Logo_Institucion" :class="$style.logoInstitucion"><img :src="Url_Logo_Institucion" alt=""></span>
                 <Componente_Marca_Blockfinity />
             </div>
-            <span :class="$style.arte"><Componente_Ilustracion_Red :Tamano="380" /></span>
+            <span :class="$style.arte"><Componente_Ilustracion_Red :Tamano="320" /></span>
             <div :class="$style.pitch" class="animar-entrada">
                 <span :class="$style.kicker">{{ Antetitulo }}</span>
                 <h1 :class="$style.title">{{ Titulo }}</h1>
@@ -56,7 +56,7 @@ const Beneficios = [
 .marcas { position: relative; z-index: 1; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .logoInstitucion { display: inline-flex; padding: 8px 12px; border-radius: 12px; background: #fff; }
 .logoInstitucion img { display: block; max-height: 32px; max-width: 140px; object-fit: contain; }
-.arte { position: absolute; right: -20px; top: 50%; translate: 0 -55%; opacity: 0.9; pointer-events: none; }
+.arte { position: absolute; right: -40px; top: 40px; opacity: 0.45; pointer-events: none; }
 .pitch { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; max-width: 520px; }
 .kicker { align-self: flex-start; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #CFE0F5; background: rgba(255, 255, 255, 0.1); padding: 6px 12px; border-radius: 999px; }
 .title { font-size: 44px; line-height: 1.08; font-weight: 800; letter-spacing: -0.02em; color: #fff; }

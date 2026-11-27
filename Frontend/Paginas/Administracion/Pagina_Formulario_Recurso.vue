@@ -143,7 +143,7 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
                 <span :class="$style.mockLink" />
             </div>
             <div :class="$style.mockMain">
-                <div :class="$style.mockHero"><strong>Buenos días 👋</strong><span>{{ Formulario.nombre || 'Institución' }}</span></div>
+                <div :class="$style.mockHero"><strong>Buenos días</strong><span>{{ Formulario.nombre || 'Institución' }}</span></div>
                 <div :class="$style.mockRow"><span :class="$style.mockTile" /><span :class="$style.mockTile" /></div>
                 <span :class="$style.mockButton">Botón</span>
             </div>

@@ -4,6 +4,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 import Componente_Numero_Animado from '../../Componentes/Componente_Numero_Animado.vue';
 import Componente_Estado_Vacio from '../../Componentes/Componente_Estado_Vacio.vue';
+import Componente_Ilustracion_Red from '../../Componentes/Componente_Ilustracion_Red.vue';
 
 const Propiedades = defineProps({
     Fecha_Hoy: String, Ecosistema: Object, Reporte_Destacado: Object, Proximo_Webinar: Object,
@@ -30,7 +31,7 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
     <section :class="$style.hero">
         <div :class="$style.heroText">
             <span :class="$style.date">{{ Fecha_Hoy }}</span>
-            <h1 :class="$style.title">{{ Saludo }}, {{ Primer_Nombre }} 👋</h1>
+            <h1 :class="$style.title">{{ Saludo }}, {{ Primer_Nombre }}</h1>
             <div class="row">
                 <Link href="/ecosistema" :class="$style.pill"><Componente_Icono Nombre="capas" :Tamano="16" />{{ Ecosistema.Contratados.length }} {{ Ecosistema.Contratados.length === 1 ? 'producto activo' : 'productos activos' }}</Link>
                 <Link v-if="Panel_Institucional?.Cantidad_Aprobaciones_Pendientes" href="/entregables" :class="[$style.pill, $style.pillAlert]">
@@ -38,7 +39,7 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
                 </Link>
             </div>
         </div>
-        <span :class="$style.heroArt" aria-hidden="true"><Componente_Icono Nombre="capas" :Tamano="140" :Grosor="0.8" /></span>
+        <span :class="$style.heroArt"><Componente_Ilustracion_Red :Tamano="260" /></span>
     </section>
 
     <section :class="$style.tiles" class="escalonado" aria-label="Resumen">
@@ -72,7 +73,7 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
             <Link href="/facturacion" :class="$style.manageItem" class="elevable">
                 <span class="burbuja burbuja-sm burbuja-ambar"><Componente_Icono Nombre="facturacion" :Tamano="18" /></span>
                 <span :class="$style.manageText">
-                    <strong>{{ Panel_Institucional.Facturas_Pendientes.Cantidad || '✓' }}</strong>
+                    <strong>{{ Panel_Institucional.Facturas_Pendientes.Cantidad || 0 }}</strong>
                     {{ Panel_Institucional.Facturas_Pendientes.Proxima ? `${Formatear_Moneda(Panel_Institucional.Facturas_Pendientes.Proxima.Moneda)} ${Panel_Institucional.Facturas_Pendientes.Proxima.Monto} por pagar` : 'facturas al día' }}
                 </span>
             </Link>
@@ -134,7 +135,7 @@ const Formatear_Moneda = (Moneda) => (Moneda === 'BOB' ? 'Bs' : Moneda);
   background: var(--gradient-hero); box-shadow: 0 18px 40px rgba(15, 34, 64, 0.22);
 }
 .heroText { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; }
-.heroArt { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); color: rgba(255, 255, 255, 0.10); animation: flotar 8s ease-in-out infinite; }
+.heroArt { position: absolute; right: 12px; top: 50%; translate: 0 -50%; opacity: 0.55; pointer-events: none; }
 .date { font-size: 13px; font-weight: 600; color: var(--side-text); }
 .title { font-size: 34px; color: #fff; }
 .pill {

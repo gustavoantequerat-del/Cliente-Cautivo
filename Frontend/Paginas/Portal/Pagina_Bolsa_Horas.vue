@@ -66,7 +66,7 @@ const Pasos = [
                 <textarea id="descripcion" v-model="Formulario.descripcion" class="textarea" required :minlength="Minimo_Caracteres" :maxlength="Maximo_Caracteres"
                           placeholder="¿Qué necesita resolver y para cuándo?" />
                 <span :class="[$style.counter, !Faltan_Caracteres && $style.counterOk]">
-                    {{ Faltan_Caracteres ? `Faltan ${Faltan_Caracteres} caracteres` : '✓ Listo' }} · {{ Formulario.descripcion.length }}/{{ Maximo_Caracteres }}
+                    {{ Faltan_Caracteres ? `Faltan ${Faltan_Caracteres} caracteres` : 'Listo' }} · {{ Formulario.descripcion.length }}/{{ Maximo_Caracteres }}
                 </span>
                 <span v-if="Formulario.errors.descripcion" class="error">{{ Formulario.errors.descripcion }}</span>
             </div>

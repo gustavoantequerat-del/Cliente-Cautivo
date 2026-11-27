@@ -11,7 +11,7 @@ const Inscribirse_Webinar = () => router.post(`/academia/${Propiedades.Video.Id}
 
 <template>
     <Head :title="Video.Titulo" />
-    <Link href="/academia" :class="$style.back">← Academia</Link>
+    <Link href="/academia" :class="$style.back">← Píldoras y webinars</Link>
 
     <div :class="$style.layout">
         <div class="stack" :class="$style.main">

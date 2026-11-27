@@ -14,7 +14,7 @@ export default defineConfig({
         }),
         vue({ template: { transformAssetUrls: { base: null, includeAbsolute: false } } }),
     ],
-    // es2022: PDF.js usa "await" a nivel de módulo
+    // Navegadores modernos; cada página sale en su propio archivo (ver Aplicacion_Principal.js)
     build: { emptyOutDir: true, target: 'es2022' },
     optimizeDeps: { esbuildOptions: { target: 'es2022' } },
 });

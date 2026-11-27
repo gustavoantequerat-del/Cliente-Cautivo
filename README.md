@@ -25,7 +25,7 @@ Los videos **no se suben al servidor** (BYOS): se publican en Google Drive, YouT
 | **Ecosistema Blockfinity**: productos con página o video, contratados resaltados y botón Solicitar | Productos del ecosistema y solicitudes de los clientes |
 | **Aprobación de entregables** con contraseña, código de verificación, IP y auditoría | Entregables (archivo ≤20 MB o enlace de Drive + código de verificación) |
 | Bóveda de entregables + **verificación de documentos en el navegador** (el archivo no se sube) | Videos y webinars por enlace, con vista previa |
-| Research (solo si tienen el producto RESEARCH contratado) | Reportes de Research (generales o exclusivos) |
+| Research: reportes generales y exclusivos de su institución | Reportes de Research (generales o exclusivos) |
 | Academia: webinars en vivo (inscripción + `.ics`), grabados y píldoras con reproductor embebido | Facturas (PDF + XML del SIAT) y contratos |
 | Facturación y contratos con descargas | Bolsa de horas: movimientos y atención de solicitudes |
 | Bolsa de horas: saldo, vencimientos y solicitudes de consulta o emergencia | Registro de auditoría |
@@ -111,6 +111,19 @@ Si su PHP de consola no es 8.2+, use la ruta completa, por ejemplo `/opt/cpanel/
 ### 5. Actualizar
 Suba los archivos nuevos (o `git pull`; en ese caso el dominio apunta a `.../Backend/public`), luego, dentro de `Backend/`, `php artisan migrate --force` y `php artisan optimize`.
 
+### Dónde quedan los archivos subidos (no los borre al actualizar)
+
+Todo lo que se sube desde el CMS (PDF de Research y webinars, imágenes de productos, logos, certificados, entregables,
+facturas y contratos) se guarda en:
+
+```
+Backend/storage/app/private/
+    research/  academia/  ecosistema/  logos/  certificados/  entregables/  facturas/  contratos/
+```
+
+Git no versiona esa carpeta, así que `git pull` no la toca. Si actualiza subiendo archivos a mano, **no reemplace ni
+borre `Backend/storage/`** (y nunca suba la de su computadora encima de la del servidor). Para respaldar, descargue esa carpeta y la base de datos.
+
 ### "Page Expired" (error 419) al ingresar
 
 El navegador no devolvió la cookie de sesión. Revise, en este orden:
@@ -127,7 +140,22 @@ el aviso "Su sesión expiró" y el segundo intento funciona.
 
 ---
 
+## Registro de usuarios por institución
+
+Cada institución tiene su **link de registro** (CMS → Instituciones → editar → *Link de registro*). Quien entra con ese link
+crea su cuenta de **usuario institucional** en esa institución y queda dentro del portal.
+
+- El mismo correo puede registrarse en **varias instituciones**: cada cuenta es independiente (nombre, área, credencial,
+  certificados, avance), nada se comparte. En la **misma** institución solo puede haber una cuenta por correo.
+- Si el correo y la contraseña coinciden en más de una institución, el login pregunta a cuál quiere entrar.
+- "Olvidé mi contraseña" cambia la contraseña de todas las cuentas de ese correo (quien controla el correo, controla sus cuentas).
+- En el CMS se puede **copiar** el link, **generar uno nuevo** (el anterior deja de servir) o **cerrar el registro**.
+
+---
+
 ## Reportes de Research y PDFs
+
+Research está en el menú de **todos** los clientes: ven los reportes generales y los exclusivos de su institución.
 
 En Research, webinars y píldoras el CMS pregunta el **origen del PDF**:
 

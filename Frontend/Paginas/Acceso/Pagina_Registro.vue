@@ -8,6 +8,8 @@ import Componente_Icono from '../../Componentes/Componente_Icono.vue';
 
 // Registro con el link de una institución: crea una cuenta de usuario institucional solo en esa institución
 const Propiedades = defineProps({ Institucion: Object, Codigo_Registro: String });
+// "S.A." ya termina en punto: se evita "S.A.."
+const Nombre_Institucion = computed(() => (Propiedades.Institucion?.Nombre ?? '').replace(/\.$/, ''));
 const Formulario = useForm({ nombre: '', email: '', area: '', cargo: '', telefono: '', password: '', password_confirmation: '' });
 const Contrasenas_Distintas = computed(() => Formulario.password_confirmation && Formulario.password !== Formulario.password_confirmation);
 const Registrar = () => Formulario.post(`/registro/${Propiedades.Codigo_Registro}`, { onFinish: () => Formulario.reset('password', 'password_confirmation') });
@@ -19,12 +21,12 @@ const Filtrar_Telefono = (Evento) => { Formulario.telefono = Evento.target.value
 <template>
     <Head :title="Institucion ? `Registro · ${Institucion.Nombre}` : 'Registro'" />
     <Plantilla_Acceso :Antetitulo="Institucion ? 'Invitación' : 'Portal Cliente'"
-                      :Titulo="Institucion ? `Cree su cuenta en el portal de ${Institucion.Nombre}.` : 'Todo su trabajo con Blockfinity, en un solo lugar.'"
+                      :Titulo="Institucion ? `Cree su cuenta en el portal de ${Nombre_Institucion}.` : 'Todo su trabajo con Blockfinity, en un solo lugar.'"
                       :Url_Logo_Institucion="Institucion?.Url_Logo">
         <template v-if="Institucion">
             <div class="stack" :class="$style.tight">
                 <h2 :class="$style.h">Crear mi cuenta</h2>
-                <p class="muted">Para <strong>{{ Institucion.Nombre }}</strong>. Si ya tiene cuenta aquí, <Link href="/login">ingrese</Link>.</p>
+                <p class="muted">Para <strong>{{ Nombre_Institucion }}</strong>. Si ya tiene cuenta aquí, <Link href="/login">ingrese</Link>.</p>
             </div>
             <form class="stack" novalidate @submit.prevent="Registrar">
                 <div class="field">

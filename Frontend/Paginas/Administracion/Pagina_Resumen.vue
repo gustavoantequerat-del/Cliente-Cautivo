@@ -14,7 +14,7 @@ const Colores_Indicador = ['', 'burbuja-verde', 'burbuja-ambar', 'burbuja-violet
     <section :class="$style.hero">
         <div>
             <span :class="$style.kicker">Consola Blockfinity</span>
-            <h1 :class="$style.title">Hola, {{ Primer_Nombre }} 👋</h1>
+            <h1 :class="$style.title">Hola, {{ Primer_Nombre }}</h1>
         </div>
         <div class="row">
             <Link href="/admin/solicitudes-horas" :class="$style.quick"><Componente_Icono Nombre="reloj" :Tamano="16" />Solicitudes</Link>

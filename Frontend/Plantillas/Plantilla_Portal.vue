@@ -34,6 +34,13 @@ const Elementos_Menu = computed(() => [
     ] : []),
 ]);
 
+// Barra inferior en celulares: lo más usado a un toque; "Más" abre el menú completo
+const Accesos_Moviles = [
+    { Url: '/', Etiqueta: 'Inicio', Icono: 'inicio', Coincidencia_Exacta: true },
+    { Url: '/ecosistema', Etiqueta: 'Ecosistema', Icono: 'capas' },
+    { Url: '/academia', Etiqueta: 'Webinars', Icono: 'reproducir' },
+    { Url: '/research', Etiqueta: 'Research', Icono: 'grafico' },
+];
 const Es_Enlace_Activo = (Elemento) => (Elemento.Coincidencia_Exacta ? Pagina.url === Elemento.Url : Pagina.url.startsWith(Elemento.Url));
 const Cerrar_Sesion = () => router.post('/logout');
 </script>
@@ -91,7 +98,10 @@ const Cerrar_Sesion = () => router.post('/logout');
                 <button type="button" :class="$style.menuBtn" aria-label="Abrir menú" @click="Menu_Movil_Abierto = true">
                     <Componente_Icono Nombre="menu" />
                 </button>
-                <span v-if="Institucion_Actual?.Url_Logo" :class="[$style.logoBox, $style.logoTop]"><img :src="Institucion_Actual.Url_Logo" alt="" :class="$style.logo"></span>
+                <Link href="/" :class="$style.brandTop" aria-label="Inicio">
+                    <span v-if="Institucion_Actual?.Url_Logo" :class="[$style.logoBox, $style.logoTop]"><img :src="Institucion_Actual.Url_Logo" alt="" :class="$style.logo"></span>
+                    <img v-else src="/marca/blockfinity-simbolo.png" alt="Blockfinity Advisors" width="208" height="100" :class="$style.symbolTop">
+                </Link>
                 <span :class="$style.spacer" />
                 <Link v-if="Usuario_Actual?.Numero_Credencial" href="/credencial" :class="$style.credPill">
                     <span :class="$style.dot" />Credencial #{{ Usuario_Actual.Numero_Credencial }}
@@ -112,6 +122,15 @@ const Cerrar_Sesion = () => router.post('/logout');
                 <!-- La clave cambia en cada página: así cada pantalla entra con su animación -->
                 <div :key="Pagina.component" class="animar-entrada" :class="$style.page"><slot /></div>
             </main>
+            <nav :class="$style.bottomNav" aria-label="Accesos rápidos">
+                <Link v-for="Acceso in Accesos_Moviles" :key="Acceso.Url" :href="Acceso.Url" :class="[$style.bottomLink, Es_Enlace_Activo(Acceso) && $style.bottomActive]"
+                      :aria-current="Es_Enlace_Activo(Acceso) ? 'page' : undefined">
+                    <Componente_Icono :Nombre="Acceso.Icono" :Tamano="20" /><span>{{ Acceso.Etiqueta }}</span>
+                </Link>
+                <button type="button" :class="$style.bottomLink" aria-label="Abrir el menú completo" @click="Menu_Movil_Abierto = true">
+                    <Componente_Icono Nombre="menu" :Tamano="20" /><span>Más</span>
+                </button>
+            </nav>
         </div>
     </div>
 </template>
@@ -188,6 +207,9 @@ const Cerrar_Sesion = () => router.post('/logout');
 .content { padding: 32px 40px 56px; width: 100%; max-width: 1280px; margin: 0 auto; }
 .page { display: flex; flex-direction: column; gap: 32px; }
 .backdrop { display: none; }
+.brandTop { display: none; align-items: center; text-decoration: none; }
+.symbolTop { display: block; height: 26px; width: auto; }
+.bottomNav { display: none; }
 
 @media (max-width: 960px) {
   .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 40; transform: translateX(-100%); transition: transform 0.2s; }
@@ -200,5 +222,21 @@ const Cerrar_Sesion = () => router.post('/logout');
   .content { padding: 20px 16px 40px; }
   .page { gap: 24px; }
   .credPill, .me .person { display: none; }
+  .brandTop { display: inline-flex; }
+  .content { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .bottomNav {
+    display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(14px); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(10, 22, 40, 0.08);
+  }
+  .bottomLink {
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 52px;
+    border: 0; border-radius: 12px; background: none; color: var(--muted); font-size: 11px; font-weight: 700; text-decoration: none; cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+  }
+  .bottomLink:hover { color: var(--navy-950); }
+  .bottomActive { color: var(--navy-950); background: var(--blue-50); }
+  .bottomActive::before { content: ''; position: absolute; top: -6px; width: 24px; height: 3px; border-radius: 0 0 3px 3px; background: var(--navy-700); }
+  .menuBtn { display: none; }
 }
 </style>

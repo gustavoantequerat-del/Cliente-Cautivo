@@ -18,7 +18,7 @@ const Inscribirse_Webinar = (Id_Video) => router.post(`/academia/${Id_Video}/ins
 
 <template>
     <Head title="Píldoras y webinars" />
-    <Componente_Encabezado_Pagina Icono="reproducir" Titulo="Academia" Introduccion="Webinars en vivo, grabaciones y píldoras." />
+    <Componente_Encabezado_Pagina Icono="reproducir" Titulo="Píldoras y webinars" Introduccion="Webinars en vivo, grabaciones y píldoras para su equipo." />
 
     <div :class="$style.top">
         <section v-if="Proximo_En_Vivo" :class="$style.live">
