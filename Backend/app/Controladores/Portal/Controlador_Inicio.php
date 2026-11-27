@@ -28,10 +28,8 @@ class Controlador_Inicio
         $Productos_Publicados = Modelo_Unidad_Negocio::where('esta_publicado', true)->orderBy('orden')->get();
         $Productos_Contratados = $Productos_Publicados->filter(fn ($Producto) => $Institucion->Unidades_Contratadas->contains('id', $Producto->id));
 
-        $Reporte_Destacado = $Institucion->Tiene_Unidad_Contratada('RESEARCH')
-            ? Modelo_Reporte_Research::Visibles_Para_Usuario($Usuario)->where('esta_publicado', true)
-                ->orderByDesc('es_destacado')->orderByDesc('fecha_publicacion')->first()
-            : null;
+        $Reporte_Destacado = Modelo_Reporte_Research::Visibles_Para_Usuario($Usuario)->where('esta_publicado', true)
+            ->orderByDesc('es_destacado')->orderByDesc('fecha_publicacion')->first();
 
         $Proximo_Webinar = Modelo_Video::Visibles_Para_Usuario($Usuario)->where('esta_publicado', true)->where('formato', 'en_vivo')
             ->where('fecha_programada', '>=', now())->orderBy('fecha_programada')->first();

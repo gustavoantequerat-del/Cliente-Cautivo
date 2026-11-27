@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Builder;
  *
  * Tipos de campo: texto, nombre_persona, email, telefono, color (#RRGGBB), enlace_drive (enlace de Google Drive), numerico (solo dígitos), identificador (slug),
  * codigo (MAYÚSCULAS), enlace, texto_largo, entero, decimal, fecha, fecha_hora, lista, si_no, relacion,
- * archivo, contrasena, codigo_verificacion, enlace_video, unidades. El Frontend filtra lo que se teclea según el tipo
+ * archivo, contrasena, codigo_verificacion, enlace_video, unidades, enlace_registro (link de registro de la institución). El Frontend filtra lo que se teclea según el tipo
  * y el Backend lo vuelve a validar.
  */
 class Servicio_Definicion_Cms
@@ -52,6 +52,10 @@ class Servicio_Definicion_Cms
                     ['Nombre' => 'ejecutivo_cuenta_id', 'Etiqueta' => 'Usuario ejecutivo a cargo', 'Tipo' => 'relacion', 'En_Tabla' => true, 'Solo_Superadmin' => true,
                         'Modelo' => Modelos\Modelo_Usuario::class, 'Columna_Etiqueta' => 'nombre', 'Filtro_Donde' => ['rol', [Modelos\Modelo_Usuario::Rol_Usuario_Ejecutivo, Modelos\Modelo_Usuario::Rol_Superadmin]]],
                     ['Nombre' => 'esta_activa', 'Etiqueta' => 'Acceso activo', 'Tipo' => 'si_no', 'En_Tabla' => true, 'Por_Defecto' => true],
+                    ['Nombre' => 'codigo_registro', 'Etiqueta' => 'Link de registro para usuarios institucionales', 'Tipo' => 'enlace_registro',
+                        'Ayuda' => 'Compártalo con el personal de la institución: cada persona crea su cuenta de usuario institucional.'],
+                    ['Nombre' => 'registro_abierto', 'Etiqueta' => 'Registro abierto', 'Tipo' => 'si_no', 'Por_Defecto' => true,
+                        'Ayuda' => 'Desactívelo para que el link deje de aceptar registros.'],
                     ['Nombre' => 'unidades_contratadas', 'Etiqueta' => 'Productos contratados (definen el nivel de alianza)', 'Tipo' => 'unidades'],
                     ['Nombre' => 'color_primario', 'Etiqueta' => 'Color principal del portal', 'Tipo' => 'color', 'Obligatorio' => true, 'Por_Defecto' => '#1F3F73',
                         'Ayuda' => 'Menú, botones y encabezados del portal de esta institución.'],
@@ -81,7 +85,8 @@ class Servicio_Definicion_Cms
                 'Columna_Filtro' => 'institucion_id',
                 'Campos' => [
                     ['Nombre' => 'nombre', 'Etiqueta' => 'Nombre completo', 'Tipo' => 'nombre_persona', 'Obligatorio' => true, 'En_Tabla' => true],
-                    ['Nombre' => 'email', 'Etiqueta' => 'Correo', 'Tipo' => 'email', 'Obligatorio' => true, 'Unico' => true, 'En_Tabla' => true],
+                    ['Nombre' => 'email', 'Etiqueta' => 'Correo', 'Tipo' => 'email', 'Obligatorio' => true, 'Unico' => true, 'Unico_Por' => 'institucion_id', 'En_Tabla' => true,
+                        'Ayuda' => 'Una persona puede tener cuenta en varias instituciones con el mismo correo, pero solo una por institución.'],
                     ['Nombre' => 'password', 'Etiqueta' => 'Contraseña', 'Tipo' => 'contrasena',
                         'Ayuda' => 'Mínimo 10 caracteres. Déjela vacía al editar para no cambiarla.'],
                     ['Nombre' => 'rol', 'Etiqueta' => 'Rol', 'Tipo' => 'lista', 'Obligatorio' => true, 'En_Tabla' => true,
@@ -107,7 +112,7 @@ class Servicio_Definicion_Cms
                 'Campos' => [
                     ['Nombre' => 'nombre', 'Etiqueta' => 'Título', 'Tipo' => 'texto', 'Obligatorio' => true, 'En_Tabla' => true],
                     ['Nombre' => 'codigo', 'Etiqueta' => 'Código', 'Tipo' => 'codigo', 'Obligatorio' => true, 'Unico' => true, 'En_Tabla' => true,
-                        'Ayuda' => 'Corto y en mayúsculas, ej. BCS. RESEARCH habilita la sección Research del portal.'],
+                        'Ayuda' => 'Corto y en mayúsculas, ej. BCS.'],
                     ['Nombre' => 'subtitulo', 'Etiqueta' => 'Subtítulo', 'Tipo' => 'texto', 'En_Tabla' => true],
                     ['Nombre' => 'descripcion', 'Etiqueta' => 'Descripción', 'Tipo' => 'texto_largo'],
                     ['Nombre' => 'ruta_imagen', 'Etiqueta' => 'Imagen (PNG, JPG o WEBP)', 'Tipo' => 'archivo', 'Carpeta' => 'ecosistema',

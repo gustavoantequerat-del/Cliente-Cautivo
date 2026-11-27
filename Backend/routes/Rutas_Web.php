@@ -17,16 +17,21 @@ use App\Controladores\Portal\Controlador_Inicio;
 use App\Controladores\Portal\Controlador_Marca;
 use App\Controladores\Portal\Controlador_Perfil;
 use App\Controladores\Portal\Controlador_Research;
+use App\Controladores\Publico\Controlador_Registro;
 use App\Controladores\Publico\Controlador_Verificar_Credencial;
 use App\Middleware\Middleware_Exigir_Cliente;
 use App\Middleware\Middleware_Exigir_Administrador_Delegado;
 use App\Middleware\Middleware_Exigir_Personal_Blockfinity;
 use App\Middleware\Middleware_Exigir_Superadmin;
-use App\Middleware\Middleware_Exigir_Unidad_Contratada;
 use Illuminate\Support\Facades\Route;
 
 // --- Público ---------------------------------------------------------------
 Route::get('/verificar/{Codigo_Credencial}', [Controlador_Verificar_Credencial::class, 'Verificar_Credencial'])->whereUuid('Codigo_Credencial');
+
+// Registro de usuarios institucionales con el link de cada institución
+Route::get('/registro/{Codigo_Registro}', [Controlador_Registro::class, 'Mostrar_Formulario_Registro'])->where('Codigo_Registro', '[A-Za-z0-9]{20,40}');
+Route::post('/registro/{Codigo_Registro}', [Controlador_Registro::class, 'Registrar_Usuario'])->where('Codigo_Registro', '[A-Za-z0-9]{20,40}')->middleware('throttle:5,1');
+Route::get('/registro/{Codigo_Registro}/logo', [Controlador_Registro::class, 'Mostrar_Logo'])->where('Codigo_Registro', '[A-Za-z0-9]{20,40}');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [Controlador_Inicio_Sesion::class, 'Mostrar_Formulario_Ingreso']);
@@ -54,11 +59,10 @@ Route::middleware(['auth', Middleware_Exigir_Cliente::class])->group(function ()
     Route::get('/ecosistema/{Producto}', [Controlador_Ecosistema::class, 'Mostrar_Producto'])->whereNumber('Producto');
     Route::get('/ecosistema/{Producto}/imagen', [Controlador_Ecosistema::class, 'Mostrar_Imagen'])->whereNumber('Producto');
 
-    Route::middleware(Middleware_Exigir_Unidad_Contratada::class.':RESEARCH')->group(function () {
-        Route::get('/research', [Controlador_Research::class, 'Listar_Reportes']);
-        Route::get('/research/{Reporte}', [Controlador_Research::class, 'Mostrar_Reporte']);
-        Route::get('/research/{Reporte}/documento', [Controlador_Research::class, 'Obtener_Documento']);
-    });
+    // Research: todos los clientes leen los reportes generales y los exclusivos de su institución
+    Route::get('/research', [Controlador_Research::class, 'Listar_Reportes']);
+    Route::get('/research/{Reporte}', [Controlador_Research::class, 'Mostrar_Reporte']);
+    Route::get('/research/{Reporte}/documento', [Controlador_Research::class, 'Obtener_Documento']);
 
     Route::get('/academia', [Controlador_Academia::class, 'Listar_Videos']);
     Route::get('/academia/{Video}', [Controlador_Academia::class, 'Mostrar_Video']);

@@ -57,9 +57,9 @@ class Prueba_Niveles_Y_Research extends Caso_Prueba_Base
         $Documento->assertOk()->assertHeader('Content-Type', 'application/pdf');
         $this->assertStringStartsWith('inline', $Documento->headers->get('Content-Disposition'));
 
-        // Sin Research contratado no se ve ni se abre
+        // Un reporte general lo abre cualquier cliente, aunque no tenga Research contratado
         $Otro = $this->Crear_Cliente($this->Crear_Institucion(['BCS']));
-        $this->actingAs($Otro)->get("/research/{$Reporte->id}/documento")->assertRedirect('/');
+        $this->actingAs($Otro)->get("/research/{$Reporte->id}/documento")->assertOk();
     }
 
     #[Test]

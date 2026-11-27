@@ -47,6 +47,7 @@ class Middleware_Compartir_Datos_Inertia extends Middleware
                 'Exito' => fn () => $Peticion->session()->get('Mensaje_Exito'),
                 'Error' => fn () => $Peticion->session()->get('Mensaje_Error'),
                 'Resultado_Verificacion' => fn () => $Peticion->session()->get('Resultado_Verificacion'),
+                'Instituciones_Para_Elegir' => fn () => $Peticion->session()->get('Instituciones_Para_Elegir'),
             ],
         ]);
     }

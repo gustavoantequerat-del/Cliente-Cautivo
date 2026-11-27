@@ -5,6 +5,7 @@ namespace App\Modelos;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 class Modelo_Institucion extends Model
 {
@@ -12,12 +13,29 @@ class Modelo_Institucion extends Model
 
     protected $fillable = [
         'nombre', 'identificador', 'razon_social', 'nit', 'correo_facturacion', 'direccion_facturacion',
-        'ejecutivo_cuenta_id', 'esta_activa', 'color_primario', 'color_secundario', 'ruta_logo',
+        'ejecutivo_cuenta_id', 'esta_activa', 'color_primario', 'color_secundario', 'ruta_logo', 'registro_abierto',
     ];
 
     protected function casts(): array
     {
-        return ['esta_activa' => 'boolean'];
+        return ['esta_activa' => 'boolean', 'registro_abierto' => 'boolean'];
+    }
+
+    /** Cada institución nace con su link de registro para usuarios institucionales */
+    protected static function booted(): void
+    {
+        static::creating(fn (Modelo_Institucion $Institucion) => $Institucion->codigo_registro ??= Str::random(32));
+    }
+
+    public function Obtener_Url_Registro(): string
+    {
+        return url('/registro/'.$this->codigo_registro);
+    }
+
+    /** El link anterior deja de funcionar */
+    public function Regenerar_Codigo_Registro(): void
+    {
+        $this->codigo_registro = Str::random(32);
     }
 
     public function Ejecutivo_Cuenta(): BelongsTo

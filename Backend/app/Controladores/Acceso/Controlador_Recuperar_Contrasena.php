@@ -45,8 +45,11 @@ class Controlador_Recuperar_Contrasena
         $Resultado = Password::reset(
             $Peticion->only('email', 'password', 'password_confirmation', 'token'),
             function (Modelo_Usuario $Usuario, string $Nueva_Contrasena) use (&$Login_Correspondiente) {
-                $Usuario->forceFill(['password' => $Nueva_Contrasena])->setRememberToken(null);
-                $Usuario->save();
+                // Quien controla el correo controla todas sus cuentas con ese correo (una por institución)
+                Modelo_Usuario::where('email', $Usuario->email)->get()->each(function (Modelo_Usuario $Cuenta) use ($Nueva_Contrasena) {
+                    $Cuenta->forceFill(['password' => $Nueva_Contrasena])->setRememberToken(null);
+                    $Cuenta->save();
+                });
                 $Login_Correspondiente = $Usuario->Es_Personal_Blockfinity() ? '/admin/login' : '/login';
             }
         );

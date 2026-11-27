@@ -2,6 +2,7 @@
 
 namespace Tests\Funcionales;
 
+use App\Modelos\Modelo_Reporte_Research;
 use App\Modelos\Modelo_Usuario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Pagina_Inertia;
@@ -38,13 +39,16 @@ class Prueba_Acceso_Portal extends Caso_Prueba_Base
     }
 
     #[Test]
-    public function Research_Requiere_Unidad_Contratada(): void
+    public function Todo_Cliente_Ve_Research_Pero_No_Los_Exclusivos_De_Otra_Institucion(): void
     {
-        $Sin_Research = $this->Crear_Cliente($this->Crear_Institucion(['BCS']));
-        $this->actingAs($Sin_Research)->get('/research')->assertRedirect('/');
+        $Basico = $this->Crear_Cliente($this->Crear_Institucion(['BCS']), Modelo_Usuario::Rol_Usuario_Institucional);
+        $General = Modelo_Reporte_Research::create(['titulo' => 'General', 'tema' => 'Regulación', 'esta_publicado' => true]);
+        $Ajeno = Modelo_Reporte_Research::create(['titulo' => 'Ajeno', 'tema' => 'Regulación', 'esta_publicado' => true,
+            'institucion_id' => $this->Crear_Institucion()->id]);
 
-        $Con_Research = $this->Crear_Cliente($this->Crear_Institucion(['RESEARCH']));
-        $this->actingAs($Con_Research)->get('/research')->assertOk();
+        $this->actingAs($Basico)->get('/research')->assertOk()->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina->has('Reportes.data', 1));
+        $this->actingAs($Basico)->get("/research/{$General->id}")->assertOk();
+        $this->actingAs($Basico)->get("/research/{$Ajeno->id}")->assertNotFound();
     }
 
     #[Test]

@@ -18,7 +18,7 @@ class Sembrador_Administrador extends Seeder
         $Email_Administrador = env('ADMIN_EMAIL', 'admin@blockfinityadvisors.com');
         $Contrasena_Temporal = Str::password(16, symbols: false);
 
-        Modelo_Usuario::updateOrCreate(['email' => $Email_Administrador], [
+        Modelo_Usuario::updateOrCreate(['email' => $Email_Administrador, 'institucion_id' => null], [
             'nombre' => 'Administrador', 'rol' => Modelo_Usuario::Rol_Superadmin, 'password' => $Contrasena_Temporal, 'esta_activo' => true,
         ]);
 

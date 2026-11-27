@@ -15,7 +15,6 @@ const Menu_Movil_Abierto = ref(false);
 // Cierra el menú móvil al navegar
 watch(() => Pagina.url, () => { Menu_Movil_Abierto.value = false; });
 
-const Tiene_Research = computed(() => (Institucion_Actual.value?.Codigos_Unidades ?? []).includes('RESEARCH'));
 // Colores de la institución sobre todo el portal (si no tiene, queda la marca Blockfinity)
 const Variables_Marca = computed(() => Construir_Variables_Marca(Institucion_Actual.value?.Color_Primario, Institucion_Actual.value?.Color_Secundario));
 
@@ -24,7 +23,7 @@ const Elementos_Menu = computed(() => [
     { Url: '/', Etiqueta: 'Inicio', Icono: 'inicio', Coincidencia_Exacta: true },
     { Url: '/ecosistema', Etiqueta: 'Ecosistema Blockfinity', Icono: 'capas' },
     { Url: '/academia', Etiqueta: 'Píldoras y webinars', Icono: 'reproducir' },
-    ...(Tiene_Research.value ? [{ Url: '/research', Etiqueta: 'Research', Icono: 'grafico' }] : []),
+    { Url: '/research', Etiqueta: 'Research', Icono: 'grafico' },
     { Url: '/certificados', Etiqueta: 'Mis acreditaciones', Icono: 'certificado' },
     { Url: '/credencial', Etiqueta: 'Mi credencial', Icono: 'credencial' },
     ...(Usuario_Actual.value?.Es_Administrador_Delegado ? [

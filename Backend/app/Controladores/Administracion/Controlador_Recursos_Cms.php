@@ -104,6 +104,7 @@ class Controlador_Recursos_Cms
                 ]])->all(),
                 'fecha' => $Valor ? Carbon::parse($Valor)->format('Y-m-d') : null,
                 'fecha_hora' => $Valor ? Carbon::parse($Valor)->format('Y-m-d\TH:i') : null,
+                'enlace_registro' => $Registro instanceof Modelo_Institucion ? $Registro->Obtener_Url_Registro() : null,
                 'si_no' => (bool) $Valor,
                 'color' => $Valor ?: ($Campo['Por_Defecto'] ?? null),
                 default => $Valor,
@@ -227,6 +228,12 @@ class Controlador_Recursos_Cms
                 case 'unidades':
                     $Unidades_Elegidas = $Datos[$Nombre] ?? [];
                     break;
+                case 'enlace_registro':
+                    // Solo se muestra; se puede regenerar para invalidar el link anterior
+                    if ($Peticion->boolean($Nombre.'_regenerar') && $Registro instanceof Modelo_Institucion) {
+                        $Registro->Regenerar_Codigo_Registro();
+                    }
+                    break;
                 case 'contrasena':
                     if (! empty($Datos[$Nombre])) {
                         $Registro->{$Nombre} = $Datos[$Nombre];
@@ -312,11 +319,18 @@ class Controlador_Recursos_Cms
             'contrasena' => [$Registro->exists ? 'nullable' : 'required', Regla_Contrasena::min(10)->letters()->numbers()],
             'codigo_verificacion' => ['nullable', 'regex:/^[a-fA-F0-9]{64}$/'],
             'unidades' => ['nullable', 'array'],
+            'enlace_registro' => ['nullable'],
             default => [$Requerido, 'string', 'max:255'],
         };
 
         if ($Campo['Unico'] ?? false) {
-            $Reglas[] = Rule::unique($Registro->getTable(), $Campo['Nombre'])->ignore($Registro->getKey());
+            $Regla_Unica = Rule::unique($Registro->getTable(), $Campo['Nombre'])->ignore($Registro->getKey());
+            // Unico_Por: único dentro de otro campo (ej. el correo, único por institución)
+            if ($Columna_Grupo = $Campo['Unico_Por'] ?? null) {
+                $Valor_Grupo = request()->has($Columna_Grupo) ? request()->input($Columna_Grupo) : $Registro->{$Columna_Grupo};
+                $Regla_Unica->where(fn ($Consulta) => blank($Valor_Grupo) ? $Consulta->whereNull($Columna_Grupo) : $Consulta->where($Columna_Grupo, $Valor_Grupo));
+            }
+            $Reglas[] = $Regla_Unica;
         }
         if ($Campo['Solo_Https'] ?? false) {
             $Reglas[] = 'starts_with:https://';

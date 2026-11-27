@@ -28,7 +28,7 @@ class Sembrador_Banco_Nacional_Bolivia extends Seeder
         if (! $Email_Administrador) {
             return;
         }
-        if (Modelo_Usuario::where('email', $Email_Administrador)->exists()) {
+        if (Modelo_Usuario::where('email', $Email_Administrador)->where('institucion_id', $Banco->id)->exists()) {
             $this->command?->warn("Ya existe un usuario con {$Email_Administrador}; no se modificó.");
 
             return;

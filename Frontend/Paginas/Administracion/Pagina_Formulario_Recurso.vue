@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import Componente_Calculadora_Codigo from '../../Componentes/Componente_Calculadora_Codigo.vue';
 import Componente_Reproductor_Video from '../../Componentes/Componente_Reproductor_Video.vue';
@@ -17,6 +17,7 @@ for (const Campo of Propiedades.Campos) {
         Valores_Iniciales[Campo.Nombre] = null;
         Valores_Iniciales[`${Campo.Nombre}_quitar`] = false;
     }
+    if (Campo.Tipo === 'enlace_registro') Valores_Iniciales[`${Campo.Nombre}_regenerar`] = false;
     if (Campo.Tipo === 'unidades') {
         const Estado_Unidades = {};
         for (const Unidad of Propiedades.Opciones.Unidades_Negocio) {
@@ -27,11 +28,17 @@ for (const Campo of Propiedades.Campos) {
     }
 }
 const Formulario = useForm(Valores_Iniciales);
+const Texto_Copiado = ref(null);
+async function Copiar_Texto(Texto) {
+    try { await navigator.clipboard.writeText(Texto); } catch { return; }
+    Texto_Copiado.value = Texto;
+    setTimeout(() => { Texto_Copiado.value = null; }, 2000);
+}
 const Es_Edicion = computed(() => !!Propiedades.Id_Registro);
 const Tipo_Input_Por_Campo = { email: 'email', enlace: 'url', enlace_drive: 'url', color: 'color', telefono: 'tel', fecha: 'date', fecha_hora: 'datetime-local', contrasena: 'password' };
 const Teclado_Por_Campo = { email: 'email', enlace: 'url', enlace_drive: 'url', telefono: 'tel', numerico: 'numeric', entero: 'numeric', decimal: 'decimal' };
 const Largo_Maximo_Por_Campo = { texto: 255, nombre_persona: 120, email: 255, enlace: 500, enlace_drive: 500, telefono: 16, numerico: 20, identificador: 80, codigo: 20, entero: 9, codigo_verificacion: 64 };
-const Campos_Ancho_Completo = ['texto_largo', 'unidades', 'enlace_video', 'codigo_verificacion'];
+const Campos_Ancho_Completo = ['texto_largo', 'unidades', 'enlace_video', 'codigo_verificacion', 'enlace_registro'];
 
 // Qué se puede teclear en cada tipo de campo (el Backend vuelve a validar lo mismo)
 const Limpiadores_Por_Tipo = {
@@ -83,6 +90,7 @@ function Guardar_Registro() {
         for (const Campo of Propiedades.Campos) {
             if (Campo.Tipo === 'si_no') Datos_A_Enviar[Campo.Nombre] = Datos[Campo.Nombre] ? 1 : 0;
             if (Campo.Tipo === 'archivo' && !Datos[Campo.Nombre]) delete Datos_A_Enviar[Campo.Nombre];
+            if (Campo.Tipo === 'enlace_registro') delete Datos_A_Enviar[Campo.Nombre]; // solo se muestra
             if (Campo.Tipo === 'unidades') {
                 Datos_A_Enviar[Campo.Nombre] = Object.fromEntries(Object.entries(Datos[Campo.Nombre])
                     .map(([Id_Unidad, Unidad]) => [Id_Unidad, { ...Unidad, activa: Unidad.activa ? 1 : 0 }]));
@@ -146,6 +154,18 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
         <div v-for="Campo in Campos" v-show="Es_Campo_Visible(Campo)" :key="Campo.Nombre" :class="['field', Campos_Ancho_Completo.includes(Campo.Tipo) && $style.wide]">
             <template v-if="Campo.Tipo === 'si_no'">
                 <label class="checkbox"><input v-model="Formulario[Campo.Nombre]" type="checkbox">{{ Campo.Etiqueta }}</label>
+            </template>
+
+            <template v-else-if="Campo.Tipo === 'enlace_registro'">
+                <span class="label">{{ Campo.Etiqueta }}</span>
+                <div v-if="Formulario[Campo.Nombre]" :class="$style.copyRow">
+                    <input :value="Formulario[Campo.Nombre]" class="input mono" readonly :aria-label="Campo.Etiqueta" @focus="$event.target.select()">
+                    <button type="button" class="btn btn-secondary btn-sm" @click="Copiar_Texto(Formulario[Campo.Nombre])">
+                        <Componente_Icono :Nombre="Texto_Copiado === Formulario[Campo.Nombre] ? 'visto' : 'archivo'" :Tamano="15" />{{ Texto_Copiado === Formulario[Campo.Nombre] ? 'Copiado' : 'Copiar' }}
+                    </button>
+                </div>
+                <span v-else class="muted">Se genera al guardar la institución.</span>
+                <label v-if="Formulario[Campo.Nombre]" class="checkbox"><input v-model="Formulario[`${Campo.Nombre}_regenerar`]" type="checkbox">Generar un link nuevo (el actual deja de funcionar)</label>
             </template>
 
             <template v-else-if="Campo.Tipo === 'unidades'">
@@ -219,6 +239,8 @@ const Extensiones_Aceptadas = (Campo) => Campo.Extensiones?.split(',').map((Exte
 </template>
 
 <style module>
+.copyRow { display: flex; gap: 8px; align-items: center; }
+.copyRow .input { flex: 1; min-width: 0; font-size: 13px; }
 .back { align-self: flex-start; font-weight: 700; font-size: 14px; text-decoration: none; padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
 .savebar { position: sticky; bottom: 0; margin: 0 -24px -24px; padding: 16px 24px; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px); border-top: 1px solid var(--line); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
 .form { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); max-width: 980px; }
