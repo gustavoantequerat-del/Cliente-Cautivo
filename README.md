@@ -129,9 +129,12 @@ el aviso "Su sesión expiró" y el segundo intento funciona.
 
 ## Reportes de Research y PDFs
 
-Los PDF de Research, webinars y píldoras **se suben en el CMS** y se leen dentro del portal con el lector de PDF del
-propio navegador (sin enlaces externos ni librerías). Siempre hay un botón **"Abrir el PDF"** por si el lector
-incrustado no aparece (pasa en algunos celulares). Los registros antiguos con enlace de Drive siguen usando el visor de Google.
+En Research, webinars y píldoras el CMS pregunta el **origen del PDF**:
+
+- **Subir el archivo PDF**: se lee dentro del portal con el lector de PDF del propio navegador.
+- **Enlace de Google Drive**: compartido como "Cualquier persona con el enlace"; se lee con el visor de Google.
+
+Siempre hay un botón **"Abrir el PDF"** por si el lector incrustado no aparece (pasa en algunos celulares).
 
 En webinars y píldoras en PDF, la persona pulsa **"Marcar como leído"** para registrar su avance.
 

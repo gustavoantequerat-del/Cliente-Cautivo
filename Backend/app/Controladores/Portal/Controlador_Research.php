@@ -12,7 +12,7 @@ use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as Respuesta_Http;
 
 /**
- * Los reportes se leen en el portal con el lector de PDF del navegador (o el visor de Google si es un enlace de Drive).
+ * Los reportes se leen en el portal: archivo subido con el lector del navegador, o enlace de Drive con el visor de Google.
  */
 class Controlador_Research
 {
@@ -44,7 +44,7 @@ class Controlador_Research
 
         return Inertia::render('Portal/Pagina_Detalle_Reporte', [
             'Reporte' => $this->Formatear_Reporte($Reporte) + [
-                'Documento' => Servicio_Documentos_Pdf::Armar_Documento($Reporte->ruta_archivo, $Reporte->enlace_externo, "/research/{$Reporte->id}/documento"),
+                'Documento' => Servicio_Documentos_Pdf::Armar_Documento($Reporte->origen_documento, $Reporte->ruta_archivo, $Reporte->enlace_externo, "/research/{$Reporte->id}/documento"),
             ],
         ]);
     }
@@ -74,7 +74,7 @@ class Controlador_Research
             'Minutos_Lectura' => $Reporte->minutos_lectura,
             'Fecha' => $Reporte->fecha_publicacion?->translatedFormat('M Y'),
             'Es_Exclusivo' => (bool) $Reporte->institucion_id,
-            'Tiene_Archivo' => (bool) ($Reporte->ruta_archivo || $Reporte->enlace_externo),
+            'Tiene_Archivo' => (bool) ($Reporte->origen_documento === 'drive' ? $Reporte->enlace_externo : $Reporte->ruta_archivo),
         ];
     }
 }

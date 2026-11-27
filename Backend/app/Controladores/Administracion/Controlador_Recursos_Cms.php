@@ -259,7 +259,7 @@ class Controlador_Recursos_Cms
                     $Registro->{$Nombre} = $Peticion->boolean($Nombre);
                     break;
                 default:
-                    $Registro->{$Nombre} = $Datos[$Nombre] ?? ($Campo['Tipo'] === 'entero' ? ($Campo['Por_Defecto'] ?? null) : null);
+                    $Registro->{$Nombre} = $Datos[$Nombre] ?? (in_array($Campo['Tipo'], ['entero', 'lista']) ? ($Campo['Por_Defecto'] ?? null) : null);
             }
         }
 

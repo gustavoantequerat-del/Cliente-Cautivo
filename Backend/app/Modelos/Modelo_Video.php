@@ -19,7 +19,7 @@ class Modelo_Video extends Model
     protected $fillable = [
         'institucion_id', 'formato', 'titulo', 'descripcion', 'tema', 'expositor', 'duracion_minutos',
         'enlace_original', 'enlace_miniatura', 'fecha_programada', 'enlace_sala', 'esta_publicado',
-        'tipo_contenido', 'ruta_archivo', 'nombre_archivo', 'enlace_externo',
+        'tipo_contenido', 'origen_documento', 'ruta_archivo', 'nombre_archivo', 'enlace_externo',
     ];
 
     protected function casts(): array

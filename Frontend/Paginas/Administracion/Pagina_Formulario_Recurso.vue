@@ -68,7 +68,12 @@ const Url_Logo_En_Diseno = computed(() => {
 });
 onBeforeUnmount(() => { if (Url_Logo_Temporal) URL.revokeObjectURL(Url_Logo_Temporal); });
 // Campos que dependen de otro (ej. el PDF solo si el contenido es "PDF")
-const Es_Campo_Visible = (Campo) => !Campo.Visible_Si || Formulario[Campo.Visible_Si[0]] === Campo.Visible_Si[1];
+// Visible_Si: [campo, valor] o varias condiciones [[campo, valor], …] que deben cumplirse todas
+const Es_Campo_Visible = (Campo) => {
+    if (!Campo.Visible_Si) return true;
+    const Condiciones = Array.isArray(Campo.Visible_Si[0]) ? Campo.Visible_Si : [Campo.Visible_Si];
+    return Condiciones.every(([Nombre, Valor]) => Formulario[Nombre] === Valor);
+};
 const Texto_Rango = (Campo) => (Campo.Minimo !== undefined && Campo.Maximo !== undefined ? `${Campo.Minimo} – ${Campo.Maximo}` : undefined);
 
 function Guardar_Registro() {

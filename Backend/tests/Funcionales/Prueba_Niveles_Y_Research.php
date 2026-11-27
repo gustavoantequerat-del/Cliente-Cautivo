@@ -46,7 +46,7 @@ class Prueba_Niveles_Y_Research extends Caso_Prueba_Base
     public function El_Reporte_Se_Sube_Como_Pdf_Y_Se_Lee_En_El_Portal(): void
     {
         Storage::fake('local');
-        $this->actingAs($this->Crear_Superadmin())->post('/admin/research', ['titulo' => 'Pulse', 'tema' => 'Regulación', 'esta_publicado' => 1,
+        $this->actingAs($this->Crear_Superadmin())->post('/admin/research', ['titulo' => 'Pulse', 'tema' => 'Regulación', 'esta_publicado' => 1, 'origen_documento' => 'archivo',
             'ruta_archivo' => UploadedFile::fake()->createWithContent('pulse t3.pdf', '%PDF-1.4 contenido')])->assertRedirect('/admin/research');
         $Reporte = Modelo_Reporte_Research::where('titulo', 'Pulse')->firstOrFail();
         $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['RESEARCH']), Modelo_Usuario::Rol_Usuario_Institucional);
@@ -63,14 +63,27 @@ class Prueba_Niveles_Y_Research extends Caso_Prueba_Base
     }
 
     #[Test]
-    public function Un_Reporte_Antiguo_Con_Enlace_De_Drive_Usa_El_Visor_De_Google(): void
+    public function El_Cms_Elige_Entre_Archivo_Y_Enlace_De_Drive(): void
     {
+        $Superadmin = $this->Crear_Superadmin();
+        $Datos = ['titulo' => 'Pulse Drive', 'tema' => 'Regulación', 'esta_publicado' => 1, 'origen_documento' => 'drive'];
+        $this->actingAs($Superadmin)->post('/admin/research', $Datos)->assertSessionHasErrors('enlace_externo');
+        $this->actingAs($Superadmin)->post('/admin/research', $Datos + ['enlace_externo' => 'https://example.com/x.pdf'])->assertSessionHasErrors('enlace_externo');
+        $this->actingAs($Superadmin)->post('/admin/research', $Datos + ['enlace_externo' => 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view'])
+            ->assertRedirect('/admin/research');
+        $Reporte = Modelo_Reporte_Research::where('titulo', 'Pulse Drive')->firstOrFail();
         $Usuario = $this->Crear_Cliente($this->Crear_Institucion(['RESEARCH']));
-        $Reporte = Modelo_Reporte_Research::create(['titulo' => 'Antiguo', 'tema' => 'Regulación',
-            'enlace_externo' => 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view']);
 
         $this->actingAs($Usuario)->get("/research/{$Reporte->id}")->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina
             ->where('Reporte.Documento.Url_Visor', 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/preview'));
+
+        // Una píldora también puede usar Drive
+        $this->actingAs($Superadmin)->post('/admin/videos', ['formato' => 'pildora', 'titulo' => 'Píldora Drive', 'tipo_contenido' => 'pdf',
+            'origen_documento' => 'drive', 'esta_publicado' => 1, 'enlace_externo' => 'https://drive.google.com/file/d/1ZyXwVuTsRqPoNm/view'])
+            ->assertRedirect('/admin/videos');
+        $Pildora = Modelo_Video::where('titulo', 'Píldora Drive')->firstOrFail();
+        $this->actingAs($Usuario)->get("/academia/{$Pildora->id}")->assertInertia(fn (Pagina_Inertia $Pagina) => $Pagina
+            ->where('Video.Documento.Url_Visor', 'https://drive.google.com/file/d/1ZyXwVuTsRqPoNm/preview'));
     }
 
     #[Test]
@@ -78,7 +91,7 @@ class Prueba_Niveles_Y_Research extends Caso_Prueba_Base
     {
         Storage::fake('local');
         $this->actingAs($this->Crear_Superadmin())->post('/admin/videos', ['formato' => 'pildora', 'titulo' => 'Guía Travel Rule', 'tipo_contenido' => 'pdf',
-            'esta_publicado' => 1, 'ruta_archivo' => UploadedFile::fake()->createWithContent('guia.pdf', '%PDF-1.4 guía')])->assertRedirect('/admin/videos');
+            'origen_documento' => 'archivo', 'esta_publicado' => 1, 'ruta_archivo' => UploadedFile::fake()->createWithContent('guia.pdf', '%PDF-1.4 guía')])->assertRedirect('/admin/videos');
         $Pildora = Modelo_Video::where('titulo', 'Guía Travel Rule')->firstOrFail();
         $Usuario = $this->Crear_Cliente(null, Modelo_Usuario::Rol_Usuario_Institucional);
 
